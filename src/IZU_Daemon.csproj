@@ -5,10 +5,22 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>$(MSBuildProjectName.Replace("_Daemon", ""))</RootNamespace>
+    <AssemblyName>$(MSBuildProjectName.Replace("_Daemon", "-Service"))</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SampleData\sample.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="SampleData\sample.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.5" />
+    <PackageReference Include="TinyCsvParser" Version="2.7.0" />
     <PackageReference Include="Topshelf" Version="4.3.0" />
   </ItemGroup>
 

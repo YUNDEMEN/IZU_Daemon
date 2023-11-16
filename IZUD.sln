@@ -3,12 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZU_Daemon", "scr\IZU_Daemon.csproj", "{38915BB5-B505-4FD8-853F-F78C09852E98}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
-		readme.txt = readme.txt
+		readme-IZU_Daemon.txt = readme-IZU_Daemon.txt
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZU_Daemon", "src\IZU_Daemon.csproj", "{0FFE43B4-7C65-4C16-949E-D2CCF343466D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,10 +16,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{38915BB5-B505-4FD8-853F-F78C09852E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{38915BB5-B505-4FD8-853F-F78C09852E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{38915BB5-B505-4FD8-853F-F78C09852E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{38915BB5-B505-4FD8-853F-F78C09852E98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FFE43B4-7C65-4C16-949E-D2CCF343466D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FFE43B4-7C65-4C16-949E-D2CCF343466D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FFE43B4-7C65-4C16-949E-D2CCF343466D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FFE43B4-7C65-4C16-949E-D2CCF343466D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
