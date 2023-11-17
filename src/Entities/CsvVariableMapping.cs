@@ -12,8 +12,9 @@ namespace IZU.Entities
 			MapProperty(1, x => x.DeviceName);
 			MapProperty(2, x => x.FunctionType, new FunctionTypeConverter());
 			MapProperty(3, x => x.Name);
-			MapProperty(4, x => x.VariableType, new VariableTypeConverter());
-			MapProperty(5, x => x.Description);
+			MapProperty(4, x => x.Description);
+			MapProperty(5, x => x.VariableType, new VariableTypeConverter());
+			MapProperty(6, x => x.Disabled, new DisabledConverter());
 		}
 	}
 	class FunctionTypeConverter : ITypeConverter<FunctionTypes>
@@ -59,6 +60,16 @@ namespace IZU.Entities
 					result = VariableTypes.NONE;
 					break;
 			}
+			return true;
+		}
+	}
+	class DisabledConverter : ITypeConverter<bool>
+	{
+		public Type TargetType => typeof(bool);
+
+		public bool TryConvert(string value, out bool result)
+		{
+			result = value?.Trim() == "1" ? true : false;
 			return true;
 		}
 	}

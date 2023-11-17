@@ -2,8 +2,30 @@
 {
 	public class IZUConfig
 	{
-		public string SampleFile { get; set; } = "SampleData\\sample.csv";
+		/// <summary>
+		/// appsettings.json 配置节名称
+		/// </summary>
+		public const string KEY = "IZU";
+		/// <summary>
+		/// NLog 配置文件
+		/// </summary>
+		public const string NlogConfig = "nlog.config";
+		/// <summary>
+		/// 此服务会部署在多太电脑上
+		/// 表示从API获取的服务名称
+		/// </summary>
 		public string Name { get; set; } = string.Empty;
+		/// <summary>
+		/// 服务的本地IP地址
+		/// </summary>
 		public string Server { get; set; } = "127.0.0.1";
+		/// <summary>
+		/// 测试数据文件
+		/// </summary>
+		public string SampleFiles { get; set; } = "SampleData";
+		/// <summary>
+		/// 变量表文件夹
+		/// </summary>
+		public string DeviceFiles { get; set; } = "DeviceTable";
 	}
 }

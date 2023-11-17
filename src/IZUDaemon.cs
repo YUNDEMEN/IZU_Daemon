@@ -1,4 +1,5 @@
-﻿using IZU.Interfaces;
+﻿using IZU.Entities;
+using IZU.Interfaces;
 using IZU.Service;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using NLog.Extensions.Logging;
@@ -11,7 +12,12 @@ namespace IZU
 		private IIZUService? serviceInstance;
 		public IZUDaemon()
 		{
-			_ = Task.Factory.StartNew(() =>
+			
+		}
+
+		public bool Start(HostControl hostControl)
+		{
+			Task webhostTask = Task.Factory.StartNew(() =>
 			{
 				var builder = WebApplication.CreateBuilder();
 				if (!File.Exists("nlog.config"))
@@ -21,21 +27,17 @@ namespace IZU
 				}
 				builder.Logging.AddNLog("nlog.config");
 				builder.Services.AddControllers();
-				builder.Services.AddSingleton<IIZUConfigService, IZUConfigService>();
+				builder.Services.Configure<IZUConfig>(builder.Configuration.GetSection(IZUConfig.KEY));
 				builder.Services.AddSingleton<IIZUService, IZUService>();
 				builder.Services.AddSingleton<IDataPoolService, DataPoolService>();
 				var app = builder.Build();
 				serviceInstance = app.Services.GetService<IIZUService>();
+				serviceInstance?.Start();
 				app.MapGet("/", () => serviceInstance?.ServiceRuntime);
 				//app.UseAuthorization();
 				app.MapControllers();
 				app.Run();
 			});
-		}
-
-		public bool Start(HostControl hostControl)
-		{
-			serviceInstance?.Start();
 			return true;
 		}
 
