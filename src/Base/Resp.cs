@@ -10,7 +10,7 @@
 			status = 0; error = string.Empty; data = null;
 		}
 
-		public static WonderResponse Create(object? data)
+		public static WonderResponse Create(object data)
 		{
 			return new WonderResponse
 			{

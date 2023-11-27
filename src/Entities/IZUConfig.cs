@@ -27,5 +27,13 @@
 		/// 变量表文件夹
 		/// </summary>
 		public string DeviceFiles { get; set; } = "DeviceTable";
+		/// <summary>
+		/// 从设备读取数据刷新时间
+		/// </summary>
+		public int RefreshMillionSeconds { get; set; } = 500;
+		/// <summary>
+		/// 服务灾后重启时间
+		/// </summary>
+		public int RecoverySeconds { get; set; } = 10;
 	}
 }

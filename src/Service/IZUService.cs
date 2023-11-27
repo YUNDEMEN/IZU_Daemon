@@ -1,40 +1,43 @@
-﻿using IZU.Controllers;
-using IZU.Entities;
+﻿using IZU.Entities;
 using IZU.Interfaces;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.Extensions.Options;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Xml.Linq;
 
 namespace IZU.Service
 {
-    public class IZUService : IIZUService
+	public class IZUService : IIZUService
     {
         public ServiceRuntime ServiceRuntime { get; }
         private readonly ILogger<IZUService> _logger;
         private readonly Timer _timer;
         private readonly IZUConfig _config;
-		private IDataPoolService _dataPool;
+		private IS7NetService _s7netService;
 
-        public IZUService(ILogger<IZUService> logger, IOptions<IZUConfig> cfg, IDataPoolService dataPool)
+        public IZUService(ILogger<IZUService> logger, IOptions<IZUConfig> cfg, IS7NetService s7netService)
 		{
 			_logger = logger;
             _config = cfg.Value;
-			_dataPool = dataPool;
+			_s7netService = s7netService;
 			_timer = new Timer(Callback);
 			ServiceRuntime = new ServiceRuntime
             {
                 Name= _config.Name,
-				IP = _config.Server
+				IP = _config.Server,
+				RecoverySeconds = $"{_config.RecoverySeconds} s",
+                RefreshInterval = $"{_config.RefreshMillionSeconds.ToString()} ms"
             };
-			logger.LogInformation("IZU Service Initialized");
+			logger.LogInformation("IZU service initialized");
 		}
-		public void Start()
+		public async Task StartAsync()
 		{
-			_logger.LogInformation("---------------IZU Service Begin Start---------------");
+			_logger.LogInformation("---------------IZU service starting---------------");
 			_timer.Change(1000, 1000);
-			_dataPool.LoadDevices();
-			_logger.LogInformation("---------------IZU Service End Start---------------");
+
+            await _s7netService.StartAsync();
+
+			//ServiceRuntime.
+
+			_logger.LogInformation("---------------IZU service started---------------");
 		}
 
 		void Callback(object? state)
@@ -48,19 +51,6 @@ namespace IZU.Service
         {
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
-
-        public List<Device> GetSampleDevices()
-        {
-            return _dataPool.Samples;
-        }
-        public List<Device> GetDevices()
-        {
-            return _dataPool.GetAllDevices();
-        }
-		public Device? GetDevice(string name)
-		{
-			return _dataPool.GetDevice(name);
-		}
 
 	}
 }

@@ -5,10 +5,7 @@ namespace IZU.Interfaces
     public interface IIZUService
     {   
 		ServiceRuntime ServiceRuntime { get; }
-        void Start();
+		Task StartAsync();
         void Stop();
-		Device? GetDevice(string name);
-		List<Device> GetDevices(); 
-        List<Device> GetSampleDevices();
 	}
 }

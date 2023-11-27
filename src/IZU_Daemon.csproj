@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -7,6 +7,10 @@
     <RootNamespace>$(MSBuildProjectName.Replace("_Daemon", ""))</RootNamespace>
     <AssemblyName>$(MSBuildProjectName.Replace("_Daemon", "-Service"))</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Sharp7.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="SampleData\sample.csv" />
