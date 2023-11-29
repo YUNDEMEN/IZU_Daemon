@@ -24,7 +24,7 @@ namespace IZU.Service
 		public async Task StartAsync()
 		{
 			LoadDeviceTable();
-			await Task.Delay(1);
+			await Task.Delay(10);
 		}
 		void LoadDeviceTable()
 		{

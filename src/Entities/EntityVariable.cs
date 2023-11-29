@@ -42,17 +42,17 @@ namespace IZU.Entities
 			get => _value;
 			set
 			{
-				if(_value?.ToString() != value?.ToString())
+				if (_value?.ToString() != value?.ToString())
 				{
 					/*
 					 通过将object值转化为string对比其是否变更
 					 如果变更则保存变更信息到数据存储 
 					 每次重启服务都会记录一次变更信息
 					 */
+					//string header =                                     "设备名称,       设备类型,        地址,      旧值,    新值,      变量类型,          描述,            记录时间";
+					TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{_value},{value},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 					_value = value;
-					TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{_value},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 				}
-				//TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{_value},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 				LastRefreshTime = DateTime.Now;
 			}
 		}

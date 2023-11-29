@@ -1,10 +1,7 @@
 ﻿using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.AspNetCore.Hosting.Server;
 using S7.Net;
 using S7.Net.Types;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net;
 
 namespace IZU.Base
@@ -79,7 +76,7 @@ namespace IZU.Base
 			}
 		}
 
-		public PlcServer(string deviceName, string ip, string heartbeatAddress,int refreshTimeInterval)
+		public PlcServer(string deviceName, string ip, int refreshTimeInterval, string heartbeatAddress)
 		{
 			_deviceName = deviceName;
 			if (IPAddress.TryParse(ip, out _serverIP))
@@ -90,7 +87,7 @@ namespace IZU.Base
 			else
 				throw new FormatException($"{_deviceName} server IP address format is Incorrect: {ip}");
 
-			
+
 			_heartbeat_address = S7.Net.Types.DataItem.FromAddress(heartbeatAddress);
 			_heart_beat_interval_millionsec = refreshTimeInterval;
 			_dataItems = new();
@@ -99,7 +96,6 @@ namespace IZU.Base
 			{
 				while (true)
 				{
-					//LogDebug("{0} server {1} heartbeat detecting begin", _deviceName, _serverIP?.ToString());
 					if (_serviceStatus == TaskServiceStatus.Connecting)
 					{
 						try
@@ -107,12 +103,12 @@ namespace IZU.Base
 							await _server.OpenAsync();
 							_serviceStatus = TaskServiceStatus.Connected;
 							LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
-							Console.WriteLine("heartbeat detecting status:  normal");
+							//Console.WriteLine("heartbeat detecting status:  normal");
 						}
 						catch (Exception ex)
 						{
 							LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
-							Console.WriteLine("heartbeat detecting status:  disconnected");
+							//Console.WriteLine("heartbeat detecting status:  disconnected");
 						}
 					}
 					else if (_serviceStatus == TaskServiceStatus.Connected)
@@ -175,6 +171,10 @@ namespace IZU.Base
 			{
 				_serviceStatus = TaskServiceStatus.Connecting;
 				_serverReconnectTask.Start();
+			}
+			else
+			{
+				LogWarn($"heart beat detect time interval is too short, please reconfig it larger than 20 ms");
 			}
 		}
 

@@ -2,6 +2,8 @@ using IZU.Base;
 using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -16,6 +18,19 @@ namespace IZU.Controllers
 			: base(cfg, service, s7netService)
 		{
 			_logger = logger;
+		}
+
+		//[Authorize]
+		[HttpPost("entry")]
+		public object Connect([FromQuery]Guid? sid)
+		{
+			if (sid == null) sid = Guid.NewGuid();
+			//var token = $"{Guid.NewGuid()}{Guid.NewGuid()}{Guid.NewGuid()}{Guid.NewGuid()}".Replace("-", "");
+			return WonderResponse.Create(new
+			{
+				server = $"ws://{_config.Server}:8000/ws?token={sid:N}",
+				sessionid = sid,
+			});
 		}
 
 		[HttpGet]

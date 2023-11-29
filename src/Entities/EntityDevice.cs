@@ -1,6 +1,7 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
 using System.Data;
+using System.ServiceProcess;
 
 namespace IZU.Entities
 {
@@ -11,6 +12,10 @@ namespace IZU.Entities
 		/// 设备名称
 		/// </summary>
 		public string Name { get; set; }
+		/// <summary>
+		/// 设备类型
+		/// </summary>
+		public DeviceTypes DeviceType { get; set; }
 		/// <summary>
 		/// 从设备读取数据刷新时间 (million seconds)
 		/// </summary>
@@ -35,7 +40,9 @@ namespace IZU.Entities
 				//	throw new RowNotInTableException($"Server IP address missing!");
 				LogWarn($"server IP address is not found in {name} ({FromFile})! default IP address is 127.0.0.1");
 
-			Server = new PlcServer(Name, item == null ? "127.0.0.1" : item.ServerIP, GetActionType(ActionTypes.HEARTBEAT), refreshTimeInterval);
+			DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
+
+			Server = new PlcServer(Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, GetActionType(ActionTypes.HEARTBEAT));
 			Server.Config(Variables);
 		}
 		protected string GetActionType(ActionTypes actionType)

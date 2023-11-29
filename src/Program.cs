@@ -1,5 +1,5 @@
 using IZU;
-using System.Text.Json.Nodes;
+using Newtonsoft.Json.Linq;
 using Topshelf;
 
 DirectoryInfo dir = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
@@ -10,26 +10,17 @@ AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledException
 	LogOnce($"{AppDomain.CurrentDomain.BaseDirectory}logs\\{DateTime.Now:yyyyMMddHHmmss}-crash.log", e.ExceptionObject?.ToString());
 };
 
-
-
 if (!File.Exists("appsettings.json"))
 {
 	LogOnce($"{dir.FullName}\\startinfo.log", "config file [appsettings.json] missing!");
 	return;
 }
+
 string json=File.ReadAllText("appsettings.json");
 try
 {
-	JsonNode? jNode = JsonNode.Parse(json,
-		new JsonNodeOptions { PropertyNameCaseInsensitive = false },
-		new System.Text.Json.JsonDocumentOptions { AllowTrailingCommas = true });
-
-	if (jNode == null)
-	{
-		LogOnce($"{dir.FullName}\\startinfo.log", "load config file [appsettings.json] failed!");
-		return;
-	}
-	var izuNode = jNode["izu"];
+	JObject configJson = JObject.Parse(json);
+	var izuNode = configJson["izu"];
 	if (izuNode == null)
 	{
 		LogOnce($"{dir.FullName}\\startinfo.log", "service node not found!");
@@ -41,7 +32,7 @@ try
 		LogOnce($"{dir.FullName}\\startinfo.log", "recoverySecondsNode not found!");
 		return;
 	}
-	recoverySeconds = recoverySecondsNode.GetValue<int>();
+	recoverySeconds = recoverySecondsNode.Value<int>();
 }
 catch (Exception ex)
 {

@@ -40,6 +40,7 @@ namespace IZU
 				app.MapGet("/", () => serviceInstance?.ServiceRuntime);
 				//app.UseAuthorization();
 				app.MapControllers();
+				app.UseBroadcastServer(serviceInstance);
 				app.Run();
 			});
 			return true;
