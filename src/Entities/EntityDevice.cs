@@ -5,7 +5,7 @@ using System.ServiceProcess;
 
 namespace IZU.Entities
 {
-	public class DeviceEntity : NLogProvider
+	public class DeviceEntity : NLogProvider, IDisposable
 	{
 		public readonly string FromFile;
 		/// <summary>
@@ -28,7 +28,7 @@ namespace IZU.Entities
 		/// 变量表
 		/// </summary>
 		public List<VariableEntity> Variables { get; set; }
-		public DeviceEntity(string file, string name,int refreshTimeInterval, List<VariableEntity>? variables = null)
+		public DeviceEntity(string file, string name, int refreshTimeInterval, List<VariableEntity>? variables = null)
 		{
 			FromFile = file;
 			Name = name.ToLower();
@@ -52,7 +52,20 @@ namespace IZU.Entities
 				throw new Exception($"{actionType} action is not marked in {Name}");
 			return v.Address;
 		}
-		public static DeviceEntity DummyDevice { get { return new DeviceEntity("sampledata", "dummy", 0); } }
+
+		public void Dispose()
+		{
+			DeviceType = DeviceTypes.NONE;
+			Variables.Clear();
+			Server?.Stop();
+		}
+
+		public void Refresh(int  refreshTimeInterval)
+		{
+			PullDataFromDeviceTimeInterval = refreshTimeInterval;
+        }
+
+        public static DeviceEntity DummyDevice { get { return new DeviceEntity("sampledata", "dummy", 0); } }
 	}
 
 }

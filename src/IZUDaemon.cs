@@ -3,6 +3,7 @@ using IZU.Entities;
 using IZU.Interfaces;
 using IZU.Service;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using NLog.Extensions.Logging;
 using Topshelf;
 
@@ -30,8 +31,16 @@ namespace IZU
 				{
 					options.JsonSerializerOptions.Converters.Add(new DatetimeJsonConverter("yyyy-MM-dd HH:mm:ss"));
 				});
+				builder.Configuration.AddJsonFile("appsettings.json", false, true);
 				builder.Services.Configure<IZUConfig>(builder.Configuration.GetSection(IZUConfig.KEY));
-				builder.Services.AddSingleton<IIZUService, IZUService>();
+                //builder.Services.BuildServiceProvider()
+                //.GetRequiredService<IOptionsMonitor<IZUConfig>>()
+                //.OnChange((profile) =>
+                //{
+
+                //});
+
+                builder.Services.AddSingleton<IIZUService, IZUService>();
 				builder.Services.AddSingleton<IS7NetService, S7NetService>();
 
 				var app = builder.Build();

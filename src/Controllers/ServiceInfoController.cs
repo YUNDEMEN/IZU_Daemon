@@ -5,7 +5,9 @@ using IZU.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Xml.Linq;
 
 namespace IZU.Controllers
 {
@@ -14,53 +16,39 @@ namespace IZU.Controllers
 	public class ServiceInfoController : IZUControllerBase
 	{
 		private readonly ILogger<ServiceInfoController> _logger;
-		public ServiceInfoController(ILogger<ServiceInfoController> logger, IOptions<IZUConfig> cfg, IIZUService service, IS7NetService s7netService)
+        IServiceProvider _serviceProvider { get; }
+        public ServiceInfoController(ILogger<ServiceInfoController> logger, IOptionsSnapshot<IZUConfig> cfg, IIZUService service, IS7NetService s7netService,IServiceProvider serviceProvider)
 			: base(cfg, service, s7netService)
 		{
 			_logger = logger;
-		}
+			_serviceProvider = serviceProvider;
+        }
 
 		//[Authorize]
 		[HttpPost("entry")]
-		public object Connect([FromQuery]Guid? sid)
+		public object Connect([FromQuery]Guid? id)
 		{
-			if (sid == null) sid = Guid.NewGuid();
+			if (id == null) id = Guid.NewGuid();
 			//var token = $"{Guid.NewGuid()}{Guid.NewGuid()}{Guid.NewGuid()}{Guid.NewGuid()}".Replace("-", "");
 			return WonderResponse.Create(new
 			{
-				server = $"ws://{_config.Server}:8000/ws?token={sid:N}",
-				sessionid = sid,
+				server = $"ws://{_config.Server}:8000/ws?token={id:N}",
+				sessionid = id,
 			});
 		}
 
 		[HttpGet]
 		public WonderResponse Get()
-		{
-#if false
-			if (izuS7 == null)
-				izuS7 = new IZUS7(_logger, "169.254.10.100");
-			if(!izuS7.Connected())
-			{
-				await izuS7.Init();
-			}
-
-			bool result = await izuS7.Init();
-			if(result)
-			{
-				bool? valBool = await izuS7.GetBool("DB1.DBX0.0");
-				ushort? valUshort = await izuS7.GetUShort("DB1.DBW2.0");
-				float? valFloat = await izuS7.GetFloat("DB1.DBD4.0");
-				izuS7.Getm();
-				await izuS7.WriteBool("DB1.DBX0.0", true);
-			}
-#endif
-			return WonderResponse.Create(_izuService.ServiceRuntime.Set(DateTime.Now));
+        {
+            _izuService.RefreshConfig(_config);
+            _izuService.ServiceRuntime.Set(_config);
+            return WonderResponse.Create(_izuService.ServiceRuntime.Set(DateTime.Now));
 		}
 
 		[HttpGet("sample")]
-		public WonderResponse GetSampleDevices()
+        public WonderResponse GetSampleDevices()
 		{
-			return WonderResponse.Create(_s7netService.Samples);
+            return WonderResponse.Create(_s7netService.Samples);
 		}
 		[HttpGet("devices")]
 		public WonderResponse GetDevices()
@@ -81,13 +69,57 @@ namespace IZU.Controllers
 			}
 		}
 
+        [HttpGet("reload")]
+        public async Task<WonderResponse> ReloadDevicesAsync()
+        {
+			try
+            {
+                _s7netService.Stop();
+                await _s7netService.StartAsync();
+                return WonderResponse.Create("已重载变量表");
+            }
+			catch (Exception ex)
+            {
+                return WonderResponse.Error(1, $"重载变量表失败: {ex.Message}");
+            }
+        }
 
-		#region hid Control
+        [HttpGet("upload")]
+        public async Task<WonderResponse> UploadInfoAsync()
+        {
+            try
+            {
+                await _izuService.UploadIZUInfo2DatabaseAsync();
+                return WonderResponse.Create("已上传变量表");
+            }
+            catch (Exception ex)
+            {
+                return WonderResponse.Error(1, $"上传变量表失败: {ex.Message}");
+            }
+        }
+
+        [HttpGet("refresh")]
+        public WonderResponse RefreshConfig()
+        {
+            try
+            {
+				_izuService.RefreshConfig(_config);
+                return WonderResponse.Create("已上传变量表");
+            }
+            catch (Exception ex)
+            {
+                return WonderResponse.Error(1, $"上传变量表失败: {ex.Message}");
+            }
+        }
+
+
+
+        #region hid Control
 
 #if ENABLE_AUTH
 		[Authorize]
 #endif
-		[HttpGet("device/hid")]
+        [HttpGet("device/hid")]
 		public WonderResponse DeviceHID([FromQuery] string name)
 		{
 			string error = string.Empty;

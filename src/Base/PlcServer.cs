@@ -59,8 +59,26 @@ namespace IZU.Base
 		private Task _serverReconnectTask;
 		private readonly string _deviceName;
 		private List<DataItem> _dataItems;
-		private IDictionary<int, VariableEntity> hashes = new Dictionary<int, VariableEntity>();
+		private IDictionary<int, VariableEntity> _hashes = new Dictionary<int, VariableEntity>();
 
+        private bool _stopServer;
+		internal bool StopServer
+		{
+			get{ return _stopServer;		}
+			private set
+            {
+                _stopServer = value;
+                if (value)
+				{
+					_serverReconnectTask.ContinueWith((task) => { }).Wait();
+                }
+				else
+				{
+                    _serviceStatus = TaskServiceStatus.Connecting;
+                    _serverReconnectTask.Start();
+                }
+			}
+		}
 		public string? IP { get { return _serverIP?.ToString(); } }
 		public string ConnectionStatus
 		{
@@ -96,6 +114,7 @@ namespace IZU.Base
 			{
 				while (true)
 				{
+					if (_stopServer) break;
 					if (_serviceStatus == TaskServiceStatus.Connecting)
 					{
 						try
@@ -122,7 +141,7 @@ namespace IZU.Base
 								_heartbeat_address.VarType,
 								_heartbeat_address.Count);
 							_ = await _server.ReadMultipleVarsAsync(_dataItems);
-							_dataItems.ForEach(t => hashes[t.GetHashCode()].Value = t.Value);
+							_dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
 							//LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
 						}
 						catch (Exception ex)
@@ -136,6 +155,16 @@ namespace IZU.Base
 				}
 			}, TaskCreationOptions.LongRunning);
 		}
+
+		public void Stop()
+        {
+            StopServer = true;           
+			_server.Close();
+			_hashes.Clear();
+            _dataItems.Clear();
+			_serviceStatus = TaskServiceStatus.NotStarted;
+			_serverReconnectTask.Dispose();
+        }
 
 
 		public void Config(List<VariableEntity> variableEntities)
@@ -160,7 +189,7 @@ namespace IZU.Base
 						BitAdr = fake.BitAdr
 					};
 					_dataItems.Add(newItem);
-					hashes[newItem.GetHashCode()] = variable;
+					_hashes[newItem.GetHashCode()] = variable;
 				}
 				catch (Exception ex)
 				{
@@ -169,16 +198,18 @@ namespace IZU.Base
 			}
 			if (_heart_beat_interval_millionsec > 20)
 			{
-				_serviceStatus = TaskServiceStatus.Connecting;
-				_serverReconnectTask.Start();
-			}
+                StopServer = false;
+            }
 			else
 			{
 				LogWarn($"heart beat detect time interval is too short, please reconfig it larger than 20 ms");
 			}
 		}
 
-
+		public void Refresh(int refreshTimeInterval)
+		{
+			_heart_beat_interval_millionsec = refreshTimeInterval;
+        }
 		public async Task<string> WriteBool(string address, bool boolValue)
 		{
 			if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)

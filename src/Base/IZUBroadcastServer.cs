@@ -25,12 +25,10 @@ namespace IZU.Base
 	{
 		const int BufferSize = 4096;
 		IIZUService _izuService { get; }
-		private IZUConfig _config { get; }
 		ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
 		public IZUBroadcastServer(IIZUService izuService)
 		{
 			_izuService = izuService;
-			_config = izuService.Config;
 
 			Task.Factory.StartNew(async () => {
 				while (true)

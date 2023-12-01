@@ -12,7 +12,7 @@ namespace IZU.Base
 		protected readonly IZUConfig _config;
 		protected readonly IIZUService _izuService;
 		protected readonly IS7NetService _s7netService;
-		public IZUControllerBase(IOptions<IZUConfig> cfg, IIZUService service, IS7NetService s7netService)
+		public IZUControllerBase(IOptionsSnapshot<IZUConfig> cfg, IIZUService service, IS7NetService s7netService)
 		{
 			_config = cfg.Value;
 			_izuService = service;
