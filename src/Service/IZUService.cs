@@ -13,7 +13,7 @@ namespace IZU.Service
 		private readonly Timer _timer;
 		public IS7NetService S7netService { get; }
 
-		public IZUService(ILogger<IZUService> logger, IOptionsSnapshot<IZUConfig> cfg, IS7NetService s7netService)
+		public IZUService(ILogger<IZUService> logger, IOptions<IZUConfig> cfg, IS7NetService s7netService)
 		{
 			_logger = logger;
 			_config = cfg.Value;

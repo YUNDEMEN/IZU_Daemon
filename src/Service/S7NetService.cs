@@ -16,7 +16,7 @@ namespace IZU.Service
 		private readonly ILogger<S7NetService> _logger;
 		//private readonly IIZUService _izuService;
 
-		public S7NetService(ILogger<S7NetService> logger, IOptionsSnapshot<IZUConfig> cfg)
+		public S7NetService(ILogger<S7NetService> logger, IOptions<IZUConfig> cfg)
         {
             _logger = logger;
 			_config = cfg.Value;
@@ -78,7 +78,6 @@ namespace IZU.Service
             }
             _cDic.Clear();
         }
-
 
         public List<string> GetAllDeviceNames()
         {

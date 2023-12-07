@@ -42,7 +42,10 @@ namespace IZU.Entities
 
 			DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
 
-			Server = new PlcServer(Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, GetActionType(ActionTypes.HEARTBEAT));
+			Server = new PlcServer(Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, 
+				GetActionType(ActionTypes.HEARTBEAT), 
+				GetActionType(ActionTypes.SENDBACK),
+				GetActionType(ActionTypes.ONLINE));
 			Server.Config(Variables);
 		}
 		protected string GetActionType(ActionTypes actionType)

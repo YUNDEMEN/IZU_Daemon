@@ -49,15 +49,18 @@ namespace IZU.Base
 	public class PlcServer : NLogProvider, IPlcServer
 	{
 		private readonly S7.Net.Types.DataItem _heartbeat_address;
-		private int _heart_beat_interval_millionsec = 100;
+        private readonly S7.Net.Types.DataItem _sendback_address;
+        private readonly S7.Net.Types.DataItem _online_address;
+        private int _heart_beat_interval_millionsec = 100;
 
 		private TaskServiceStatus _serviceStatus;
 		//private CancellationTokenSource cancelConnect = new CancellationTokenSource();
 
 		private readonly IPAddress? _serverIP;
 		private Plc _server;
-		private Task _serverReconnectTask;
-		private readonly string _deviceName;
+		private Task _serverReadTask;
+        private Task _serverHeartbeatTask;
+        private readonly string _deviceName;
 		private List<DataItem> _dataItems;
 		private IDictionary<int, VariableEntity> _hashes = new Dictionary<int, VariableEntity>();
 
@@ -70,12 +73,13 @@ namespace IZU.Base
                 _stopServer = value;
                 if (value)
 				{
-					_serverReconnectTask.ContinueWith((task) => { }).Wait();
+					_serverReadTask.ContinueWith((task) => { }).Wait();
                 }
 				else
 				{
                     _serviceStatus = TaskServiceStatus.Connecting;
-                    _serverReconnectTask.Start();
+					_serverHeartbeatTask.Start();
+                    _serverReadTask.Start();
                 }
 			}
 		}
@@ -94,7 +98,10 @@ namespace IZU.Base
 			}
 		}
 
-		public PlcServer(string deviceName, string ip, int refreshTimeInterval, string heartbeatAddress)
+		public PlcServer(string deviceName, string ip, int refreshTimeInterval, 
+			string heartbeatAddress,
+            string sendbackAddress,
+            string onlineAddress)
 		{
 			_deviceName = deviceName;
 			if (IPAddress.TryParse(ip, out _serverIP))
@@ -107,46 +114,107 @@ namespace IZU.Base
 
 
 			_heartbeat_address = S7.Net.Types.DataItem.FromAddress(heartbeatAddress);
-			_heart_beat_interval_millionsec = refreshTimeInterval;
+            _sendback_address = S7.Net.Types.DataItem.FromAddress(sendbackAddress);
+			_sendback_address.Value = false;
+            _online_address = S7.Net.Types.DataItem.FromAddress(onlineAddress);
+            _online_address.Value = false;
+
+            _heart_beat_interval_millionsec = refreshTimeInterval;
 			_dataItems = new();
 
-			_serverReconnectTask = new Task(async () =>
+            
+            _serverHeartbeatTask= new Task(async () =>
+            {
+                while (true)
+                {
+                    if (_stopServer) break;
+                    if (_serviceStatus == TaskServiceStatus.Connecting)
+                    {
+                        try
+                        {
+                            await _server.OpenAsync();
+                            _serviceStatus = TaskServiceStatus.Connected;
+                            LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                            //Console.WriteLine("heartbeat detecting status:  normal");
+                        }
+                        catch (Exception ex)
+                        {
+                            LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                            //Console.WriteLine("heartbeat detecting status:  disconnected");
+                        }
+                    }
+                    else if (_serviceStatus == TaskServiceStatus.Connected)
+                    {
+                        try
+                        {
+							_online_address.Value = true;
+                            await _server.WriteAsync(_online_address);
+							//先写回
+							_sendback_address.Value = ((bool)_sendback_address.Value) != true;
+                            await _server.WriteAsync(_sendback_address);
+							//再读取
+                            var result = await _server.ReadAsync(
+                                _heartbeat_address.DataType,
+                                _heartbeat_address.DB,
+                                _heartbeat_address.StartByteAdr,
+                                _heartbeat_address.VarType,
+                                _heartbeat_address.Count);
+
+                            Console.Write(" {0} ", result); 
+							_serviceStatus = TaskServiceStatus.Connected;
+                            //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            _serviceStatus = TaskServiceStatus.Connecting;
+                            //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                        }
+                    }
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
+                }
+            }, TaskCreationOptions.LongRunning);
+			
+			//只负责读取数据
+            _serverReadTask = new Task(async () =>
 			{
 				while (true)
 				{
 					if (_stopServer) break;
-					if (_serviceStatus == TaskServiceStatus.Connecting)
+					//if (_serviceStatus == TaskServiceStatus.Connecting)
+					//{
+					//	try
+					//	{
+					//		await _server.OpenAsync();
+					//		_serviceStatus = TaskServiceStatus.Connected;
+					//		LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+					//		//Console.WriteLine("heartbeat detecting status:  normal");
+					//	}
+					//	catch (Exception ex)
+					//	{
+					//		LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+					//		//Console.WriteLine("heartbeat detecting status:  disconnected");
+					//	}
+					//}
+					//else 
+					if (_serviceStatus == TaskServiceStatus.Connected)
 					{
 						try
 						{
-							await _server.OpenAsync();
-							_serviceStatus = TaskServiceStatus.Connected;
-							LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
-							//Console.WriteLine("heartbeat detecting status:  normal");
-						}
-						catch (Exception ex)
-						{
-							LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
-							//Console.WriteLine("heartbeat detecting status:  disconnected");
-						}
-					}
-					else if (_serviceStatus == TaskServiceStatus.Connected)
-					{
-						try
-						{
-							_ = await _server.ReadAsync(
-								_heartbeat_address.DataType,
-								_heartbeat_address.DB,
-								_heartbeat_address.StartByteAdr,
-								_heartbeat_address.VarType,
-								_heartbeat_address.Count);
+							//var result = await _server.ReadAsync(
+							//	_heartbeat_address.DataType,
+							//	_heartbeat_address.DB,
+							//	_heartbeat_address.StartByteAdr,
+							//	_heartbeat_address.VarType,
+							//	_heartbeat_address.Count);
+							//Console.Write(" {0} ", result);
 							_ = await _server.ReadMultipleVarsAsync(_dataItems);
 							_dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
 							//LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
 						}
 						catch (Exception ex)
 						{
-							_serviceStatus = TaskServiceStatus.Connecting;
+							//_serviceStatus = TaskServiceStatus.Connecting;
 							//LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
 						}
 					}
@@ -154,16 +222,17 @@ namespace IZU.Base
 					await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
 				}
 			}, TaskCreationOptions.LongRunning);
-		}
 
-		public void Stop()
+        }
+
+        public void Stop()
         {
-            StopServer = true;           
+            StopServer = true;
 			_server.Close();
 			_hashes.Clear();
             _dataItems.Clear();
 			_serviceStatus = TaskServiceStatus.NotStarted;
-			_serverReconnectTask.Dispose();
+			_serverReadTask.Dispose();
         }
 
 

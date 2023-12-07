@@ -81,15 +81,17 @@
 	public enum ActionTypes
 	{
 		NONE,
-		HEARTBEAT,
-		START,
+        HEARTBEAT,
+        SENDBACK,
+        START,
 		STOP,
 		EMERG,
 		RESET,
 		POWEROFF,
 		OPEN,
-		CLOSE
-	}
+		CLOSE, 
+		ONLINE
+    }
 
 	public enum TaskServiceStatus
 	{
