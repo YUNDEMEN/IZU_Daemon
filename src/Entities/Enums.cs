@@ -74,6 +74,7 @@
 	public enum DeviceTypes
 	{
 		NONE,
+		IZU,
 		HID,
 		AUTODOOR,
 		FIREDOOR
@@ -90,7 +91,8 @@
 		POWEROFF,
 		OPEN,
 		CLOSE, 
-		ONLINE
+		ONLINE,
+        ONLINESTATE
     }
 
 	public enum TaskServiceStatus

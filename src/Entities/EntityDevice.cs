@@ -45,7 +45,8 @@ namespace IZU.Entities
 			Server = new PlcServer(Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, 
 				GetActionType(ActionTypes.HEARTBEAT), 
 				GetActionType(ActionTypes.SENDBACK),
-				GetActionType(ActionTypes.ONLINE));
+				GetActionType(ActionTypes.ONLINE),
+				GetActionType(ActionTypes.ONLINESTATE));
 			Server.Config(Variables);
 		}
 		protected string GetActionType(ActionTypes actionType)
