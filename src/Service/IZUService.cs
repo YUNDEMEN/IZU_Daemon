@@ -40,9 +40,8 @@ namespace IZU.Service
                 {
                     int izu_id = 0;
                     httpClient.Timeout = TimeSpan.FromSeconds(5);
-                    httpClient.BaseAddress = new Uri(_config.OHTCServer);
+                    httpClient.BaseAddress = new Uri(_config.izu_backend);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
                     HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={_config.Name}");
                     if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                     {
@@ -78,25 +77,28 @@ namespace IZU.Service
                     if (izu_id > 0)
                     {
                         var devices = S7netService.GetAllDevices();
-                        var groups = from x in devices group x by x.DeviceType;
+                        var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
                         foreach (var item in groups)
                         {
-                            var ds = from x in item.ToList() select new { name = x.Name, ip = x.Server.IP, izu_id };
-                            switch (item.Key)
-                            {
-                                case DeviceTypes.NONE:
-                                default:
-                                    break;
-                                case DeviceTypes.HID:
-                                    response = await httpClient.PostAsync($"izu/add/hids", JsonContent.Create(ds));
-                                    break;
-                                case DeviceTypes.AUTODOOR:
-                                    response = await httpClient.PostAsync($"izu/add/auto/doors", JsonContent.Create(ds));
-                                    break;
-                                case DeviceTypes.FIREDOOR:
-                                    response = await httpClient.PostAsync($"izu/add/fire/doors", JsonContent.Create(ds));
-                                    break;
-                            }
+                            var ds = from x in item.ToList() select new { device_type = x.DeviceType, name = x.Name, ip = x.Server.IP, izu_id };
+
+                            response = await httpClient.PostAsync($"izu/add/devices", JsonContent.Create(ds));
+                            
+                            //switch (item.Key)
+                            //{
+                            //    case DeviceTypes.NONE:
+                            //    default:
+                            //        break;
+                            //    case DeviceTypes.HID:
+                            //        response = await httpClient.PostAsync($"izu/add/hids", JsonContent.Create(ds));
+                            //        break;
+                            //    case DeviceTypes.AUTODOOR:
+                            //        response = await httpClient.PostAsync($"izu/add/auto/doors", JsonContent.Create(ds));
+                            //        break;
+                            //    case DeviceTypes.FIREDOOR:
+                            //        response = await httpClient.PostAsync($"izu/add/fire/doors", JsonContent.Create(ds));
+                            //        break;
+                            //}
 
                             if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                             {
@@ -117,7 +119,7 @@ namespace IZU.Service
                 }
                 catch (HttpRequestException http_ex)
                 {
-                    _logger.LogWarning($"upload izu info error: {http_ex.Message}({http_ex.StatusCode})");
+                    _logger.LogWarning($"upload izu info error: {http_ex.Message}");
                 }
                 catch (Exception ex)
                 {

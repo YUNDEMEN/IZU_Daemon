@@ -77,5 +77,5 @@
 	1. 文件放在程序根目录 logs 文件夹。（日志系统的异常文件存储在 C:\nlog-internal.log）
 	2. 日志配置文件为 nlog.config 
 
-★发布命令：dotnet publish -c Release-r win10-x64 /p:PublishsingleFile=false
+★发布命令：dotnet publish -c Release -r win10-x64 /p:PublishsingleFile=false
 

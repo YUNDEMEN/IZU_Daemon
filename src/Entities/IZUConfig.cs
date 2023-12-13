@@ -36,6 +36,6 @@
 		/// </summary>
 		public int RecoverySeconds { get; set; } = 10;
 
-		public string OHTCServer { get; set; }=string.Empty;
+		public string izu_backend { get; set; }=string.Empty;
 	}
 }
