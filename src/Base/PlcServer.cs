@@ -6,7 +6,7 @@ using System.Net;
 
 namespace IZU.Base
 {
-	/*
+    /*
 	    class DB1_TestClass
 		{
 			public bool v1 { get; set; } 
@@ -46,67 +46,67 @@ namespace IZU.Base
 	 
 	 
 	 */
-	public class PlcServer : NLogProvider, IPlcServer
-	{
-		private S7.Net.Types.DataItem _r_heartbeat_address;
+    public class PlcServer : NLogProvider, IPlcServer
+    {
+        private S7.Net.Types.DataItem _r_heartbeat_address;
         private S7.Net.Types.DataItem _w_sendback_address;
         private S7.Net.Types.DataItem _w_online_address;
-        private S7.Net.Types.DataItem _w_onlinestate_address; 
+        private S7.Net.Types.DataItem _w_onlinestate_address;
         private int _heart_beat_interval_millionsec = 100;
 
-		private TaskServiceStatus _serviceStatus;
-		//private CancellationTokenSource cancelConnect = new CancellationTokenSource();
+        private TaskServiceStatus _serviceStatus;
+        //private CancellationTokenSource cancelConnect = new CancellationTokenSource();
 
-		private readonly IPAddress? _serverIP;
-		private Plc _server;
-		private Task _serverReadTask;
+        private readonly IPAddress? _serverIP;
+        private Plc _server;
+        private Task _serverReadTask;
         private Task _serverHeartbeatTask;
         private readonly string _deviceName;
-		private List<DataItem> _dataItems;
-		private IDictionary<int, VariableEntity> _hashes = new Dictionary<int, VariableEntity>();
+        private List<DataItem> _dataItems;
+        private IDictionary<int, VariableEntity> _hashes = new Dictionary<int, VariableEntity>();
 
         private bool _stopServer;
-		internal bool StopServer
-		{
-			get{ return _stopServer;		}
-			private set
+        internal bool StopServer
+        {
+            get { return _stopServer; }
+            private set
             {
                 _stopServer = value;
                 if (value)
-				{
-					_serverReadTask.ContinueWith((task) => { }).Wait();
+                {
+                    _serverReadTask.ContinueWith((task) => { }).Wait();
                 }
-				else
-				{
+                else
+                {
                     _serviceStatus = TaskServiceStatus.Connecting;
-					_serverHeartbeatTask.Start();
+                    _serverHeartbeatTask.Start();
                     _serverReadTask.Start();
                 }
-			}
-		}
-		public string? IP { get { return _serverIP?.ToString(); } }
-		public string ConnectionStatus
-		{
-			get
-			{
-				return _serviceStatus switch
-				{
-					TaskServiceStatus.NotStarted => "not startd",
-					TaskServiceStatus.Connecting => "disconnected",
-					TaskServiceStatus.Connected => "normal",
-					_ => "not startd"
-				};
-			}
-		}
+            }
+        }
+        public string? IP { get { return _serverIP?.ToString(); } }
+        public string ConnectionStatus
+        {
+            get
+            {
+                return _serviceStatus switch
+                {
+                    TaskServiceStatus.NotStarted => "not startd",
+                    TaskServiceStatus.Connecting => "disconnected",
+                    TaskServiceStatus.Connected => "normal",
+                    _ => "not startd"
+                };
+            }
+        }
 
-		void InitialAddresses(DeviceTypes deviceType , IDictionary<ActionTypes, string> addressMap)
-		{
-			switch (deviceType)
-			{
-				case DeviceTypes.NONE:
-					break;
-				case DeviceTypes.IZU:
-					_r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.HEARTBEAT]);
+        void InitialAddresses(DeviceTypes deviceType, IDictionary<ActionTypes, string> addressMap)
+        {
+            switch (deviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    _r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.HEARTBEAT]);
                     _w_sendback_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.SENDBACK]);
                     _w_sendback_address.Value = false;
                     _w_online_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.ONLINE]);
@@ -114,25 +114,25 @@ namespace IZU.Base
                     _w_onlinestate_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.ONLINESTATE]);
                     _w_onlinestate_address.Value = false;
                     break;
-				case DeviceTypes.HID:
-					break;
-				case DeviceTypes.AUTODOOR:
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
                     _r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.HEARTBEAT]);
                     break;
-				case DeviceTypes.FIREDOOR:
-					break;
-				default:
-					break;
-			}
+                case DeviceTypes.FIREDOOR:
+                    break;
+                default:
+                    break;
+            }
         }
 
-		void InitialTasks(DeviceTypes deviceType)
+        void InitialTasks(DeviceTypes deviceType)
         {
-			switch (deviceType)
-			{
-				case DeviceTypes.NONE:
-					break;
-				case DeviceTypes.IZU:
+            switch (deviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
                     _serverHeartbeatTask = new Task(async () =>
                     {
                         while (true)
@@ -174,7 +174,7 @@ namespace IZU.Base
                                         _r_heartbeat_address.VarType,
                                         _r_heartbeat_address.Count);
 
-									Console.SetCursorPosition(0, 30);
+                                    //Console.SetCursorPosition(0, 30);
                                     Console.Write(" {0} ", result);
                                     _serviceStatus = TaskServiceStatus.Connected;
                                     //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
@@ -190,9 +190,9 @@ namespace IZU.Base
                         }
                     }, TaskCreationOptions.LongRunning);
                     break;
-				case DeviceTypes.HID:
-					break;
-				case DeviceTypes.AUTODOOR:
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
                     _serverHeartbeatTask = new Task(async () =>
                     {
                         while (true)
@@ -240,11 +240,11 @@ namespace IZU.Base
                         }
                     }, TaskCreationOptions.LongRunning);
                     break;
-				case DeviceTypes.FIREDOOR:
-					break;
-				default:
-					break;
-			}
+                case DeviceTypes.FIREDOOR:
+                    break;
+                default:
+                    break;
+            }
 
             //只负责读取数据
             _serverReadTask = new Task(async () =>
@@ -271,8 +271,8 @@ namespace IZU.Base
                 }
             }, TaskCreationOptions.LongRunning);
         }
-		public PlcServer(DeviceTypes deviceType, string deviceName, string ip,int refreshTimeInterval , IDictionary<ActionTypes, string> addresses)
-		{
+        public PlcServer(DeviceTypes deviceType, string deviceName, string ip, int refreshTimeInterval, IDictionary<ActionTypes, string> addresses)
+        {
             _deviceName = deviceName;
             if (IPAddress.TryParse(ip, out _serverIP))
             {
@@ -287,38 +287,38 @@ namespace IZU.Base
 
             InitialAddresses(deviceType, addresses);
 
-			InitialTasks(deviceType);
+            InitialTasks(deviceType);
         }
 
 
 
-		public PlcServer(string deviceName, string ip, int refreshTimeInterval, 
-			string heartbeatAddress,
+        public PlcServer(string deviceName, string ip, int refreshTimeInterval,
+            string heartbeatAddress,
             string sendbackAddress,
             string onlineAddress,
             string onlinestateAddress)
-		{
-			_deviceName = deviceName;
-			if (IPAddress.TryParse(ip, out _serverIP))
-			{
-				_server = new Plc(CpuType.S71500, ip, 0, 0);
-				_server.ReadTimeout = 3000;
-			}
-			else
-				throw new FormatException($"{_deviceName} server IP address format is Incorrect: {ip}");
+        {
+            _deviceName = deviceName;
+            if (IPAddress.TryParse(ip, out _serverIP))
+            {
+                _server = new Plc(CpuType.S71500, ip, 0, 0);
+                _server.ReadTimeout = 3000;
+            }
+            else
+                throw new FormatException($"{_deviceName} server IP address format is Incorrect: {ip}");
 
-			_r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(heartbeatAddress);
+            _r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(heartbeatAddress);
             _w_sendback_address = S7.Net.Types.DataItem.FromAddress(sendbackAddress);
-			_w_sendback_address.Value = false;
+            _w_sendback_address.Value = false;
             _w_online_address = S7.Net.Types.DataItem.FromAddress(onlineAddress);
             _w_online_address.Value = false;
             _w_onlinestate_address = S7.Net.Types.DataItem.FromAddress(onlinestateAddress);
-			_w_onlinestate_address.Value = false;
+            _w_onlinestate_address.Value = false;
 
             _heart_beat_interval_millionsec = refreshTimeInterval;
-			_dataItems = new();
-            
-            _serverHeartbeatTask= new Task(async () =>
+            _dataItems = new();
+
+            _serverHeartbeatTask = new Task(async () =>
             {
                 while (true)
                 {
@@ -351,7 +351,7 @@ namespace IZU.Base
                             //心跳写回
                             _w_sendback_address.Value = ((bool)_w_sendback_address.Value) != true;
                             await _server.WriteAsync(_w_sendback_address);
-							//最后读取心跳
+                            //最后读取心跳
                             var result = await _server.ReadAsync(
                                 _r_heartbeat_address.DataType,
                                 _r_heartbeat_address.DB,
@@ -359,8 +359,8 @@ namespace IZU.Base
                                 _r_heartbeat_address.VarType,
                                 _r_heartbeat_address.Count);
 
-                            Console.Write(" {0} ", result); 
-							_serviceStatus = TaskServiceStatus.Connected;
+                            Console.Write(" {0} ", result);
+                            _serviceStatus = TaskServiceStatus.Connected;
                             //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                         }
                         catch (Exception ex)
@@ -373,256 +373,256 @@ namespace IZU.Base
                     await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
                 }
             }, TaskCreationOptions.LongRunning);
-			
-			//只负责读取数据
-            _serverReadTask = new Task(async () =>
-			{
-				while (true)
-				{
-					if (_stopServer) break;
-					if (_serviceStatus == TaskServiceStatus.Connected)
-					{
-						try
-						{
-							_ = await _server.ReadMultipleVarsAsync(_dataItems);
-							_dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
-							//LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
-						}
-						catch (Exception ex)
-						{
-							//_serviceStatus = TaskServiceStatus.Connecting;
-							//LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
-						}
-					}
 
-					await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
-				}
-			}, TaskCreationOptions.LongRunning);
+            //只负责读取数据
+            _serverReadTask = new Task(async () =>
+            {
+                while (true)
+                {
+                    if (_stopServer) break;
+                    if (_serviceStatus == TaskServiceStatus.Connected)
+                    {
+                        try
+                        {
+                            _ = await _server.ReadMultipleVarsAsync(_dataItems);
+                            _dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
+                            //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            //_serviceStatus = TaskServiceStatus.Connecting;
+                            //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                        }
+                    }
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
+                }
+            }, TaskCreationOptions.LongRunning);
 
         }
 
         public void Stop()
         {
             StopServer = true;
-			_server.Close();
-			_hashes.Clear();
+            _server.Close();
+            _hashes.Clear();
             _dataItems.Clear();
-			_serviceStatus = TaskServiceStatus.NotStarted;
-			_serverReadTask.Dispose();
+            _serviceStatus = TaskServiceStatus.NotStarted;
+            _serverReadTask.Dispose();
         }
 
 
-		public void Config(List<VariableEntity> variableEntities)
-		{
-			if (variableEntities.Count == 0) return;
+        public void Config(List<VariableEntity> variableEntities)
+        {
+            if (variableEntities.Count == 0) return;
 
-			_dataItems.Clear();
-			foreach (var variable in variableEntities)
-			{
-				try
-				{
-					if (variable.Disabled || variable.FunctionType == FunctionTypes.W) continue;
+            _dataItems.Clear();
+            foreach (var variable in variableEntities)
+            {
+                try
+                {
+                    if (variable.Disabled || variable.FunctionType == FunctionTypes.W) continue;
 
-					var fake = S7.Net.Types.DataItem.FromAddress(variable.Address);
-					var newItem = new S7.Net.Types.DataItem
-					{
-						DataType = fake.DataType,
-						DB = fake.DB,
-						Count = fake.Count,
-						VarType = (VarType)variable.VariableType,
-						StartByteAdr = fake.StartByteAdr,
-						BitAdr = fake.BitAdr
-					};
-					_dataItems.Add(newItem);
-					_hashes[newItem.GetHashCode()] = variable;
-				}
-				catch (Exception ex)
-				{
-					LogWarn("get address  {0}  {1}  error: {2}", _deviceName, variable.Address, ex.Message);
-				}
-			}
-			if (_heart_beat_interval_millionsec > 20)
-			{
+                    var fake = S7.Net.Types.DataItem.FromAddress(variable.Address);
+                    var newItem = new S7.Net.Types.DataItem
+                    {
+                        DataType = fake.DataType,
+                        DB = fake.DB,
+                        Count = fake.Count,
+                        VarType = (VarType)variable.VariableType,
+                        StartByteAdr = fake.StartByteAdr,
+                        BitAdr = fake.BitAdr
+                    };
+                    _dataItems.Add(newItem);
+                    _hashes[newItem.GetHashCode()] = variable;
+                }
+                catch (Exception ex)
+                {
+                    LogWarn("get address  {0}  {1}  error: {2}", _deviceName, variable.Address, ex.Message);
+                }
+            }
+            if (_heart_beat_interval_millionsec > 20)
+            {
                 StopServer = false;
             }
-			else
-			{
-				LogWarn($"heart beat detect time interval is too short, please reconfig it larger than 20 ms");
-			}
-		}
-
-		public void Refresh(int refreshTimeInterval)
-		{
-			_heart_beat_interval_millionsec = refreshTimeInterval;
+            else
+            {
+                LogWarn($"heart beat detect time interval is too short, please reconfig it larger than 20 ms");
+            }
         }
-		public async Task<string> WriteBool(string address, bool boolValue)
-		{
-			if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
-			{
-				LogWarn($"operation write/bool failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
-				return $"server {IP} disconnected!";
-			}
-			try
-			{
-				await _server.WriteAsync(address, boolValue);
-				return string.Empty;
-			}
-			catch (Exception ex)
-			{
-				string exStr = $"operation write/bool failed, server: {_serverIP} address: {address} error: {ex.Message}";
-				LogWarn(exStr);
-				return exStr;
-			}
-		}
-		public async Task<string> WriteReal(string address, float realValue)
-		{
-			if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
-			{
-				LogWarn($"operation write/real failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
-				return $"server {IP} disconnected!";
-			}
-			try
-			{
-				await _server.WriteAsync(address, realValue.ConvertToUInt());
-				return string.Empty;
-			}
-			catch (Exception ex)
-			{
-				string exStr = $"operation write/real failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
-				LogWarn(exStr);
-				return exStr;
-			}
-		}
-		public async Task<string> WriteInt(string address, int intValue)
-		{
-			if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
-			{
-				LogWarn($"operation write/int failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
-				return $"server {IP} disconnected!";
-			}
-			try
-			{
-				await _server.WriteAsync(address, intValue);
-				return string.Empty;
-			}
-			catch (Exception ex)
-			{
-				string exStr = $"operation write/int failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
-				LogWarn(exStr);
-				return exStr;
-			}
-		}
+
+        public void Refresh(int refreshTimeInterval)
+        {
+            _heart_beat_interval_millionsec = refreshTimeInterval;
+        }
+        public async Task<string> WriteBool(string address, bool boolValue)
+        {
+            if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
+            {
+                LogWarn($"operation write/bool failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                return $"server {IP} disconnected!";
+            }
+            try
+            {
+                await _server.WriteAsync(address, boolValue);
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                string exStr = $"operation write/bool failed, server: {_serverIP} address: {address} error: {ex.Message}";
+                LogWarn(exStr);
+                return exStr;
+            }
+        }
+        public async Task<string> WriteReal(string address, float realValue)
+        {
+            if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
+            {
+                LogWarn($"operation write/real failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                return $"server {IP} disconnected!";
+            }
+            try
+            {
+                await _server.WriteAsync(address, realValue.ConvertToUInt());
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                string exStr = $"operation write/real failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
+                LogWarn(exStr);
+                return exStr;
+            }
+        }
+        public async Task<string> WriteInt(string address, int intValue)
+        {
+            if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
+            {
+                LogWarn($"operation write/int failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                return $"server {IP} disconnected!";
+            }
+            try
+            {
+                await _server.WriteAsync(address, intValue);
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                string exStr = $"operation write/int failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
+                LogWarn(exStr);
+                return exStr;
+            }
+        }
 
 
-		private async Task<object?> GetValue(string dataPath)
-		{
-			if (!_server.IsConnected) return null;//$"server {IP} disconnected!";
+        private async Task<object?> GetValue(string dataPath)
+        {
+            if (!_server.IsConnected) return null;//$"server {IP} disconnected!";
 
-			object? result = null;
-			var data = S7.Net.Types.DataItem.FromAddress(dataPath);
-			switch (data.VarType)
-			{
-				case VarType.Bit:
-					result = await _server.ReadAsync(dataPath);
-					break;
-				case VarType.Byte:
-					result = await _server.ReadAsync(dataPath);
-					break;
-				case VarType.Word:
-					result = await _server.ReadAsync(dataPath);
-					break;
-				case VarType.DWord:
-					result = await _server.ReadAsync(dataPath);
-					break;
-				case VarType.Int:
-					result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.Int, 1);
-					break;
-				case VarType.DInt:
-					result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.DInt, 1);
-					break;
-				case VarType.Real:
-					result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.Real, 1);
-					break;
-				case VarType.LReal:
-					result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.LReal, 1);
-					break;
-				case VarType.String:
-					var val = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 1, VarType.Byte, 1);
-					if (val != null)
-					{
-						byte count = (byte)val;
-						result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 2, VarType.String, count);
-					}
-					break;
-				case VarType.S7String:
-					val = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 1, VarType.Byte, 1);
-					if (val != null)
-					{
-						byte S7StringCount = (byte)val;
-						result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.S7String, S7StringCount);
-					}
-					break;
-				case VarType.S7WString:
-					val = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 2, VarType.Int, 1);
-					if (val != null)
-					{
-						short S7WStringCount = (short)val;
-						result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.S7WString, S7WStringCount);
-					}
-					break;
-				//case VarType.S5Time:
-				//	return plc.Read(data.DataType, data.DbNumber, data.StartByte, VarType.S5Time, 1);
-				//	break;
-				case VarType.Counter:
-					break;
-				case VarType.DateTime:
-					result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.DateTime, 1);
-					break;
-				case VarType.DateTimeLong:
-					result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.DateTimeLong, 1);
-					break;
-			}
-			return result;
-		}
+            object? result = null;
+            var data = S7.Net.Types.DataItem.FromAddress(dataPath);
+            switch (data.VarType)
+            {
+                case VarType.Bit:
+                    result = await _server.ReadAsync(dataPath);
+                    break;
+                case VarType.Byte:
+                    result = await _server.ReadAsync(dataPath);
+                    break;
+                case VarType.Word:
+                    result = await _server.ReadAsync(dataPath);
+                    break;
+                case VarType.DWord:
+                    result = await _server.ReadAsync(dataPath);
+                    break;
+                case VarType.Int:
+                    result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.Int, 1);
+                    break;
+                case VarType.DInt:
+                    result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.DInt, 1);
+                    break;
+                case VarType.Real:
+                    result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.Real, 1);
+                    break;
+                case VarType.LReal:
+                    result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.LReal, 1);
+                    break;
+                case VarType.String:
+                    var val = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 1, VarType.Byte, 1);
+                    if (val != null)
+                    {
+                        byte count = (byte)val;
+                        result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 2, VarType.String, count);
+                    }
+                    break;
+                case VarType.S7String:
+                    val = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 1, VarType.Byte, 1);
+                    if (val != null)
+                    {
+                        byte S7StringCount = (byte)val;
+                        result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.S7String, S7StringCount);
+                    }
+                    break;
+                case VarType.S7WString:
+                    val = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr + 2, VarType.Int, 1);
+                    if (val != null)
+                    {
+                        short S7WStringCount = (short)val;
+                        result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.S7WString, S7WStringCount);
+                    }
+                    break;
+                //case VarType.S5Time:
+                //	return plc.Read(data.DataType, data.DbNumber, data.StartByte, VarType.S5Time, 1);
+                //	break;
+                case VarType.Counter:
+                    break;
+                case VarType.DateTime:
+                    result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.DateTime, 1);
+                    break;
+                case VarType.DateTimeLong:
+                    result = await _server.ReadAsync(data.DataType, data.DB, data.StartByteAdr, VarType.DateTimeLong, 1);
+                    break;
+            }
+            return result;
+        }
 
-		public async Task<T?> GetValue<T>(string dataPath)
-		{
-			object? result = await GetValue(dataPath);
-			if (result != null)
-			{
-				return (T)result;
-			}
-			return default;
-		}
+        public async Task<T?> GetValue<T>(string dataPath)
+        {
+            object? result = await GetValue(dataPath);
+            if (result != null)
+            {
+                return (T)result;
+            }
+            return default;
+        }
 
-		public async Task<float?> GetFloat(string dataPath)
-		{
-			object? value = await GetValue(dataPath);
-			if (value != null)
-			{
-				return ((uint)value).ConvertToFloat();
-			}
-			return null;
-		}
+        public async Task<float?> GetFloat(string dataPath)
+        {
+            object? value = await GetValue(dataPath);
+            if (value != null)
+            {
+                return ((uint)value).ConvertToFloat();
+            }
+            return null;
+        }
 
-		public async Task<bool?> GetBool(string dataPath)
-		{
-			object? value = await GetValue(dataPath);
-			if (value != null)
-			{
-				return (bool)value;
-			}
-			return null;
-		}
+        public async Task<bool?> GetBool(string dataPath)
+        {
+            object? value = await GetValue(dataPath);
+            if (value != null)
+            {
+                return (bool)value;
+            }
+            return null;
+        }
 
-		public async Task<ushort?> GetUShort(string dataPath)
-		{
-			object? value = await GetValue(dataPath);
-			if (value != null)
-			{
-				return (ushort)value;
-			}
-			return null;
-		}
-	}
+        public async Task<ushort?> GetUShort(string dataPath)
+        {
+            object? value = await GetValue(dataPath);
+            if (value != null)
+            {
+                return (ushort)value;
+            }
+            return null;
+        }
+    }
 }

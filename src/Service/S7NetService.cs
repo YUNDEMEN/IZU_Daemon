@@ -9,19 +9,19 @@ using TinyCsvParser;
 
 namespace IZU.Service
 {
-	public class S7NetService : IS7NetService
+    public class S7NetService : IS7NetService
     {
         private readonly ConcurrentDictionary<string, DeviceEntity> _cDic = new();
-		private IZUConfig _config { get; set; }
-		private readonly ILogger<S7NetService> _logger;
-		//private readonly IIZUService _izuService;
+        private IZUConfig _config { get; set; }
+        private readonly ILogger<S7NetService> _logger;
+        //private readonly IIZUService _izuService;
 
-		public S7NetService(ILogger<S7NetService> logger, IOptions<IZUConfig> cfg)
+        public S7NetService(ILogger<S7NetService> logger, IOptions<IZUConfig> cfg)
         {
             _logger = logger;
-			_config = cfg.Value;
-		}
-		public async Task StartAsync()
+            _config = cfg.Value;
+        }
+        public async Task StartAsync()
         {
             _logger.LogInformation("start loading device table");
             _cDic.Clear();
@@ -69,10 +69,10 @@ namespace IZU.Service
 
             _logger.LogInformation("end loading device table");
             await Task.Delay(10);
-		}
-		public void Stop()
-		{
-			foreach (var deviceEntity in _cDic.Values.ToList())
+        }
+        public void Stop()
+        {
+            foreach (var deviceEntity in _cDic.Values.ToList())
             {
                 deviceEntity.Dispose();
             }
@@ -91,7 +91,7 @@ namespace IZU.Service
         public DeviceEntity? GetDevice(string deviceName)
         {
             _ = _cDic.TryGetValue(deviceName.ToLower(), out var device);
-			return device;
+            return device;
         }
 
         public List<VariableEntity> GetDeviceVariables(string deviceName)
@@ -113,31 +113,31 @@ namespace IZU.Service
         public List<DeviceEntity> Samples
         {
             get
-			{
-				List<DeviceEntity> devices = new();
-				DirectoryInfo dir = new(_config.SampleFiles);
-				if (!dir.Exists) return devices;
+            {
+                List<DeviceEntity> devices = new();
+                DirectoryInfo dir = new(_config.SampleFiles);
+                if (!dir.Exists) return devices;
                 var files = dir.GetFiles("*.csv");
-				List<VariableEntity> variables = new List<VariableEntity>();
-				foreach (var sampleFile in files)
-				{
-					CsvParserOptions csvParserOptions = new(true, ',');
-					CsvVariableMapping csvMapper = new();
-					CsvParser<VariableEntity> csvParser = new(csvParserOptions, csvMapper);
-					variables = csvParser
-								 .ReadFromFile(sampleFile.FullName, Encoding.ASCII)
-								 .Where(t => t.IsValid && t.Error == null)
-								 .Select(t => t.Result)
-								 .ToList();
-					var groups = variables.GroupBy(t => t.DeviceName, t => t);
-					foreach (var item in groups)
-					{
-						devices.Add(new DeviceEntity(sampleFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList()));
-					}
-				}
+                List<VariableEntity> variables = new List<VariableEntity>();
+                foreach (var sampleFile in files)
+                {
+                    CsvParserOptions csvParserOptions = new(true, ',');
+                    CsvVariableMapping csvMapper = new();
+                    CsvParser<VariableEntity> csvParser = new(csvParserOptions, csvMapper);
+                    variables = csvParser
+                                 .ReadFromFile(sampleFile.FullName, Encoding.ASCII)
+                                 .Where(t => t.IsValid && t.Error == null)
+                                 .Select(t => t.Result)
+                                 .ToList();
+                    var groups = variables.GroupBy(t => t.DeviceName, t => t);
+                    foreach (var item in groups)
+                    {
+                        devices.Add(new DeviceEntity(sampleFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList()));
+                    }
+                }
                 if (devices.Count == 0)
                     _logger.LogInformation($"sample folder path {dir.FullName} doesn't exist");
-				return devices;
+                return devices;
             }
         }
     }

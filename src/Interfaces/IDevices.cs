@@ -67,7 +67,7 @@ namespace IZU.Interfaces
 		/// 急停
 		/// </summary>
 		/// <returns></returns>
-		Task<string> EmergencyStopAsync(bool oper);
+		Task<string> EmergencyStopAsync();
 	}
 
 	/// <summary>
