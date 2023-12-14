@@ -308,6 +308,38 @@ namespace IZU.Controllers
                 return WonderResponse.Error(1, result);
         }
 
+        [HttpGet("device/autodoor/mopen/a")]
+        public async Task<WonderResponse> DeviceAutoDoorManOpen11([FromQuery] string name)
+        {
+            string error = string.Empty;
+            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
+            if (deviceObject == null)
+                return WonderResponse.Error(1, error);
+
+            string result = await deviceObject.OpenManualAsync1();
+            if (string.IsNullOrEmpty(result))
+                return WonderResponse.Create("ok");
+            else
+                return WonderResponse.Error(1, result);
+        }
+
+        [HttpGet("device/autodoor/mclose/a")]
+        public async Task<WonderResponse> DeviceAutoDoorManCLOSE11([FromQuery] string name)
+        {
+            string error = string.Empty;
+            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
+            if (deviceObject == null)
+                return WonderResponse.Error(1, error);
+
+            string result = await deviceObject.CloseManualAsync1();
+            if (string.IsNullOrEmpty(result))
+                return WonderResponse.Create("ok");
+            else
+                return WonderResponse.Error(1, result);
+        }
+
+
+
 #if ENABLE_AUTH
 		[Authorize]
 #endif
