@@ -38,11 +38,16 @@ namespace IZU.DeviceFactories
 			return !string.IsNullOrEmpty(address);
 		}
 
-		protected void RunAfter(int millionSecs, Action action)
+		System.Threading.Timer timer;
+
+        protected void RunAfter(int millionSecs, Action action)
 		{
-			System.Threading.Timer timer = new System.Threading.Timer((o) => {
-                action();
-            },null,millionSecs,Timeout.Infinite);
-        }
+			timer = new System.Threading.Timer((o) =>
+		   {
+			   action();
+			   timer.Change(Timeout.Infinite, Timeout.Infinite);
+			   timer.Dispose();
+           }, null, millionSecs, Timeout.Infinite);
+		}
 	}
 }
