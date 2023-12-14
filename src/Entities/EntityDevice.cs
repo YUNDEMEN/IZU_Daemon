@@ -42,19 +42,30 @@ namespace IZU.Entities
 
 			DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
 
-			Server = new PlcServer(Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval,
-				GetActionType(ActionTypes.HEARTBEAT),
-				GetActionType(ActionTypes.SENDBACK),
-				GetActionType(ActionTypes.ONLINE),
-				GetActionType(ActionTypes.ONLINESTATE));
+			Server = new PlcServer(DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, GetActionTypes());
 			Server.Config(Variables);
 		}
-		protected string GetActionType(ActionTypes actionType)
+		protected IDictionary<ActionTypes, string> GetActionTypes()
 		{
-			var v = Variables.FirstOrDefault(t => t.ActionType == actionType);
-			if (v == null || string.IsNullOrEmpty(v.Address))
-				throw new Exception($"{actionType} action is not marked in {Name}");
-			return v.Address;
+			var types = Enum.GetValues(typeof(ActionTypes));
+			IDictionary<ActionTypes, string>	 actionMap = new Dictionary<ActionTypes, string>();
+			foreach (var item in types)
+			{
+                var v = Variables.FirstOrDefault(t => t.ActionType == (ActionTypes)item);
+				if (v == null)
+				{
+					actionMap[(ActionTypes)item] = string.Empty;
+                }
+				else
+                {
+                    actionMap[(ActionTypes)item] = v.Address;
+                }
+            }
+			return actionMap;
+			//var v = Variables.FirstOrDefault(t => t.ActionType == actionType);
+			//if (v == null || string.IsNullOrEmpty(v.Address))
+			//	throw new Exception($"{actionType} action is not marked in {Name}");
+			//return v.Address;
 		}
 
 		public void Dispose()

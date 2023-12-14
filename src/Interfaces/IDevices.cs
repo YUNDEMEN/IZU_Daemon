@@ -44,7 +44,8 @@ namespace IZU.Interfaces
 		/// </summary>
 		/// <returns></returns>
 		Task<string> OpenAsync();
-	}
+        Task<string> OpenManualAsync();
+    }
 	/// <summary>
 	 /// 关闭
 	 /// </summary>
@@ -55,7 +56,8 @@ namespace IZU.Interfaces
 		/// </summary>
 		/// <returns></returns>
 		Task<string> CloseAsync();
-	}
+        Task<string> CloseManualAsync();
+    }
 	/// <summary>
 	/// 急停
 	/// </summary>
@@ -65,7 +67,7 @@ namespace IZU.Interfaces
 		/// 急停
 		/// </summary>
 		/// <returns></returns>
-		Task<string> EmergencyStopAsync();
+		Task<string> EmergencyStopAsync(bool oper);
 	}
 
 	/// <summary>
@@ -91,4 +93,22 @@ namespace IZU.Interfaces
 		/// <returns></returns>
 		Task<string> PowerOffAsync();
 	}
+
+
+    public interface IInitial
+    {
+        /// <summary>
+        /// 关闭电源
+        /// </summary>
+        /// <returns></returns>
+        Task<string> InitialAsync(bool oper);
+    }
+    public interface ISwitch
+    {
+        /// <summary>
+        /// 关闭电源
+        /// </summary>
+        /// <returns></returns>
+        Task<string> SwitchAsync(bool oper);
+    }
 }

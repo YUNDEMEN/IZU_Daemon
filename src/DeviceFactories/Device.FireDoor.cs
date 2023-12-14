@@ -31,9 +31,9 @@ namespace IZU.DeviceFactories
 		{
 			return await WriteBool(address_close, true);
 		}
-		public async Task<string> EmergencyStopAsync()
+		public async Task<string> EmergencyStopAsync(bool oper)
 		{
-			return await WriteBool(address_emergency_stop, true);
+			return await WriteBool(address_emergency_stop, oper);
 		}
 
 		public async Task<string> ResetAsync()
@@ -50,5 +50,15 @@ namespace IZU.DeviceFactories
 		{
 			return await WriteBool(address_stop, false);
 		}
-	}
+
+        public Task<string> OpenManualAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> CloseManualAsync()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

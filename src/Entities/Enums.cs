@@ -92,7 +92,11 @@
 		OPEN,
 		CLOSE, 
 		ONLINE,
-        ONLINESTATE
+        ONLINESTATE,
+        MOPEN,
+        MCLOSE,
+        INITIAL,
+        SWITCH
     }
 
 	public enum TaskServiceStatus

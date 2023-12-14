@@ -1,6 +1,7 @@
 ﻿using IZU.Base;
 using IZU.Entities;
 using IZU.Interfaces;
+using System.Timers;
 
 namespace IZU.DeviceFactories
 {
@@ -36,5 +37,12 @@ namespace IZU.DeviceFactories
         {
 			return !string.IsNullOrEmpty(address);
 		}
+
+		protected void RunAfter(int millionSecs, Action action)
+		{
+			System.Threading.Timer timer = new System.Threading.Timer((o) => {
+                action();
+            },null,millionSecs,Timeout.Infinite);
+        }
 	}
 }

@@ -48,10 +48,10 @@ namespace IZU.Base
 	 */
 	public class PlcServer : NLogProvider, IPlcServer
 	{
-		private readonly S7.Net.Types.DataItem _r_heartbeat_address;
-        private readonly S7.Net.Types.DataItem _w_sendback_address;
-        private readonly S7.Net.Types.DataItem _w_online_address;
-        private readonly S7.Net.Types.DataItem _w_onlinestate_address; 
+		private S7.Net.Types.DataItem _r_heartbeat_address;
+        private S7.Net.Types.DataItem _w_sendback_address;
+        private S7.Net.Types.DataItem _w_online_address;
+        private S7.Net.Types.DataItem _w_onlinestate_address; 
         private int _heart_beat_interval_millionsec = 100;
 
 		private TaskServiceStatus _serviceStatus;
@@ -98,6 +98,199 @@ namespace IZU.Base
 				};
 			}
 		}
+
+		void InitialAddresses(DeviceTypes deviceType , IDictionary<ActionTypes, string> addressMap)
+		{
+			switch (deviceType)
+			{
+				case DeviceTypes.NONE:
+					break;
+				case DeviceTypes.IZU:
+					_r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.HEARTBEAT]);
+                    _w_sendback_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.SENDBACK]);
+                    _w_sendback_address.Value = false;
+                    _w_online_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.ONLINE]);
+                    _w_online_address.Value = false;
+                    _w_onlinestate_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.ONLINESTATE]);
+                    _w_onlinestate_address.Value = false;
+                    break;
+				case DeviceTypes.HID:
+					break;
+				case DeviceTypes.AUTODOOR:
+                    _r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(addressMap[ActionTypes.HEARTBEAT]);
+                    break;
+				case DeviceTypes.FIREDOOR:
+					break;
+				default:
+					break;
+			}
+        }
+
+		void InitialTasks(DeviceTypes deviceType)
+        {
+			switch (deviceType)
+			{
+				case DeviceTypes.NONE:
+					break;
+				case DeviceTypes.IZU:
+                    _serverHeartbeatTask = new Task(async () =>
+                    {
+                        while (true)
+                        {
+                            if (_stopServer) break;
+                            if (_serviceStatus == TaskServiceStatus.Connecting)
+                            {
+                                try
+                                {
+                                    await _server.OpenAsync();
+                                    _serviceStatus = TaskServiceStatus.Connected;
+                                    LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                    //Console.WriteLine("heartbeat detecting status:  normal");
+                                }
+                                catch (Exception ex)
+                                {
+                                    LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                    //Console.WriteLine("heartbeat detecting status:  disconnected");
+                                }
+                            }
+                            else if (_serviceStatus == TaskServiceStatus.Connected)
+                            {
+                                try
+                                {
+                                    //联机状态写回
+                                    _w_online_address.Value = true;
+                                    await _server.WriteAsync(_w_online_address);
+                                    //联机正常状态写回
+                                    _w_onlinestate_address.Value = true;
+                                    await _server.WriteAsync(_w_onlinestate_address);
+                                    //心跳写回
+                                    _w_sendback_address.Value = ((bool)_w_sendback_address.Value) != true;
+                                    await _server.WriteAsync(_w_sendback_address);
+                                    //最后读取心跳
+                                    var result = await _server.ReadAsync(
+                                        _r_heartbeat_address.DataType,
+                                        _r_heartbeat_address.DB,
+                                        _r_heartbeat_address.StartByteAdr,
+                                        _r_heartbeat_address.VarType,
+                                        _r_heartbeat_address.Count);
+
+									Console.SetCursorPosition(0, 30);
+                                    Console.Write(" {0} ", result);
+                                    _serviceStatus = TaskServiceStatus.Connected;
+                                    //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                }
+                                catch (Exception ex)
+                                {
+                                    _serviceStatus = TaskServiceStatus.Connecting;
+                                    //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                }
+                            }
+
+                            await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
+                        }
+                    }, TaskCreationOptions.LongRunning);
+                    break;
+				case DeviceTypes.HID:
+					break;
+				case DeviceTypes.AUTODOOR:
+                    _serverHeartbeatTask = new Task(async () =>
+                    {
+                        while (true)
+                        {
+                            if (_stopServer) break;
+                            if (_serviceStatus == TaskServiceStatus.Connecting)
+                            {
+                                try
+                                {
+                                    await _server.OpenAsync();
+                                    _serviceStatus = TaskServiceStatus.Connected;
+                                    LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                    //Console.WriteLine("heartbeat detecting status:  normal");
+                                }
+                                catch (Exception ex)
+                                {
+                                    LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                    //Console.WriteLine("heartbeat detecting status:  disconnected");
+                                }
+                            }
+                            else if (_serviceStatus == TaskServiceStatus.Connected)
+                            {
+                                try
+                                {
+                                    //最后读取心跳
+                                    var result = await _server.ReadAsync(
+                                        _r_heartbeat_address.DataType,
+                                        _r_heartbeat_address.DB,
+                                        _r_heartbeat_address.StartByteAdr,
+                                        _r_heartbeat_address.VarType,
+                                        _r_heartbeat_address.Count);
+
+                                    //Console.Write(" {0} ", result);
+                                    _serviceStatus = TaskServiceStatus.Connected;
+                                    //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                }
+                                catch (Exception ex)
+                                {
+                                    _serviceStatus = TaskServiceStatus.Connecting;
+                                    //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                }
+                            }
+
+                            await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
+                        }
+                    }, TaskCreationOptions.LongRunning);
+                    break;
+				case DeviceTypes.FIREDOOR:
+					break;
+				default:
+					break;
+			}
+
+            //只负责读取数据
+            _serverReadTask = new Task(async () =>
+            {
+                while (true)
+                {
+                    if (_stopServer) break;
+                    if (_serviceStatus == TaskServiceStatus.Connected)
+                    {
+                        try
+                        {
+                            _ = await _server.ReadMultipleVarsAsync(_dataItems);
+                            _dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
+                            //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            //_serviceStatus = TaskServiceStatus.Connecting;
+                            //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                        }
+                    }
+
+                    await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
+                }
+            }, TaskCreationOptions.LongRunning);
+        }
+		public PlcServer(DeviceTypes deviceType, string deviceName, string ip,int refreshTimeInterval , IDictionary<ActionTypes, string> addresses)
+		{
+            _deviceName = deviceName;
+            if (IPAddress.TryParse(ip, out _serverIP))
+            {
+                _server = new Plc(CpuType.S71500, ip, 0, 0);
+                _server.ReadTimeout = 3000;
+            }
+            else
+                throw new FormatException($"{_deviceName} server IP address format is Incorrect: {ip}");
+
+            _heart_beat_interval_millionsec = refreshTimeInterval;
+            _dataItems = new();
+
+            InitialAddresses(deviceType, addresses);
+
+			InitialTasks(deviceType);
+        }
+
+
 
 		public PlcServer(string deviceName, string ip, int refreshTimeInterval, 
 			string heartbeatAddress,

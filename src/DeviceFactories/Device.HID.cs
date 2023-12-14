@@ -20,9 +20,9 @@ namespace IZU.DeviceFactories
 			address_reset = GetActionType(ActionTypes.RESET);
 		}
 
-		public async Task<string> EmergencyStopAsync()
+		public async Task<string> EmergencyStopAsync(bool oper)
 		{
-			return await WriteBool(address_emergency_stop, true);
+			return await WriteBool(address_emergency_stop, oper);
 		}
 
 		public async Task<string> PowerOffAsync()
