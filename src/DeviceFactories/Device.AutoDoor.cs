@@ -59,19 +59,11 @@ namespace IZU.DeviceFactories
             else
                 return res;
         }
-        public async Task<string> OpenManualAsync()
+        public async Task<string> OpenManualAsync(bool oper)
         {
-            return await WriteBool(address_man_open, true);
+            return await WriteBool(address_man_open, oper);
         }
-        public async Task<string> OpenManualAsync1()
-        {
-            return await WriteBool(address_man_open, false);
-        }
-        public async Task<string> CloseManualAsync1()
-        {
-            return await WriteBool(address_man_close, false);
-        }
-        public async Task<string> CloseManualAsync()
+        public async Task<string> CloseManualAsync(bool oper)
         {
             return await WriteBool(address_man_close, true);
         }

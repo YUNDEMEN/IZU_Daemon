@@ -44,7 +44,7 @@ namespace IZU.Interfaces
         /// </summary>
         /// <returns></returns>
         Task<string> OpenAsync();
-        Task<string> OpenManualAsync();
+        Task<string> OpenManualAsync(bool oper);
     }
     /// <summary>
     /// 关闭
@@ -56,7 +56,7 @@ namespace IZU.Interfaces
         /// </summary>
         /// <returns></returns>
         Task<string> CloseAsync();
-        Task<string> CloseManualAsync();
+        Task<string> CloseManualAsync(bool oper);
     }
     /// <summary>
     /// 急停

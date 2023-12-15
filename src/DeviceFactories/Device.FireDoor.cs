@@ -53,12 +53,12 @@ namespace IZU.DeviceFactories
 			return await WriteBool(address_stop, false);
 		}
 
-        public Task<string> OpenManualAsync()
+        public Task<string> OpenManualAsync(bool oper)
         {
             throw new NotImplementedException();
         }
 
-        public Task<string> CloseManualAsync()
+        public Task<string> CloseManualAsync(bool oper)
         {
             throw new NotImplementedException();
         }

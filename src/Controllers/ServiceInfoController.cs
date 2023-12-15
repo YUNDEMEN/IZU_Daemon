@@ -312,14 +312,14 @@ namespace IZU.Controllers
 		[Authorize]
 #endif
         [HttpPost("device/autodoor/mopen")]
-        public async Task<WonderResponse> DeviceAutoDoorManOpen([FromQuery] string name)
+        public async Task<WonderResponse> DeviceAutoDoorManOpen([FromQuery] string name,[FromQuery] bool o)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.OpenManualAsync();
+            string result = await deviceObject.OpenManualAsync(o);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
@@ -330,14 +330,14 @@ namespace IZU.Controllers
 		[Authorize]
 #endif
         [HttpPost("device/autodoor/mclose")]
-        public async Task<WonderResponse> DeviceAutoDoorManClose([FromQuery] string name)
+        public async Task<WonderResponse> DeviceAutoDoorManClose([FromQuery] string name, [FromQuery] bool o)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.CloseManualAsync();
+            string result = await deviceObject.CloseManualAsync(o);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
@@ -348,7 +348,7 @@ namespace IZU.Controllers
 		[Authorize]
 #endif
         [HttpPost("device/autodoor/emerg")]
-        public async Task<WonderResponse> DeviceAutoDoorEmerg([FromQuery] string name, bool o)
+        public async Task<WonderResponse> DeviceAutoDoorEmerg([FromQuery] string name, [FromQuery] bool o)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
