@@ -37,7 +37,7 @@ namespace IZU.Controllers
             });
         }
 
-        [HttpPost]
+        [HttpGet]
         public WonderResponse Get()
         {
             _izuService.RefreshConfig(_config);
@@ -45,17 +45,12 @@ namespace IZU.Controllers
             return WonderResponse.Create(_izuService.ServiceRuntime.Set(DateTime.Now));
         }
 
-        [HttpPost("sample")]
-        public WonderResponse GetSampleDevices()
-        {
-            return WonderResponse.Create(_s7netService.Samples);
-        }
-        [HttpPost("devices")]
+        [HttpGet("devices")]
         public WonderResponse GetDevices()
         {
             return WonderResponse.Create(_s7netService.GetAllDevices());
         }
-        [HttpPost("device")]
+        [HttpGet("device")]
         public WonderResponse GetDevice([FromQuery] string name)
         {
             var device = _s7netService.GetDevice(name);
@@ -69,14 +64,15 @@ namespace IZU.Controllers
             }
         }
 
-        [HttpPost("reload")]
+        [HttpGet("reload")]
         public async Task<WonderResponse> ReloadDevicesAsync()
         {
             try
             {
                 _s7netService.Stop();
                 await _s7netService.StartAsync();
-                return WonderResponse.Create("已重载变量表");
+                _izuService.RefreshConfig(_config);
+                return WonderResponse.Create("已重载配置和变量表");
             }
             catch (Exception ex)
             {
@@ -84,7 +80,7 @@ namespace IZU.Controllers
             }
         }
 
-        [HttpPost("upload")]
+        [HttpGet("upload")]
         public async Task<WonderResponse> UploadInfoAsync()
         {
             try
@@ -97,21 +93,6 @@ namespace IZU.Controllers
                 return WonderResponse.Error($"上传变量表失败: {ex.Message}");
             }
         }
-
-        [HttpPost("refresh")]
-        public WonderResponse RefreshConfig()
-        {
-            try
-            {
-                _izuService.RefreshConfig(_config);
-                return WonderResponse.Create("已上传变量表");
-            }
-            catch (Exception ex)
-            {
-                return WonderResponse.Error($"上传变量表失败: {ex.Message}");
-            }
-        }
-
 
 
         #region hid Control

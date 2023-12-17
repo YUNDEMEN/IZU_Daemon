@@ -110,35 +110,5 @@ namespace IZU.Service
             }
         }
 
-        public List<DeviceEntity> Samples
-        {
-            get
-            {
-                List<DeviceEntity> devices = new();
-                DirectoryInfo dir = new(_config.SampleFiles);
-                if (!dir.Exists) return devices;
-                var files = dir.GetFiles("*.csv");
-                List<VariableEntity> variables = new List<VariableEntity>();
-                foreach (var sampleFile in files)
-                {
-                    CsvParserOptions csvParserOptions = new(true, ',');
-                    CsvVariableMapping csvMapper = new();
-                    CsvParser<VariableEntity> csvParser = new(csvParserOptions, csvMapper);
-                    variables = csvParser
-                                 .ReadFromFile(sampleFile.FullName, Encoding.ASCII)
-                                 .Where(t => t.IsValid && t.Error == null)
-                                 .Select(t => t.Result)
-                                 .ToList();
-                    var groups = variables.GroupBy(t => t.DeviceName, t => t);
-                    foreach (var item in groups)
-                    {
-                        devices.Add(new DeviceEntity(sampleFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList()));
-                    }
-                }
-                if (devices.Count == 0)
-                    _logger.LogInformation($"sample folder path {dir.FullName} doesn't exist");
-                return devices;
-            }
-        }
     }
 }

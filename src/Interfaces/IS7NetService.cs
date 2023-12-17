@@ -11,7 +11,6 @@ namespace IZU.Interfaces
         List<DeviceEntity> GetAllDevices();
 		DeviceEntity? GetDevice(string deviceName);
         List<VariableEntity> GetDeviceVariables(string deviceName);
-		List<DeviceEntity> Samples { get; }
         void RefreshConfig(IZUConfig config);
     }
 }
