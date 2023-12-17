@@ -2,7 +2,10 @@
 using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
+using System.Security.Cryptography;
+using System.Threading;
 using System.Timers;
+using static TinyCsvParser.Tokenizer.RFC4180.Reader;
 
 namespace IZU.DeviceFactories
 {
@@ -83,16 +86,32 @@ namespace IZU.DeviceFactories
             return !string.IsNullOrEmpty(address);
         }
 
-        System.Threading.Timer timer;
 
-        protected void RunAfter(int millionSecs, Action action)
+        //protected void RunAfter(int millionSecs, Action action)
+        //{
+        //    System.Threading.Timer timer;
+        //    timer = new System.Threading.Timer((o) =>
+        //    {
+        //        action();
+        //        timer.Change(Timeout.Infinite, Timeout.Infinite);
+        //        timer.Dispose();
+        //    }, null, millionSecs, Timeout.Infinite);
+        //}
+        protected void RunAfter(int million_seconds, Action action)
         {
-            timer = new System.Threading.Timer((o) =>
+            Task.Factory.StartNew(async () =>
             {
-                action();
-                timer.Change(Timeout.Infinite, Timeout.Infinite);
-                timer.Dispose();
-            }, null, millionSecs, Timeout.Infinite);
+                await Task.Delay(million_seconds);
+                try
+                {
+                    action.Invoke();
+                }
+                catch (Exception ex)
+                {
+                    LogWarn($"{ex.Message}", ex);
+                }
+                finally { }
+            });
         }
     }
 }
