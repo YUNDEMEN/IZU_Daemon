@@ -1,4 +1,0 @@
-﻿服务器,设备类型,设备,R/W,变量名,描述,变量类型,禁用,绑定行为
-169.254.10.100,TEST,Device#1,R,DB1.DBX0.0,布尔值,BOOL,,
-,TEST,Device#1,R,DB1.DBW2.0,整型,INT,,
-,TEST,Device#1,R,DB1.DBD4.0,浮点,REAL,,

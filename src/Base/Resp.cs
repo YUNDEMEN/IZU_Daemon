@@ -16,7 +16,7 @@
 		{
 			return new WonderResponse
 			{
-                ok = false,
+                ok = true,
 				data = data
 			};
 		}

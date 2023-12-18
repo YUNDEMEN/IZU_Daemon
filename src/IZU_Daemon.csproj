@@ -9,17 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DeviceTable\**" />
+    <Content Remove="DeviceTable\**" />
+    <EmbeddedResource Remove="DeviceTable\**" />
+    <None Remove="DeviceTable\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Sharp7.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="SampleData\sample.csv" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="SampleData\sample.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -28,10 +25,6 @@
     <PackageReference Include="S7netplus" Version="0.20.0" />
     <PackageReference Include="TinyCsvParser" Version="2.7.0" />
     <PackageReference Include="Topshelf" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DeviceTable\" />
   </ItemGroup>
 
 </Project>
