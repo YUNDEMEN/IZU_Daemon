@@ -83,9 +83,16 @@ namespace IZU.Service
         {
             return _cDic.Keys.ToList();
         }
+
         public List<DeviceEntity> GetAllDevices()
         {
             return _cDic.Values.ToList();
+        }
+
+        public List<DeviceEntity> GetAllDevicesBroadcastInfo()
+        {
+            var test= _cDic.Values.ToList();
+            return test;
         }
 
         public DeviceEntity? GetDevice(string deviceName)

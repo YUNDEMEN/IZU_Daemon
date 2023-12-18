@@ -116,5 +116,6 @@ namespace IZU.DeviceFactories
         {
             return await WriteBool(address_switch, oper);
         }
+
     }
 }

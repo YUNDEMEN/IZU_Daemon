@@ -126,7 +126,7 @@ namespace IZU.Base
 				//		}
 				//	return;
 				//}
-				var msg=_izuService.S7netService.GetAllDevices();
+				var msg=_izuService.S7netService.GetAllDevicesBroadcastInfo();
 				var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(msg)));
 
 				foreach (var client in _clients.Values)
