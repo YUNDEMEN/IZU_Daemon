@@ -20,15 +20,19 @@ namespace IZU.Entities
 		/// 指令读/写
 		/// </summary>
 		public FunctionTypes FunctionType { get; set; }
-		/// <summary>
-		/// 下发指令用途
-		/// </summary>
-		public ActionTypes ActionType { get; set; }
+        /// <summary>
+        /// 下发指令用途
+        /// </summary>
+        public ActionTypes ActionType { get; set; }
+        /// <summary>
+        /// 下发指令用途（新版）
+        /// </summary>
+        public string ActionType2 { get; set; }
 
-		/// <summary>
-		/// 变量名
-		/// </summary>
-		public string Address { get; set; } = string.Empty;
+        /// <summary>
+        /// 变量名
+        /// </summary>
+        public string Address { get; set; } = string.Empty;
 
 		/// <summary>
 		/// 变量类型

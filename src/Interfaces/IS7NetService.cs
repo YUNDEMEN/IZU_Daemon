@@ -9,7 +9,6 @@ namespace IZU.Interfaces
         void Stop();
         List<string> GetAllDeviceNames();
         List<DeviceEntity> GetAllDevices();
-        List<DeviceEntity> GetAllDevicesBroadcastInfo();
         DeviceEntity? GetDevice(string deviceName);
         List<VariableEntity> GetDeviceVariables(string deviceName);
         void RefreshConfig(IZUConfig config);

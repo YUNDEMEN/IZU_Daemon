@@ -89,12 +89,6 @@ namespace IZU.Service
             return _cDic.Values.ToList();
         }
 
-        public List<DeviceEntity> GetAllDevicesBroadcastInfo()
-        {
-            var test= _cDic.Values.ToList();
-            return test;
-        }
-
         public DeviceEntity? GetDevice(string deviceName)
         {
             _ = _cDic.TryGetValue(deviceName.ToLower(), out var device);
