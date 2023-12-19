@@ -1,23 +1,17 @@
-﻿using IZU.Base;
-using IZU.Entities;
-using IZU.Interfaces;
-using IZU.Service;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using NLog.Extensions.Logging;
-using Topshelf;
+﻿using IZU.Interfaces;
 
 namespace IZU
 {
-	public class IZUDaemon : ServiceControl
+    public class IZUDaemon
 	{
 		private IIZUService? serviceInstance;
 		public IZUDaemon()
 		{
 		}
 
-		public bool Start(HostControl hostControl)
+		public bool Start()
 		{
+#if false
 			Task webhostTask = Task.Factory.StartNew(() =>
 			{
 				var builder = WebApplication.CreateBuilder();
@@ -52,10 +46,11 @@ namespace IZU
 				app.UseBroadcastServer(serviceInstance);
 				app.Run();
 			});
+#endif
 			return true;
 		}
 
-		public bool Stop(HostControl hostControl)
+		public bool Stop()
 		{
 			serviceInstance?.Stop();
 			return true;

@@ -1,3 +1,8 @@
+###---------2023-12-19 ----------------------------------------
+更改windows service部署方式
+安装命令：sc create izu-daemon binPath=绝对路径\IZU-Service.exe
+删除命令：sc delete izu-daemon
+
 ###---------2023-12-07 ----------------------------------------
 和设备联调
 ★增加了ActionType：
