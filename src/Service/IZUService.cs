@@ -80,7 +80,7 @@ namespace IZU.Service
                         var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
                         foreach (var item in groups)
                         {
-                            var ds = from x in item.ToList() select new { device_type = x.DeviceType, name = x.Name, ip = x.Server.IP, izu_id };
+                            var ds = from x in item.ToList() select new { device_type = x.DeviceType, name = x.Name, ip = x.Server.IP, izu_id, _config.map_verion };
 
                             response = await httpClient.PostAsync($"izu/add/devices", JsonContent.Create(ds));
                             
