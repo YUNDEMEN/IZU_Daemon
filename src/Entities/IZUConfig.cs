@@ -18,7 +18,7 @@
 		/// <summary>
 		/// 服务的本地IP地址
 		/// </summary>
-		public string Server { get; set; } = "127.0.0.1";
+		public string Server { get; set; } = "127.0.0.1:80";
 		/// <summary>
 		/// 测试数据文件
 		/// </summary>

@@ -32,7 +32,7 @@ namespace IZU.Controllers
             //var token = $"{Guid.NewGuid()}{Guid.NewGuid()}{Guid.NewGuid()}{Guid.NewGuid()}".Replace("-", "");
             return WonderResponse.Create(new
             {
-                server = $"ws://{_config.Server}:8000/ws?token={id:N}",
+                server = $"ws://{_config.Server}/ws?token={id:N}",
                 sessionid = id,
             });
         }
