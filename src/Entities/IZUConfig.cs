@@ -37,7 +37,7 @@
 		public int RecoverySeconds { get; set; } = 10;
 
 		public string izu_backend { get; set; }=string.Empty;
-		public string map_verion { get; set; } = string.Empty;
+		public string map_version { get; set; } = string.Empty;
 
 
     }
