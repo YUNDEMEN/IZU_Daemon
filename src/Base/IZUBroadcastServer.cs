@@ -121,18 +121,17 @@ namespace IZU.Base
                 var msg = _izuService.S7netService.GetAllDevices();
 
                 // 提取数据
-                List<BroadcastData> data = new();
-                BroadcastData bData = new();
+                BroadcastData data = new();
                 foreach (var it in msg)
                 {
                     if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
                     {
                         // 名称
-                        string name = it.Name;
+                        string? name = it.Name;
 
                         // 系统开机状态（1开机；0关机；-1读null）
                         var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
-                        int online = -1;
+                        object? online = null;
                         if (onlineEnt != null && onlineEnt.Value != null)
                             online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
 
@@ -145,10 +144,10 @@ namespace IZU.Base
                         var statusClosing = statusCloseingEnt?.Value;
                         var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R08");
                         var statusClosed = statusClosedEnt?.Value;
-                        int status = -1;
+                        object? status = null;
                         if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
                         {
-                            status = -1;
+                            status = null;
                         }
                         else
                         {
@@ -156,73 +155,72 @@ namespace IZU.Base
                             else if (statusClosing.ToString().ToLower().Equals(true.ToString())) status = 1;
                             else if (statusOpening.ToString().ToLower().Equals(true.ToString())) status = 2;
                             else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
-                            else status = -1;
+                            else status = null;
                         }
 
                         // 启动状态（true触发启动；false不触发启动？）
                         var start_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R02");
-                        bool start = false;
+                        object? start = null;
                         if (start_sigEnt != null && start_sigEnt.Value != null)
                             start = start_sigEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 初始化状态（true触发初始化；false不触发初始化？）
                         var initial_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R11");
-                        bool initial = false;
+                        object? initial = null;
                         if (initial_sigEnt != null && initial_sigEnt.Value != null)
                             initial = initial_sigEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 故障状态
                         var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
-                        var fault = false;
+                        object? fault = null;
                         if (faultEnt != null && faultEnt.Value != null)
                             fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 横式 (手动True 自动False) 默认手动
                         var modeEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R02");
-                        int mode = 1;
+                        object? mode = 1;
 
-                        bData.autodoor.Add(new BroadcastAutodoorInfo(name, online, status, start, initial, fault, mode));
+                        data.autodoor.Add(new BroadcastAutodoorInfo(name, online, status, start, initial, fault, mode));
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.IZU))
                     {
                         // 名称
-                        string name = it.Name;
+                        string? name = it.Name;
 
                         // 系统开机状态（1开机；0关机；-1读null）
                         var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
-                        int online = -1;
+                        object? online = null;
                         if (onlineEnt != null && onlineEnt.Value != null)
                             online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
 
                         // 启动状态（true触发启动；false不触发启动？）
                         var runningStatusEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
-                        bool runningStatus = false;
+                        object? runningStatus = null;
                         if (runningStatusEnt != null && runningStatusEnt.Value != null)
                             runningStatus = runningStatusEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 故障状态
                         var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R05");
-                        var fault = false;
+                        object? fault = null;
                         if (faultEnt != null && faultEnt.Value != null)
                             fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
-                        bData.izu.Add(new BroadcastIzuInfo(name, online, runningStatus, fault));
+                        data.izu.Add(new BroadcastIzuInfo(name, online, runningStatus, fault));
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.FIREDOOR))
                     {
                         // 名称
-                        string name = it.Name;
+                        string? name = it.Name;
 
                         // 系统开机状态（1开机；0关机；-1读null）
                         var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
-                        int online = -1;
+                        object? online = null;
                         if (onlineEnt != null && onlineEnt.Value != null)
                             online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
 
-                        bData.firedoor.Add(new BroadcastFiredoorInfo(name, online));
+                        data.firedoor.Add(new BroadcastFiredoorInfo(name, online));
                     }
                 }
-                data.Add(bData);
                 var test = JsonConvert.SerializeObject(data);
 
                 var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)));

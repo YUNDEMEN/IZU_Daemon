@@ -90,7 +90,7 @@ namespace IZU.Entities
         public List<BroadcastFiredoorInfo> firedoor = new List<BroadcastFiredoorInfo>();
     }
 
-    public record BroadcastAutodoorInfo(string name, int online, int status, bool start_sig, bool initial_sig,bool fault, int mode);
-    public record BroadcastIzuInfo(string name, int online, bool runningStatus, bool fault);
-    public record BroadcastFiredoorInfo(string name, int online);
+    public record BroadcastAutodoorInfo(string? name, object? online, object? status, object? start_sig, object? initial_sig, object? fault, object? mode);
+    public record BroadcastIzuInfo(string? name, object? online, object? runningStatus, object? fault);
+    public record BroadcastFiredoorInfo(string? name, object? online);
 }
