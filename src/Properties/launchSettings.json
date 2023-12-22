@@ -12,7 +12,7 @@
     "IZU_Daemon": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "izu",
       "applicationUrl": "http://localhost:8000",
       "environmentVariables": {

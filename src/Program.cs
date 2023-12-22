@@ -64,6 +64,20 @@ var options = new WebApplicationOptions
 
 var builder = WebApplication.CreateBuilder(options);
 builder.Host.UseWindowsService();
+builder.Host.ConfigureServices(s =>
+{
+    s.AddCors(options =>
+    {
+        options.AddPolicy(
+        name: "AllowAnyOrigin",
+        builder =>
+        {
+            builder.AllowAnyOrigin();
+            builder.AllowAnyMethod();
+            builder.AllowAnyHeader();
+        });
+    });
+});
 if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config")))
 {
     Console.WriteLine("NLog config file missing (nlog.config)");
@@ -101,6 +115,7 @@ IIZUService serviceInstance = app.Services.GetService<IIZUService>();
 serviceInstance?.StartAsync();
 app.MapGet("/", () => serviceInstance?.ServiceRuntime);
 //app.UseAuthorization();
+app.UseCors("AllowAnyOrigin");
 app.MapControllers();
 app.UseBroadcastServer(serviceInstance);
 await app.RunAsync();
