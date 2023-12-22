@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using NLog.Extensions.Logging;
 
 namespace izu.watcher.moxa
 {
@@ -8,7 +9,7 @@ namespace izu.watcher.moxa
         readonly IMoxaWatcher _moxaWatcher;
         public WonderService(ILogger<WonderService> logger, IMoxaWatcher moxaWatcher)
         {
-            _logger= logger;
+            _logger = logger;
             _moxaWatcher= moxaWatcher;
         }
         public bool Start()

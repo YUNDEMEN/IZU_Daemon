@@ -12,7 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZU_Daemon", "src\IZU_Daemon.csproj", "{0FFE43B4-7C65-4C16-949E-D2CCF343466D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "izu-watcher-moxa", "izu-watcher-moxa\izu-watcher-moxa.csproj", "{F1B4E450-633B-47FF-8577-09A484FB8C2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-watcher-moxa", "izu-watcher-moxa\izu-watcher-moxa.csproj", "{F1B4E450-633B-47FF-8577-09A484FB8C2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "izu-quartz", "izu-quartz\izu-quartz.csproj", "{89FC04D1-1125-4270-AFA7-2122BCE74C60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +30,10 @@ Global
 		{F1B4E450-633B-47FF-8577-09A484FB8C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1B4E450-633B-47FF-8577-09A484FB8C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1B4E450-633B-47FF-8577-09A484FB8C2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

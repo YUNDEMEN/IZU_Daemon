@@ -1,5 +1,7 @@
-﻿using IZU.Entities;
+﻿using IZU.Base;
+using IZU.Entities;
 using IZU.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json.Nodes;
 
@@ -33,12 +35,32 @@ namespace IZU.Service
 		}
 
 		public async Task UploadIZUInfo2DatabaseAsync()
-		{
+        {
+            int izu_id = 0;
+            //string api_izu_exsit = Path.Combine(_config.izu_backend, $"izu/exist?n={_config.Name}");
+
+            //var resp_obj = api_izu_exsit.HttpGetAsync<response_object>();
+            //await resp_obj.ContinueWith((task)=>
+            //{
+            //    if (task.IsFaulted)
+            //    {
+            //        _logger.LogInformation(task.Exception?.ToString());
+            //    }
+            //    else
+            //    {
+            //        response_object respObj = task.Result?.data;
+            //         if (respObj.ok)
+            //        {
+            //            int.TryParse($"{respObj.data}", out izu_id);
+            //            _logger.LogInformation($"upload izu info successfully");
+            //        }
+            //    }
+            //});
+
             using (HttpClient httpClient = new HttpClient())
             {
                 try
                 {
-                    int izu_id = 0;
                     httpClient.Timeout = TimeSpan.FromSeconds(5);
                     httpClient.BaseAddress = new Uri(_config.izu_backend);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));

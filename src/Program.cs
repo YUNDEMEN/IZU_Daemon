@@ -57,8 +57,9 @@ catch (Exception ex)
 var options = new WebApplicationOptions
 {
     Args = args,
-    ContentRootPath = WindowsServiceHelpers.IsWindowsService()
-                                     ? AppDomain.CurrentDomain.BaseDirectory : default
+    ContentRootPath = AppDomain.CurrentDomain.BaseDirectory
+    //WindowsServiceHelpers.IsWindowsService()
+    //  ? AppDomain.CurrentDomain.BaseDirectory : default
 };
 
 var builder = WebApplication.CreateBuilder(options);

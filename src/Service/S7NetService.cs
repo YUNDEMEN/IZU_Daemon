@@ -25,7 +25,7 @@ namespace IZU.Service
         {
             _logger.LogInformation("start loading device table");
             _cDic.Clear();
-            DirectoryInfo dir = new(_config.DeviceFiles);
+            DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,_config.DeviceFiles));
             if (!dir.Exists)
             {
                 _logger.LogWarning("device table missing");

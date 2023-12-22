@@ -12,18 +12,6 @@ using System.Text;
 
 namespace IZU.Base
 {
-    public static class IZUBroadcastServerExtension
-    {
-        public static IApplicationBuilder UseBroadcastServer(this IApplicationBuilder app, IIZUService izuService)
-        {
-            return app.Map("/ws", config =>
-            {
-                var izuSock = new IZUBroadcastServer(izuService);
-                config.UseWebSockets();
-                config.Use((context, next) => izuSock.Acceptor(context, next));
-            });
-        }
-    }
     public class IZUBroadcastServer : NLogProvider
     {
         const int BufferSize = 4096;
