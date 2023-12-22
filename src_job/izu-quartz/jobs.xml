@@ -14,7 +14,7 @@
       <name>sampleJob</name>
       <group>sampleGroup</group>
       <description>Sample job for Quartz Server</description>
-      <job-type> izu.quartz.SampleJob,  izu.quartz</job-type>
+      <job-type> izu.quartz.SampleJob,izu-quartz</job-type>
       <durable>true</durable>
       <recover>false</recover>
       <job-data-map>
@@ -31,19 +31,19 @@
 
     <trigger>
       <simple>
-        <name>sampleSimpleTrigger</name>
+        <name>IntervalTrigger</name>
         <group>sampleSimpleGroup</group>
         <description>Simple trigger to simply fire sample job</description>
         <job-name>sampleJob</job-name>
         <job-group>sampleGroup</job-group>
         <misfire-instruction>SmartPolicy</misfire-instruction>
         <repeat-count>-1</repeat-count>
-        <repeat-interval>2</repeat-interval>
+        <repeat-interval>2000</repeat-interval>
       </simple>
     </trigger>
     <trigger>
       <cron>
-        <name>sampleCronTrigger</name>
+        <name>CronTrigger</name>
         <group>sampleCronGroup</group>
         <description>Cron trigger to simply fire sample job</description>
         <job-name>sampleJob</job-name>
@@ -54,13 +54,13 @@
     </trigger>
     <trigger>
       <calendar-interval>
-        <name>sampleCalendarIntervalTrigger</name>
+        <name>CalendarIntervalTrigger</name>
         <group>sampleCalendarIntervalGroup</group>
         <description>Calendar interval trigger to simply fire sample job</description>
         <job-name>sampleJob</job-name>
         <job-group>sampleGroup</job-group>
         <misfire-instruction>SmartPolicy</misfire-instruction>
-        <repeat-interval>15</repeat-interval>
+        <repeat-interval>5</repeat-interval>
         <repeat-interval-unit>Second</repeat-interval-unit>
       </calendar-interval>
     </trigger>    

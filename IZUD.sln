@@ -12,9 +12,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZU_Daemon", "src\IZU_Daemon.csproj", "{0FFE43B4-7C65-4C16-949E-D2CCF343466D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-watcher-moxa", "izu-watcher-moxa\izu-watcher-moxa.csproj", "{F1B4E450-633B-47FF-8577-09A484FB8C2D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A39079DA-3D89-43A4-907B-C65F67F9256D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "izu-quartz", "izu-quartz\izu-quartz.csproj", "{89FC04D1-1125-4270-AFA7-2122BCE74C60}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src_job", "src_job", "{C9D29038-4E8A-4A45-85AE-D7F3D5FB24FB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-quartz", "src_job\izu-quartz\izu-quartz.csproj", "{999D4CFE-099F-4EC5-8C6C-E3ABFA3491E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "jobs", "jobs", "{04EFA1B3-6E61-4460-ADDD-3EC519068ABA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "job-moxa", "job-moxa\job-moxa.csproj", "{BBF9C4EC-332D-4F3E-B2BE-8E66E4D14F17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,17 +32,23 @@ Global
 		{0FFE43B4-7C65-4C16-949E-D2CCF343466D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FFE43B4-7C65-4C16-949E-D2CCF343466D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FFE43B4-7C65-4C16-949E-D2CCF343466D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F1B4E450-633B-47FF-8577-09A484FB8C2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1B4E450-633B-47FF-8577-09A484FB8C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F1B4E450-633B-47FF-8577-09A484FB8C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F1B4E450-633B-47FF-8577-09A484FB8C2D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{89FC04D1-1125-4270-AFA7-2122BCE74C60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{999D4CFE-099F-4EC5-8C6C-E3ABFA3491E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{999D4CFE-099F-4EC5-8C6C-E3ABFA3491E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{999D4CFE-099F-4EC5-8C6C-E3ABFA3491E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{999D4CFE-099F-4EC5-8C6C-E3ABFA3491E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBF9C4EC-332D-4F3E-B2BE-8E66E4D14F17}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBF9C4EC-332D-4F3E-B2BE-8E66E4D14F17}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBF9C4EC-332D-4F3E-B2BE-8E66E4D14F17}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBF9C4EC-332D-4F3E-B2BE-8E66E4D14F17}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0FFE43B4-7C65-4C16-949E-D2CCF343466D} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
+		{999D4CFE-099F-4EC5-8C6C-E3ABFA3491E4} = {C9D29038-4E8A-4A45-85AE-D7F3D5FB24FB}
+		{04EFA1B3-6E61-4460-ADDD-3EC519068ABA} = {C9D29038-4E8A-4A45-85AE-D7F3D5FB24FB}
+		{BBF9C4EC-332D-4F3E-B2BE-8E66E4D14F17} = {04EFA1B3-6E61-4460-ADDD-3EC519068ABA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
