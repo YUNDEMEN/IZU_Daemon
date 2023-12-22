@@ -1,9 +1,11 @@
 ﻿using IZU.Base;
+using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 
 namespace IZU.Service
 {
@@ -37,10 +39,13 @@ namespace IZU.Service
 		public async Task UploadIZUInfo2DatabaseAsync()
         {
             int izu_id = 0;
-            //string api_izu_exsit = Path.Combine(_config.izu_backend, $"izu/exist?n={_config.Name}");
+            //string api_get_izu_exsit = Path.Combine(_config.izu_backend, $"izu/exist?n={_config.Name}");
+            //string api_post_izu_add = Path.Combine(_config.izu_backend, $"izu/add");
+            //string api_post_izu_edit = Path.Combine(_config.izu_backend, $"izu/edit");
+            //string api_post_izu_add_devices = Path.Combine(_config.izu_backend, $"izu/add/devices"); 
 
-            //var resp_obj = api_izu_exsit.HttpGetAsync<response_object>();
-            //await resp_obj.ContinueWith((task)=>
+            //var resp_obj = api_get_izu_exsit.HttpGetAsync<response_object>();
+            //await resp_obj.ContinueWith((task) =>
             //{
             //    if (task.IsFaulted)
             //    {
@@ -48,14 +53,23 @@ namespace IZU.Service
             //    }
             //    else
             //    {
-            //        response_object respObj = task.Result?.data;
-            //         if (respObj.ok)
+            //        if (task.Result.ok)
             //        {
-            //            int.TryParse($"{respObj.data}", out izu_id);
+            //            int.TryParse($"{task.Result.data}", out izu_id);
             //            _logger.LogInformation($"upload izu info successfully");
             //        }
             //    }
             //});
+
+            //if(izu_id == 0)
+            //{
+
+            //}
+            //else
+            //{
+
+            //}
+
 
             using (HttpClient httpClient = new HttpClient())
             {
@@ -87,17 +101,34 @@ namespace IZU.Service
                             var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                             if (!resultObject.ok)
                             {
-                                _logger.LogInformation($"upload izu info failed: {resultObject.message}");
+                                _logger.LogInformation($"add izu info failed: {resultObject.message}");
                             }
                             else
                             {
                                 int.TryParse($"{resultObject.data}", out izu_id);
-                                _logger.LogInformation($"upload izu info successfully");
+                                _logger.LogInformation($"add izu info successfully");
                             }
                         }
                     }
                     if (izu_id > 0)
                     {
+                        response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new { id=izu_id, name = _config.Name, ip = _config.Server }));
+                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                        {
+                            string result = await response.Content.ReadAsStringAsync();
+                            var jsonResult = JsonObject.Parse(result);
+                            var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                            if (!resultObject.ok)
+                            {
+                                _logger.LogInformation($"update izu info failed: {resultObject.message}");
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"update izu info successfully");
+                            }
+                        }
+
+
                         var devices = S7netService.GetAllDevices();
                         var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
                         foreach (var item in groups)

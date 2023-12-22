@@ -73,6 +73,17 @@ builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlo
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new DatetimeJsonConverter("yyyy-MM-dd HH:mm:ss"));
+}); 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        name: "AllowAnyOrigin",
+        builder =>
+        {
+            builder.AllowAnyOrigin();
+            builder.AllowAnyMethod();
+            builder.AllowAnyHeader();
+        });
 });
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Services.Configure<IZUConfig>(builder.Configuration.GetSection(IZUConfig.KEY));
