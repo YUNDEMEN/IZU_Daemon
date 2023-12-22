@@ -121,7 +121,6 @@ namespace IZU.Base
                 var msg = _izuService.S7netService.GetAllDevices();
 
                 // 提取数据
-                List<BroadcastData> data = new();
                 BroadcastData bData = new();
                 foreach (var it in msg)
                 {
@@ -222,10 +221,9 @@ namespace IZU.Base
                         bData.firedoor.Add(new BroadcastFiredoorInfo(name, online));
                     }
                 }
-                data.Add(bData);
-                var test = JsonConvert.SerializeObject(data);
+                var test = JsonConvert.SerializeObject(bData);
 
-                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)));
+                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(bData)));
                 foreach (var client in _clients.Values)
                 {
                     if (client.Status == 1) continue;
