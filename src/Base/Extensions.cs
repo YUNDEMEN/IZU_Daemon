@@ -1,19 +1,39 @@
-﻿using IZU.Interfaces;
+﻿using IZU.Entities;
+using IZU.Interfaces;
+using IZU.Service;
 using System.Text.Json.Nodes;
 
 namespace IZU.Base
 {
     public static class Extensions
     {
-        public static IApplicationBuilder UseBroadcastServer(this IApplicationBuilder app, IIZUService izuService)
+        public static IServiceCollection AddIZU(this IServiceCollection service,IConfiguration config)
         {
-            return app.Map("/ws", config =>
+            service.Configure<IZUConfig>(config);
+            service.AddSingleton<IIZUService, IZUService>();
+            service.AddSingleton<IS7NetService, S7NetService>();
+            service.AddSingleton<IIZUBroadcastServer, IZUBroadcastServer>();
+            return service;
+        }
+        public static async Task UseIZUAsync(this WebApplication app)
+        {
+            IIZUService? izuService = app.Services.GetService<IIZUService>();
+            if (izuService == null)
+                throw new Exception("should add izu first");
+            await izuService.StartAsync();
+            app.MapGet("/", () => izuService.ServiceRuntime);
+
+            IIZUBroadcastServer? izuSock = app.Services.GetService<IIZUBroadcastServer>();
+            if (izuService == null)
+                throw new Exception("should add izu first");
+
+            app.Map("/ws", config =>
             {
-                var izuSock = new IZUBroadcastServer(izuService);
                 config.UseWebSockets();
-                config.Use((context, next) => izuSock.Acceptor(context, next));
+                config.Use(async (context, next) => await izuSock.Acceptor(context, next));
             });
         }
+
 
         public static async Task<Resp> HttpGetAsync(this string api, int timeoutSeconds = 5)
         {

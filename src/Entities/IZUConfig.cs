@@ -27,14 +27,18 @@
 		/// 变量表文件夹
 		/// </summary>
 		public string DeviceFiles { get; set; } = "DeviceTable";
-		/// <summary>
-		/// 从设备读取数据刷新时间
-		/// </summary>
-		public int RefreshMillionSeconds { get; set; } = 500;
-		/// <summary>
-		/// 服务灾后重启时间
-		/// </summary>
-		public int RecoverySeconds { get; set; } = 10;
+        /// <summary>
+        /// 从设备读取数据刷新时间（毫秒）
+        /// </summary>
+        public int RefreshMillionSeconds { get; set; } = 500;
+        /// <summary>
+        /// 发布数据时间间隔（毫秒）
+        /// </summary>
+        public int PublishMillionSeconds { get; set; } = 500; 
+        /// <summary>
+        /// 服务灾后重启时间
+        /// </summary>
+        public int RecoverySeconds { get; set; } = 10;
 
 		public string izu_backend { get; set; }=string.Empty;
 		public string map_version { get; set; } = string.Empty;

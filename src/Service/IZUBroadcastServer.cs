@@ -1,6 +1,7 @@
-﻿using IZU.Entities;
+﻿using IZU.Base;
+using IZU.Entities;
 using IZU.Interfaces;
-using IZU.Service;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,26 +11,35 @@ using System.Reflection.Metadata.Ecma335;
 using System.ServiceProcess;
 using System.Text;
 
-namespace IZU.Base
+namespace IZU.Service
 {
-    public class IZUBroadcastServer : NLogProvider
+    public class IZUBroadcastServer : NLogProvider, IIZUBroadcastServer
     {
         const int BufferSize = 4096;
-        IIZUService _izuService { get; }
+        int taskDelay = 1000;
+        IS7NetService _s7NetService { get; }
+        IZUConfig _config { get; set; }
         ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUBroadcastServer(IIZUService izuService)
+        public IZUBroadcastServer(IS7NetService s7netService, IOptions<IZUConfig> cfg)
         {
-            _izuService = izuService;
-
+            _s7NetService = s7netService;
+            _config = cfg.Value;
+            taskDelay = _config.PublishMillionSeconds;
             Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
                     await BroadcastDevicesAsync();
-                    await Task.Delay(1000);
+                    await Task.Delay(taskDelay);
                 }
 
             });
+        }
+
+        public void Refresh(IZUConfig config)
+        {
+            _config = config;
+            taskDelay = config.PublishMillionSeconds;
         }
 
         class InnerServerClient
@@ -40,11 +50,11 @@ namespace IZU.Base
 
             public InnerServerClient(WebSocket socket, Guid sessionId)
             {
-                this.Socket = socket;
-                this.SessionId = sessionId;
+                Socket = socket;
+                SessionId = sessionId;
             }
         }
-        internal async Task Acceptor(HttpContext context, Func<Task> next)
+        public async Task Acceptor(HttpContext context, Func<Task> next)
         {
             if (!context.WebSockets.IsWebSocketRequest) return;
 
@@ -52,7 +62,7 @@ namespace IZU.Base
             if (string.IsNullOrEmpty(token)) return;
 
             //token 验证
-            var token_value = token;// _redis.Get($"{_redisPrefix}Token{token}");
+            var token_value = token;
             if (string.IsNullOrEmpty(token_value) || !Guid.TryParse(token_value, out Guid sessionid))
                 throw new Exception("token should be Guid");
 
@@ -118,7 +128,7 @@ namespace IZU.Base
                 //		}
                 //	return;
                 //}
-                var msg = _izuService.S7netService.GetAllDevices();
+                var msg = _s7NetService.GetAllDevices();
 
                 // 提取数据
                 BroadcastData data = new();

@@ -15,14 +15,18 @@ namespace IZU.Service
 		public IZUConfig _config { get; private set; }
 		private readonly ILogger<IZUService> _logger;
 		private readonly Timer _timer;
-		public IS7NetService S7netService { get; }
+        private readonly IIZUBroadcastServer _broadcastServer;
 
-		public IZUService(ILogger<IZUService> logger, IOptions<IZUConfig> cfg, IS7NetService s7netService)
+        public IS7NetService S7netService { get; }
+        public IZUConfig Config { get { return _config; } }
+
+        public IZUService(ILogger<IZUService> logger, IOptions<IZUConfig> cfg, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
 		{
 			_logger = logger;
 			_config = cfg.Value;
 			S7netService = s7netService;
-			_timer = new Timer(Callback);
+            _broadcastServer= broadcastServer;
+            _timer = new Timer(Callback);
 			ServiceRuntime = new ServiceRuntime();
             logger.LogInformation("IZU service initialized");
 		}
@@ -38,6 +42,7 @@ namespace IZU.Service
 
 		public async Task UploadIZUInfo2DatabaseAsync()
         {
+            _logger.LogInformation($"begin upload izu info...");
             int izu_id = 0;
             //string api_get_izu_exsit = Path.Combine(_config.izu_backend, $"izu/exist?n={_config.Name}");
             //string api_post_izu_add = Path.Combine(_config.izu_backend, $"izu/add");
@@ -204,6 +209,8 @@ namespace IZU.Service
         public void RefreshConfig(IZUConfig config)
         {
             _config = config;
+            S7netService.RefreshConfig(config);
+            _broadcastServer.Refresh(config);
         }
 
 	}

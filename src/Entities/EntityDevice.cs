@@ -78,6 +78,7 @@ namespace IZU.Entities
         public void Refresh(int refreshTimeInterval)
         {
             PullDataFromDeviceTimeInterval = refreshTimeInterval;
+            Server?.Refresh(PullDataFromDeviceTimeInterval);
         }
 
         public static DeviceEntity DummyDevice { get { return new DeviceEntity("sampledata", "dummy", 0); } }

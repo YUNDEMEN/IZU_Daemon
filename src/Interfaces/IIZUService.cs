@@ -10,5 +10,6 @@ namespace IZU.Interfaces
         void Stop();
 		Task UploadIZUInfo2DatabaseAsync();
 		void RefreshConfig(IZUConfig config);
+		IZUConfig Config { get; }
     }
 }

@@ -14,7 +14,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": false,
       "launchUrl": "izu",
-      "applicationUrl": "http://localhost:8000",
+      "applicationUrl": "http://localhost:8031",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

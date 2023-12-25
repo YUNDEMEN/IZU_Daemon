@@ -18,10 +18,12 @@ namespace IZU.Controllers
     {
         private readonly ILogger<ServiceInfoController> _logger;
         IServiceProvider _serviceProvider { get; }
+        IZUConfig _config;
         public ServiceInfoController(ILogger<ServiceInfoController> logger, IOptionsSnapshot<IZUConfig> cfg, IIZUService service, IS7NetService s7netService, IServiceProvider serviceProvider)
             : base(cfg, service, s7netService)
         {
             _logger = logger;
+            _config = cfg.Value;
             _serviceProvider = serviceProvider;
         }
 
