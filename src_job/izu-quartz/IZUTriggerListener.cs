@@ -3,11 +3,11 @@ using Quartz.Listener;
 
 namespace izu.quartz;
 
-public class SampleTriggerListener : TriggerListenerSupport
+public class IZUTriggerListener : TriggerListenerSupport
 {
-    private readonly ILogger<SampleTriggerListener> logger;
+    private readonly ILogger<IZUTriggerListener> logger;
 
-    public SampleTriggerListener(ILogger<SampleTriggerListener> logger)
+    public IZUTriggerListener(ILogger<IZUTriggerListener> logger)
     {
         this.logger = logger;
     }

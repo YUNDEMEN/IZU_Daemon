@@ -9,7 +9,38 @@
   </processing-directives>
 
   <schedule>
-
+    <job>
+      <name>moxa</name>
+      <group>moxa</group>
+      <description>MOXA job </description>
+      <job-type>job.moxa.JobMoxa,job-moxa</job-type>
+      <durable>true</durable>
+      <recover>false</recover>
+      <job-data-map>
+        <entry>
+          <key>host</key>
+          <value>http://localhost/</value>
+        </entry>
+        <entry>
+          <key>token</key>
+          <value></value>
+        </entry>
+      </job-data-map>
+    </job>
+    <trigger>
+      <simple>
+        <name>moxaIntervalTrigger</name>
+        <group>moxaTriggerGroup</group>
+        <description>MOXA job trigger</description>
+        <job-name>moxa</job-name>
+        <job-group>moxa</job-group>
+        <misfire-instruction>SmartPolicy</misfire-instruction>
+        <repeat-count>0</repeat-count>
+        <repeat-interval>5000</repeat-interval>
+      </simple>
+    </trigger>
+    
+    
     <job>
       <name>sampleJob</name>
       <group>sampleGroup</group>
@@ -28,7 +59,6 @@
         </entry>
       </job-data-map>
     </job>
-
     <trigger>
       <simple>
         <name>IntervalTrigger</name>

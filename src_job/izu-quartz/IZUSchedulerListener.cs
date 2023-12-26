@@ -2,11 +2,11 @@ using Quartz.Listener;
 
 namespace izu.quartz;
 
-public class SampleSchedulerListener : SchedulerListenerSupport
+public class IZUSchedulerListener : SchedulerListenerSupport
 {
-    private readonly ILogger<SampleSchedulerListener> logger;
+    private readonly ILogger<IZUSchedulerListener> logger;
 
-    public SampleSchedulerListener(ILogger<SampleSchedulerListener> logger)
+    public IZUSchedulerListener(ILogger<IZUSchedulerListener> logger)
     {
         this.logger = logger;
     }

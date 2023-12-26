@@ -3,11 +3,11 @@ using Quartz.Listener;
 
 namespace izu.quartz;
 
-public class SampleJobListener : JobListenerSupport
+public class IZUJobListener : JobListenerSupport
 {
-    private readonly ILogger<SampleJobListener> logger;
+    private readonly ILogger<IZUJobListener> logger;
 
-    public SampleJobListener(ILogger<SampleJobListener> logger)
+    public IZUJobListener(ILogger<IZUJobListener> logger)
     {
         this.logger = logger;
     }

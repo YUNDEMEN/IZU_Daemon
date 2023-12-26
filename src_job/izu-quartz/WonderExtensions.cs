@@ -16,21 +16,16 @@ namespace izu.quartz
             services.AddQuartz(q => {
                 // handy when part of cluster or you want to otherwise identify multiple schedulers
                 q.SchedulerId = "Scheduler-Core";
-
                 // you can control whether job interruption happens for running jobs when scheduler is shutting down
                 q.InterruptJobsOnShutdown = true;
-
                 // when QuartzHostedServiceOptions.WaitForJobsToComplete = true or scheduler.Shutdown(waitForJobsToComplete: true)
                 q.InterruptJobsOnShutdownWithWait = true;
-
                 // we can change from the default of 1
                 q.MaxBatchSize = 5;
                 q.UseSimpleTypeLoader();
                 q.UseInMemoryStore();
                 q.UseDefaultThreadPool(maxConcurrency: 10);
-
                 q.UseTypeLoader<CustomTypeLoader>();
-
                 q.UseXmlSchedulingConfiguration(x =>
                 {
                     x.Files = new[] { "~/jobs.xml" };
@@ -38,9 +33,9 @@ namespace izu.quartz
                     x.FailOnFileNotFound = true;
                     x.FailOnSchedulingError = true;
                 });
-                q.AddSchedulerListener<SampleSchedulerListener>();
-                q.AddJobListener<SampleJobListener>();
-                q.AddTriggerListener<SampleTriggerListener>();
+                q.AddSchedulerListener<IZUSchedulerListener>();
+                q.AddJobListener<IZUJobListener>();
+                q.AddTriggerListener<IZUTriggerListener>();
                 q.AddHttpApi(options =>
                 {
                     // "/quartz-api" is also default value

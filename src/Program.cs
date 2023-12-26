@@ -62,7 +62,8 @@ if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.confi
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
-    ContentRootPath = AppDomain.CurrentDomain.BaseDirectory
+    ContentRootPath = AppDomain.CurrentDomain.BaseDirectory,
+    WebRootPath = AppDomain.CurrentDomain.BaseDirectory
 });
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config"));

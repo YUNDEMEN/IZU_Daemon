@@ -13,6 +13,6 @@ public class SampleJob : IJob
     public async ValueTask Execute(IJobExecutionContext context)
     {
         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-        _logger.LogInformation($"SampleJob run with trigger {context.Trigger.Key.Name}");
+        _logger.LogDebug($"SampleJob run with trigger {context.Trigger.Key.Name}");
     }
 }
