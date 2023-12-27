@@ -134,7 +134,51 @@ namespace IZU.Service
                 BroadcastData data = new();
                 foreach (var it in msg)
                 {
-                    if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
+                    if (it.DeviceType.Equals(DeviceTypes.IZU))
+                    {
+                        // 名称
+                        string? name = it.Name;
+
+                        // 系统开机状态（1开机；0关机；-1读null）
+                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
+                        object? online = null;
+                        if (onlineEnt != null && onlineEnt.Value != null)
+                            online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
+
+                        // 启动状态（true触发启动；false不触发启动？）
+                        var runningStatusEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
+                        object? runningStatus = null;
+                        if (runningStatusEnt != null && runningStatusEnt.Value != null)
+                            runningStatus = runningStatusEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
+
+                        // 故障状态
+                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R05");
+                        object? fault = null;
+                        if (faultEnt != null && faultEnt.Value != null)
+                            fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
+
+                        data.izu.Add(new BroadcastIzuInfo(name, online, runningStatus, fault));
+                    }
+                    else if (it.DeviceType.Equals(DeviceTypes.HID))
+                    {
+                        // 名称
+                        string? name = it.Name;
+
+                        // 系统开机状态（1开机；0关机；-1读null）
+                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
+                        object? online = null;
+                        if (onlineEnt != null && onlineEnt.Value != null)
+                            online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
+
+                        // 故障状态
+                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
+                        object? fault = null;
+                        if (faultEnt != null && faultEnt.Value != null)
+                            fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
+
+                        data.hid.Add(new BroadcastHidInfo(name, online, fault));
+                    }
+                    else if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
                     {
                         // 名称
                         string? name = it.Name;
@@ -191,31 +235,6 @@ namespace IZU.Service
                         object? mode = 1;
 
                         data.autodoor.Add(new BroadcastAutodoorInfo(name, online, status, start, initial, fault, mode));
-                    }
-                    else if (it.DeviceType.Equals(DeviceTypes.IZU))
-                    {
-                        // 名称
-                        string? name = it.Name;
-
-                        // 系统开机状态（1开机；0关机；-1读null）
-                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
-                        object? online = null;
-                        if (onlineEnt != null && onlineEnt.Value != null)
-                            online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
-
-                        // 启动状态（true触发启动；false不触发启动？）
-                        var runningStatusEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
-                        object? runningStatus = null;
-                        if (runningStatusEnt != null && runningStatusEnt.Value != null)
-                            runningStatus = runningStatusEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
-
-                        // 故障状态
-                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R05");
-                        object? fault = null;
-                        if (faultEnt != null && faultEnt.Value != null)
-                            fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
-
-                        data.izu.Add(new BroadcastIzuInfo(name, online, runningStatus, fault));
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.FIREDOOR))
                     {
