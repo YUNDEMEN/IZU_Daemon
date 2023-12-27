@@ -19,10 +19,10 @@ namespace IZU.Service
 
         public IS7NetService S7netService { get; }
         public IZUConfig Config { get { return _config; } }
-
-        public IZUService(ILogger<IZUService> logger, IOptions<IZUConfig> cfg, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger,IOptions<IZUConfig> cfg, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
 		{
-			_logger = logger;
+            IZULogging.ConfigureLogger(loggerFactory);
+            _logger = logger;
 			_config = cfg.Value;
 			S7netService = s7netService;
             _broadcastServer= broadcastServer;
@@ -32,12 +32,26 @@ namespace IZU.Service
 		}
 		record class response_object(object data, bool ok, string message);
 		public async Task StartAsync()
-		{
-			_logger.LogInformation("---------------IZU service starting---------------");
+        {
+            var _loggers = IZULogging.Factory.CreateLogger<Device>();
+            Task.Run(async () => {
+                while (true)
+                {
+                    _logger.LogDebug("---------------LogInformation 这是一个八哥---------------");
+                    _logger.LogInformation("---------------LogInformation---------------");
+                    _logger.LogWarning("---------------LogWarning---------------");
+                    _logger.LogError("---------------LogError---------------");
+                    _logger.LogCritical("---------------LogError---------------");
+                    NLog.LogManager.GetCurrentClassLogger().Info("nlog info");
+                    await Task.Delay(2000);
+                }
+            });
+            _logger.LogInformation("---------------IZU service starting---------------");
 			_timer.Change(1000, 1000);
 			await S7netService.StartAsync();
             await UploadIZUInfo2DatabaseAsync();
             _logger.LogInformation("---------------IZU service started---------------");
+
 		}
 
 		public async Task UploadIZUInfo2DatabaseAsync()

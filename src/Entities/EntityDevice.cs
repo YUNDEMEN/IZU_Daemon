@@ -5,8 +5,11 @@ using System.ServiceProcess;
 
 namespace IZU.Entities
 {
-    public class DeviceEntity : NLogProvider, IDisposable
+    public class DeviceEntity :  IDisposable
     {
+        private readonly ILogger<DeviceEntity> _logger;
+
+
         public readonly string FromFile;
         /// <summary>
         /// 设备名称
@@ -28,8 +31,9 @@ namespace IZU.Entities
         /// 变量表
         /// </summary>
         public List<VariableEntity> Variables { get; set; }
-        public DeviceEntity(string file, string name, int refreshTimeInterval, List<VariableEntity>? variables = null)
+        public DeviceEntity(ILoggerFactory loggerFactory, string file, string name, int refreshTimeInterval, List<VariableEntity>? variables = null)
         {
+            _logger = loggerFactory.CreateLogger<DeviceEntity>();
             FromFile = file;
             Name = name.ToLower();
             PullDataFromDeviceTimeInterval = refreshTimeInterval;
@@ -38,11 +42,11 @@ namespace IZU.Entities
             var item = Variables.FirstOrDefault(t => !string.IsNullOrEmpty(t.ServerIP));
             if (item == null)
                 //	throw new RowNotInTableException($"Server IP address missing!");
-                LogWarn($"server IP address is not found in {name} ({FromFile})! default IP address is 127.0.0.1");
+                _logger.LogWarning($"server IP address is not found in {name} ({FromFile})! default IP address is 127.0.0.1");
 
             DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
 
-            Server = new PlcServer(DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, GetActionTypes());
+            Server = new PlcServer(loggerFactory, DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, GetActionTypes());
             Server.Config(Variables);
         }
         protected IDictionary<ActionTypes, string> GetActionTypes()
@@ -81,7 +85,7 @@ namespace IZU.Entities
             Server?.Refresh(PullDataFromDeviceTimeInterval);
         }
 
-        public static DeviceEntity DummyDevice { get { return new DeviceEntity("sampledata", "dummy", 0); } }
+        public static DeviceEntity DummyDevice => new DeviceEntity(loggerFactory: null!, "sampledata", "dummy", 0);
     }
 
     public class BroadcastData

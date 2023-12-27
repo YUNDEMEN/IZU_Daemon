@@ -14,10 +14,11 @@ namespace IZU.Service
         private readonly ConcurrentDictionary<string, DeviceEntity> _cDic = new();
         private IZUConfig _config { get; set; }
         private readonly ILogger<S7NetService> _logger;
-        //private readonly IIZUService _izuService;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public S7NetService(ILogger<S7NetService> logger, IOptions<IZUConfig> cfg)
+        public S7NetService(ILoggerFactory loggerFactory, ILogger<S7NetService> logger, IOptions<IZUConfig> cfg)
         {
+            _loggerFactory = loggerFactory;
             _logger = logger;
             _config = cfg.Value;
         }
@@ -56,7 +57,7 @@ namespace IZU.Service
                     foreach (var item in groups)
                     {
                         if (string.IsNullOrEmpty(item.Key)) continue;
-                        if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(deviceFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList())))
+                        if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory,deviceFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList())))
                             _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, deviceFile);
                     }
                 }

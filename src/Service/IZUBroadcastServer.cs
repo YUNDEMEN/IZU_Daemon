@@ -13,15 +13,17 @@ using System.Text;
 
 namespace IZU.Service
 {
-    public class IZUBroadcastServer : NLogProvider, IIZUBroadcastServer
+    public class IZUBroadcastServer : IIZUBroadcastServer
     {
+        readonly ILogger<IZUBroadcastServer> _logger;
         const int BufferSize = 4096;
         int taskDelay = 1000;
         IS7NetService _s7NetService { get; }
         IZUConfig _config { get; set; }
         ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUBroadcastServer(IS7NetService s7netService, IOptions<IZUConfig> cfg)
+        public IZUBroadcastServer(ILogger<IZUBroadcastServer> logger, IS7NetService s7netService, IOptions<IZUConfig> cfg)
         {
+            _logger = logger;
             _s7NetService = s7netService;
             _config = cfg.Value;
             taskDelay = _config.PublishMillionSeconds;
@@ -259,7 +261,7 @@ namespace IZU.Service
             }
             catch (Exception ex)
             {
-                LogWarn($"broadcast server error: {ex.Message}");
+                _logger.LogWarning($"broadcast server error: {ex.Message}");
             }
         }
 

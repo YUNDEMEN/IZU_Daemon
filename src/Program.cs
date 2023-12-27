@@ -1,5 +1,6 @@
 using IZU.Base;
 using IZU.Entities;
+using IZU.Service;
 using Newtonsoft.Json.Linq;
 using NLog.Extensions.Logging;
 
@@ -67,6 +68,15 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 });
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config"));
+builder.Logging.AddColorConsoleLogger(configuration =>
+{
+    var c = builder.Configuration.GetRequiredSection("Logging:ColorConsole:LogLevelToColorMap").GetChildren();
+    //Replace LogLevel and ConsoleColor values from appsettings.json
+    configuration.LogLevelToColorMap = c.ToDictionary(
+        t => (LogLevel)Enum.Parse(typeof(LogLevel), t.Key), 
+        v => (ConsoleColor)Enum.Parse(typeof(ConsoleColor), v.Value!)
+        );
+});
 builder.Host.UseWindowsService();
 builder.Host.ConfigureServices(s =>
 {
@@ -98,16 +108,17 @@ builder.Services.AddCors(options =>
         });
 });
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
+builder.Services.AddTelnetService();
 builder.Services.AddIZU(builder.Configuration.GetSection(IZUConfig.KEY));
 
 //builder.Services.BuildServiceProvider()
-//.GetRequiredService<IOptionsMonitor<IZUConfig>>()
-//.OnChange((profile) =>
+//.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()
+//.OnChange((profile,t) =>
 //{
-
 //});
 
 var app = builder.Build();
+app.UseTelnet();
 //app.UseAuthorization();
 app.UseCors("AllowAnyOrigin");
 app.MapControllers();

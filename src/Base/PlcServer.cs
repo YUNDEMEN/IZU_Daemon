@@ -46,8 +46,9 @@ namespace IZU.Base
 	 
 	 
 	 */
-    public class PlcServer : NLogProvider, IPlcServer
+    public class PlcServer : IPlcServer
     {
+        private readonly ILogger<PlcServer> _logger;
         private S7.Net.Types.DataItem _r_heartbeat_address;
         private S7.Net.Types.DataItem _w_sendback_address;
         private S7.Net.Types.DataItem _w_online_address;
@@ -144,12 +145,12 @@ namespace IZU.Base
                                 {
                                     await _server.OpenAsync();
                                     _serviceStatus = TaskServiceStatus.Connected;
-                                    LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                    _logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                                     //Console.WriteLine("heartbeat detecting status:  normal");
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                    _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                     //Console.WriteLine("heartbeat detecting status:  disconnected");
                                 }
                             }
@@ -177,12 +178,12 @@ namespace IZU.Base
                                     //Console.SetCursorPosition(0, 30);
                                     Console.Write(" {0} ", result);
                                     _serviceStatus = TaskServiceStatus.Connected;
-                                    //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                    //_logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                                 }
                                 catch (Exception ex)
                                 {
                                     _serviceStatus = TaskServiceStatus.Connecting;
-                                    //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                    //_logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                 }
                             }
 
@@ -204,12 +205,12 @@ namespace IZU.Base
                                 {
                                     await _server.OpenAsync();
                                     _serviceStatus = TaskServiceStatus.Connected;
-                                    LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                    _logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                                     //Console.WriteLine("heartbeat detecting status:  normal");
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                    _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                     //Console.WriteLine("heartbeat detecting status:  disconnected");
                                 }
                             }
@@ -227,12 +228,12 @@ namespace IZU.Base
 
                                     //Console.Write(" {0} ", result);
                                     _serviceStatus = TaskServiceStatus.Connected;
-                                    //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                    //_logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                                 }
                                 catch (Exception ex)
                                 {
                                     _serviceStatus = TaskServiceStatus.Connecting;
-                                    //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                    //_logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                 }
                             }
 
@@ -258,12 +259,12 @@ namespace IZU.Base
                         {
                             _ = await _server.ReadMultipleVarsAsync(_dataItems);
                             _dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
-                            //LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                            //_logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                         }
                         catch (Exception ex)
                         {
                             //_serviceStatus = TaskServiceStatus.Connecting;
-                            //LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                            //_logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                         }
                     }
 
@@ -271,8 +272,9 @@ namespace IZU.Base
                 }
             }, TaskCreationOptions.LongRunning);
         }
-        public PlcServer(DeviceTypes deviceType, string deviceName, string ip, int refreshTimeInterval, IDictionary<ActionTypes, string> addresses)
+        public PlcServer(ILoggerFactory loggerFactory, DeviceTypes deviceType, string deviceName, string ip, int refreshTimeInterval, IDictionary<ActionTypes, string> addresses)
         {
+            _logger = loggerFactory.CreateLogger<PlcServer>();
             _deviceName = deviceName;
             if (IPAddress.TryParse(ip, out _serverIP))
             {
@@ -328,7 +330,7 @@ namespace IZU.Base
                 }
                 catch (Exception ex)
                 {
-                    LogWarn("get address  {0}  {1}  error: {2}", _deviceName, variable.Address, ex.Message);
+                    _logger.LogWarning("get address  {0}  {1}  error: {2}", _deviceName, variable.Address, ex.Message);
                 }
             }
             if (_heart_beat_interval_millionsec > 20)
@@ -337,7 +339,7 @@ namespace IZU.Base
             }
             else
             {
-                LogWarn($"heart beat detect time interval is too short, please reconfig it larger than 20 ms");
+                _logger.LogWarning($"heart beat detect time interval is too short, please reconfig it larger than 20 ms");
             }
         }
 
@@ -349,7 +351,7 @@ namespace IZU.Base
         {
             if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
             {
-                LogWarn($"operation write/bool failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                _logger.LogWarning($"operation write/bool failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
                 return $"server {IP} disconnected!";
             }
             try
@@ -360,7 +362,7 @@ namespace IZU.Base
             catch (Exception ex)
             {
                 string exStr = $"operation write/bool failed, server: {_serverIP} address: {address} error: {ex.Message}";
-                LogWarn(exStr);
+                _logger.LogWarning(exStr);
                 return exStr;
             }
         }
@@ -368,7 +370,7 @@ namespace IZU.Base
         {
             if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
             {
-                LogWarn($"operation write/real failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                _logger.LogWarning($"operation write/real failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
                 return $"server {IP} disconnected!";
             }
             try
@@ -379,7 +381,7 @@ namespace IZU.Base
             catch (Exception ex)
             {
                 string exStr = $"operation write/real failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
-                LogWarn(exStr);
+                _logger.LogWarning(exStr);
                 return exStr;
             }
         }
@@ -387,7 +389,7 @@ namespace IZU.Base
         {
             if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
             {
-                LogWarn($"operation write/int failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                _logger.LogWarning($"operation write/int failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
                 return $"server {IP} disconnected!";
             }
             try
@@ -398,7 +400,7 @@ namespace IZU.Base
             catch (Exception ex)
             {
                 string exStr = $"operation write/int failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
-                LogWarn(exStr);
+                _logger.LogWarning(exStr);
                 return exStr;
             }
         }

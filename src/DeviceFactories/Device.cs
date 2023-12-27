@@ -9,7 +9,7 @@ using static TinyCsvParser.Tokenizer.RFC4180.Reader;
 
 namespace IZU.DeviceFactories
 {
-    public abstract class Device : NLogProvider, IDevice
+    public abstract class Device : IDevice
     {
         private DeviceEntity _deviceEntity;
         public DeviceEntity DeviceEntity => _deviceEntity;
@@ -19,9 +19,10 @@ namespace IZU.DeviceFactories
         {
             _deviceEntity = deviceEntity;
         }
-
+        ILogger<Device> _logger;
         protected virtual string GetActionType(ActionTypes actionType)
         {
+            _logger = IZULogging.Factory.CreateLogger<Device>();
             var v = _deviceEntity.Variables.FirstOrDefault(t => t.ActionType == actionType);
             if (v == null || string.IsNullOrEmpty(v.Address))
                 throw new Exception($"{actionType} action is not marked in {_deviceEntity.Name}");
@@ -60,7 +61,7 @@ namespace IZU.DeviceFactories
                         break;
                     }
 
-                    cond = await _deviceEntity.Server.GetBool(address_condition);
+                    cond = await _deviceEntity!.Server!.GetBool(address_condition);
                     if (result == null || !(bool)cond)
                     {
                         await Task.Delay(10);
@@ -75,7 +76,7 @@ namespace IZU.DeviceFactories
                     _deviceEntity.Server.WriteBool(address_write, value);
                 else
                 {
-                    LogWarn("地址{0}读取失败，{1}", address_condition, result);
+                    _logger.LogWarning("{0}, 地址{1}读取失败，{2}", _deviceEntity.Name,address_condition, result);
                 }
             });
             return result;
@@ -108,7 +109,7 @@ namespace IZU.DeviceFactories
                 }
                 catch (Exception ex)
                 {
-                    LogWarn($"{ex.Message}", ex);
+                    _logger.LogWarning($"Exception from {_deviceEntity.Name}, {ex.Message}", ex);
                 }
                 finally { }
             });
