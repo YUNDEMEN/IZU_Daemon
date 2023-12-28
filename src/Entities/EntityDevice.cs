@@ -90,12 +90,14 @@ namespace IZU.Entities
 
     public class BroadcastData
     {
-        public List<BroadcastAutodoorInfo> autodoor = new List<BroadcastAutodoorInfo>();
-        public List<BroadcastIzuInfo> izu = new List<BroadcastIzuInfo>();
-        public List<BroadcastFiredoorInfo> firedoor = new List<BroadcastFiredoorInfo>();
+        public List<BroadcastIzuInfo> izu = new();
+        public List<BroadcastHidInfo> hid = new();
+        public List<BroadcastAutodoorInfo> autodoor = new();
+        public List<BroadcastFiredoorInfo> firedoor = new();
     }
 
-    public record BroadcastAutodoorInfo(string? name, object? online, object? status, object? start_sig, object? initial_sig, object? fault, object? mode);
     public record BroadcastIzuInfo(string? name, object? online, object? runningStatus, object? fault);
+    public record BroadcastHidInfo(string? name, object? online, object? fault);
+    public record BroadcastAutodoorInfo(string? name, object? online, object? status, object? start_sig, object? initial_sig, object? fault, object? mode);
     public record BroadcastFiredoorInfo(string? name, object? online);
 }
