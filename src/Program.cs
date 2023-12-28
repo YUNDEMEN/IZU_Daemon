@@ -68,7 +68,7 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 });
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config"));
-builder.Logging.AddColorConsoleLogger(configuration =>
+builder.Logging.AddTelnetLogger(configuration =>
 {
     var c = builder.Configuration.GetRequiredSection("Logging:ColorConsole:LogLevelToColorMap").GetChildren();
     //Replace LogLevel and ConsoleColor values from appsettings.json

@@ -1,21 +1,64 @@
-﻿using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging.Configuration;
-using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.Versioning;
-using System.Text;
-using System.Windows.Input;
+﻿/*
+ * 
+ *   Telnet Server
+ *   通过 Telnet Client 远程管理程序
+ *   使用方法：
+ *   1. win+R 打开控制台（CMD)
+ *   2. 输入 telnet IPAddress Port 然后回车 （ip为安装服务的主机地址，port默认为666
+ *   3. 控制台会跳转到登录，输入
+ *       UserName： admin 回车
+ *       Password：wonder 回车
+ *       登入成功。
+ * 
+ */
 namespace IZU.Service
 {
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Logging.Configuration;
+    using Microsoft.Extensions.Options;
+    using System.Collections.Concurrent;
+    using System.Net;
+    using System.Net.Sockets;
+    using System.Runtime.Versioning;
+    using System.Text;
+    /// <summary>
+    /// 扩展方法使用顺序（注：顺序不能颠倒，因为日志在一开始就需要初始化）
+    /// 1. 在CreateBuilder后添加AddTelnetLogger（该方法会初始化TelnetLogger）
+    /// 2. 然后在添加服务 AddTelnetService 
+    /// 3. 在var app = builder.Build() 后添加 UseTelnet
+    /// </summary>
     public static class TelnetExtensions
     {
+        /// <summary>
+        /// 添加自定义日志扩展方法
+        /// 用于远程访问服务时，将日志输出到 Telnet 客户端
+        /// </summary>
+        /// <param name="builder"><see cref="ILoggingBuilder"/></param>
+        /// <param name="configure"><see cref="TelnetLoggerConfiguration"/></param>
+        /// <returns></returns>
+        public static ILoggingBuilder AddTelnetLogger(this ILoggingBuilder builder, Action<TelnetLoggerConfiguration> configure)
+        {
+            builder.AddConfiguration();
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, TelnetLoggerProvider>());
+            LoggerProviderOptions.RegisterProviderOptions<TelnetLoggerConfiguration, TelnetLoggerProvider>(builder.Services);
+            builder.Services.Configure(configure);
+            return builder;
+        }
+        /// <summary>
+        /// 添加 Telnet 服务器
+        /// </summary>
+        /// <param name="service"><see cref="IServiceCollection"/></param>
+        /// <returns></returns>
         public static IServiceCollection AddTelnetService(this IServiceCollection service)
         {
             service.AddSingleton<ITelnetService, WonderTelnetService>();
             return service;
         }
+        /// <summary>
+        /// 启动 Telnet 服务器
+        /// </summary>
+        /// <param name="app"></param>
+        /// <exception cref="Exception"></exception>
         public static void UseTelnet(this WebApplication app)
         {
             ITelnetService? telnetService = app.Services.GetService<ITelnetService>();
@@ -25,6 +68,23 @@ namespace IZU.Service
             telnetService.Start();
         }
     }
+    /// <summary>
+    /// 命令收集服务
+    /// </summary>
+    public class CommandService
+    {
+        private readonly IDictionary<string, Action> _commands;
+        public CommandService()
+        {
+            _commands = new Dictionary<string, Action>();
+        }
+
+        public void CollectCommands()
+        {
+            _commands[""] = () => { };
+        }
+    }
+
     public interface ITelnetService
     {
         TelnetServer Server { get; }
@@ -42,7 +102,7 @@ namespace IZU.Service
         public WonderTelnetService(ILogger<WonderTelnetService> logger)
         {
             _logger = logger;
-            _telnetServer = new TelnetServer(IPAddress.Any, 6666);
+            _telnetServer = new TelnetServer(IPAddress.Any, 666);
         }
         public void Start()
         {
@@ -119,7 +179,7 @@ namespace IZU.Service
             switch (message)
             {
                 case "h":
-                    Reply(c, "aa",true, true);
+                    Reply(c, "aa", true, true);
                     break;
                 case "log":
                     log_clients.Add(c);
@@ -169,19 +229,12 @@ namespace IZU.Service
         }
     }
 
-    public class CommandService
-    {
-        private readonly IDictionary<string, Action> _commands;
-        public CommandService()
-        {
-            _commands = new Dictionary<string, Action>();
-        }
 
-        public void CollectCommands()
-        {
-            _commands[""]=()=> { };
-        }
-    }
+
+
+
+
+
 
 
     public delegate void ConnectionEventHandler(TelnetClient c);
@@ -515,7 +568,7 @@ namespace IZU.Service
 
 
 
-    public sealed class ColorConsoleLoggerConfiguration
+    public sealed class TelnetLoggerConfiguration
     {
         public int EventId { get; set; }
 
@@ -526,11 +579,11 @@ namespace IZU.Service
         };
     }
 
-    public sealed class ColorConsoleLogger : ILogger
+    public sealed class TelnetLogger : ILogger
     {
         string name;
-        Func<ColorConsoleLoggerConfiguration> getCurrentConfig;
-        public ColorConsoleLogger(string name, Func<ColorConsoleLoggerConfiguration> getCurrentConfig)
+        Func<TelnetLoggerConfiguration> getCurrentConfig;
+        public TelnetLogger(string name, Func<TelnetLoggerConfiguration> getCurrentConfig)
         {
             this.getCurrentConfig = getCurrentConfig;
             this.name = name;
@@ -550,7 +603,7 @@ namespace IZU.Service
                 return;
             }
 
-            ColorConsoleLoggerConfiguration config = getCurrentConfig();
+            TelnetLoggerConfiguration config = getCurrentConfig();
             if (config.EventId == 0 || config.EventId == eventId.Id)
             {
                 ConsoleColor originalColor = Console.ForegroundColor;
@@ -567,21 +620,21 @@ namespace IZU.Service
 
     [UnsupportedOSPlatform("browser")]
     [ProviderAlias("ColorConsole")]
-    public sealed class ColorConsoleLoggerProvider : ILoggerProvider
+    public sealed class TelnetLoggerProvider : ILoggerProvider
     {
         private readonly IDisposable? _onChangeToken;
-        private ColorConsoleLoggerConfiguration _currentConfig;
-        private readonly ConcurrentDictionary<string, ColorConsoleLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
-        
-        public ColorConsoleLoggerProvider(IOptionsMonitor<ColorConsoleLoggerConfiguration> config)
+        private TelnetLoggerConfiguration _currentConfig;
+        private readonly ConcurrentDictionary<string, TelnetLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
+
+        public TelnetLoggerProvider(IOptionsMonitor<TelnetLoggerConfiguration> config)
         {
             _currentConfig = config.CurrentValue;
             _onChangeToken = config.OnChange(updatedConfig => _currentConfig = updatedConfig);
         }
 
-        public ILogger CreateLogger(string categoryName) => _loggers.GetOrAdd(categoryName, name => new ColorConsoleLogger(name, GetCurrentConfig)); 
+        public ILogger CreateLogger(string categoryName) => _loggers.GetOrAdd(categoryName, name => new TelnetLogger(name, GetCurrentConfig));
 
-        private ColorConsoleLoggerConfiguration GetCurrentConfig() => _currentConfig;
+        private TelnetLoggerConfiguration GetCurrentConfig() => _currentConfig;
 
         public void Dispose()
         {
@@ -591,22 +644,8 @@ namespace IZU.Service
     }
 
 
-    public static class ColorConsoleLoggerExtensions
+    public static class TelnetLoggerExtensions
     {
-        public static ILoggingBuilder AddColorConsoleLogger(this ILoggingBuilder builder)
-        {
-            builder.AddConfiguration();
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, ColorConsoleLoggerProvider>());
-            LoggerProviderOptions.RegisterProviderOptions<ColorConsoleLoggerConfiguration, ColorConsoleLoggerProvider>(builder.Services);
-            return builder;
-        }
-
-        public static ILoggingBuilder AddColorConsoleLogger(this ILoggingBuilder builder, Action<ColorConsoleLoggerConfiguration> configure)
-        {
-            builder.AddColorConsoleLogger();
-            builder.Services.Configure(configure);
-            return builder;
-        }
     }
 
 }
