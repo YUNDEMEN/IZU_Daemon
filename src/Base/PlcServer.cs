@@ -165,7 +165,7 @@ namespace IZU.Base
                                     _w_onlinestate_address.Value = true;
                                     await _server.WriteAsync(_w_onlinestate_address);
                                     //心跳写回
-                                    _w_sendback_address.Value = ((bool)_w_sendback_address.Value) != true;
+                                    _w_sendback_address.Value = ((bool)_w_sendback_address!.Value!) != true;
                                     await _server.WriteAsync(_w_sendback_address);
                                     //最后读取心跳
                                     var result = await _server.ReadAsync(

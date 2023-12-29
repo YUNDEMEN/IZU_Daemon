@@ -34,18 +34,18 @@ namespace IZU.Service
 		public async Task StartAsync()
         {
             var _loggers = IZULogging.Factory.CreateLogger<Device>();
-            Task.Run(async () => {
-                while (true)
-                {
-                    _logger.LogDebug("---------------LogInformation 这是一个八哥---------------");
-                    _logger.LogInformation("---------------LogInformation---------------");
-                    _logger.LogWarning("---------------LogWarning---------------");
-                    _logger.LogError("---------------LogError---------------");
-                    _logger.LogCritical("---------------LogError---------------");
-                    NLog.LogManager.GetCurrentClassLogger().Info("nlog info");
-                    await Task.Delay(2000);
-                }
-            });
+            //Task.Run(async () => {
+            //    while (true)
+            //    {
+            //        _logger.LogDebug("---------------LogInformation 这是一个八哥---------------");
+            //        _logger.LogInformation("---------------LogInformation---------------");
+            //        _logger.LogWarning("---------------LogWarning---------------");
+            //        _logger.LogError("---------------LogError---------------");
+            //        _logger.LogCritical("---------------LogError---------------");
+            //        NLog.LogManager.GetCurrentClassLogger().Info("nlog info");
+            //        await Task.Delay(2000);
+            //    }
+            //});
             _logger.LogInformation("---------------IZU service starting---------------");
 			_timer.Change(1000, 1000);
 			await S7netService.StartAsync();
@@ -103,7 +103,7 @@ namespace IZU.Service
                         string result = await response.Content.ReadAsStringAsync();
                         var jsonResult = JsonObject.Parse(result);
                         var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                        if (resultObject.ok)
+                        if (resultObject!.ok)
                         {
                             int.TryParse($"{resultObject.data}", out izu_id);
                             _logger.LogInformation($"upload izu info successfully");
@@ -118,7 +118,7 @@ namespace IZU.Service
                             string result = await response.Content.ReadAsStringAsync();
                             var jsonResult = JsonObject.Parse(result);
                             var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                            if (!resultObject.ok)
+                            if (!resultObject!.ok)
                             {
                                 _logger.LogInformation($"add izu info failed: {resultObject.message}");
                             }
@@ -137,7 +137,7 @@ namespace IZU.Service
                             string result = await response.Content.ReadAsStringAsync();
                             var jsonResult = JsonObject.Parse(result);
                             var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                            if (!resultObject.ok)
+                            if (!resultObject!.ok)
                             {
                                 _logger.LogInformation($"update izu info failed: {resultObject.message}");
                             }
@@ -155,7 +155,7 @@ namespace IZU.Service
                             var ds = from x in item.ToList() select new { 
                                 device_type = (int)x.DeviceType, 
                                 name = x.Name,
-                                ip = x.Server.IP, 
+                                ip = x.Server!.IP, 
                                 izu_id, 
                                 _config.map_version };
                             response = await httpClient.PostAsync($"izu/add/devices", JsonContent.Create(ds));
@@ -179,8 +179,8 @@ namespace IZU.Service
                             if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                             {
                                 string result = await response.Content.ReadAsStringAsync();
-                                response_object resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                                if (!resultObject.ok)
+                                response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                                if (!resultObject!.ok)
                                 {
                                     _logger.LogInformation($"upload izu {item.Key} info failed: {resultObject.message}");
                                 }

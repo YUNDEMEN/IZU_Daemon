@@ -36,6 +36,15 @@ namespace IZU.Service
                 }
 
             });
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    await BroadcastDevicesToOSOAsync();
+                    await Task.Delay(20);
+                }
+
+            });
         }
 
         public void Refresh(IZUConfig config)
@@ -49,11 +58,13 @@ namespace IZU.Service
             public WebSocket Socket { get; }
             public Guid SessionId { get; }
             public int Status { get; set; } = 0;
+            public string target { get; set; } = string.Empty;
 
-            public InnerServerClient(WebSocket socket, Guid sessionId)
+            public InnerServerClient(WebSocket socket, Guid sessionId, string t = "")
             {
                 Socket = socket;
                 SessionId = sessionId;
+                target = t;
             }
         }
         public async Task Acceptor(HttpContext context, Func<Task> next)
@@ -69,7 +80,10 @@ namespace IZU.Service
                 throw new Exception("token should be Guid");
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
-            var client = _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid));
+            if (sessionid == Guid.Parse("6F998BD2-B59F-4510-8E42-B50D18D22432"))
+                _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid, "oso"));
+            else
+                _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid));
 
             var buffer = new byte[BufferSize];
             var seg = new ArraySegment<byte>(buffer);
@@ -257,7 +271,7 @@ namespace IZU.Service
                 var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)));
                 foreach (var client in _clients.Values)
                 {
-                    if (client.Status == 1) continue;
+                    if (client.Status == 1 || client.target == "oso") continue;
 
                     await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
                         .ContinueWith(async (t, state) =>
@@ -273,7 +287,7 @@ namespace IZU.Service
                 }
                 foreach (var client in _clients.Values)
                 {
-                    if (client.Status == 0)
+                    if (client.Status == 0 || client.target == "oso")
                         continue;
                     _clients.TryRemove(client.SessionId, out var removedClient);
                 }
@@ -284,5 +298,76 @@ namespace IZU.Service
             }
         }
 
+
+        public async Task BroadcastDevicesToOSOAsync()
+        {
+            try
+            {
+                var msg = _s7NetService.GetAllDevices();
+                // 提取数据
+                List<string> data = new();
+                foreach (var it in msg)
+                {
+                    if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
+                    {
+                        // 名称
+                        string? name = it.Name;
+
+                        // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
+                        var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R05");
+                        var statusOpening = statusOpeningEnt?.Value;
+                        var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R07");
+                        var statusOpened = statusOpenedEnt?.Value;
+                        var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R06");
+                        var statusClosing = statusCloseingEnt?.Value;
+                        var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R08");
+                        var statusClosed = statusClosedEnt?.Value;
+                        object? status = null;
+                        if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
+                        {
+                            status = null;
+                        }
+                        else
+                        {
+                            if (statusClosed.ToString().ToLower().Equals(true.ToString())) status = 0;
+                            else if (statusClosing.ToString().ToLower().Equals(true.ToString())) status = 1;
+                            else if (statusOpening.ToString().ToLower().Equals(true.ToString())) status = 2;
+                            else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
+                            else status = null;
+                        }
+
+                        data.Add($"{(int)DeviceTypes.AUTODOOR}:{name}:{status}");
+                    }
+
+                }
+                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(string.Join(";", data)));
+                foreach (var client in _clients.Values)
+                {
+                    if (client.Status == 1 || client.target == string.Empty) continue;
+
+                    await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
+                        .ContinueWith(async (t, state) =>
+                        {
+                            if (t.Exception != null && state is InnerServerClient client)
+                            {
+                                try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
+                                try { client.Socket.Abort(); } catch { }
+                                try { client.Socket.Dispose(); } catch { }
+                                client.Status = 1;//marked as wasted
+                            }
+                        }, client).ConfigureAwait(false);
+                }
+                foreach (var client in _clients.Values)
+                {
+                    if (client.Status == 0 || client.target == string.Empty)
+                        continue;
+                    _clients.TryRemove(client.SessionId, out var removedClient);
+                }
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogWarning($"broadcast server error: {ex.Message}");
+            }
+        }
     }
 }
