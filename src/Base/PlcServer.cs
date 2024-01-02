@@ -122,6 +122,7 @@ namespace IZU.Base
                     _r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(addressMap["R01"]);
                     break;
                 case DeviceTypes.FIREDOOR:
+                    _r_heartbeat_address = S7.Net.Types.DataItem.FromAddress(addressMap["R01"]);
                     break;
                 default:
                     break;
