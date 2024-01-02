@@ -289,6 +289,52 @@ namespace IZU.Base
                     }, TaskCreationOptions.LongRunning);
                     break;
                 case DeviceTypes.FIREDOOR:
+                    _serverHeartbeatTask = new Task(async () =>
+                    {
+                        while (true)
+                        {
+                            if (_stopServer) break;
+                            if (_serviceStatus == TaskServiceStatus.Connecting)
+                            {
+                                try
+                                {
+                                    await _server.OpenAsync();
+                                    _serviceStatus = TaskServiceStatus.Connected;
+                                    _logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                    //Console.WriteLine("heartbeat detecting status:  normal");
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                    //Console.WriteLine("heartbeat detecting status:  disconnected");
+                                }
+                            }
+                            else if (_serviceStatus == TaskServiceStatus.Connected)
+                            {
+                                try
+                                {
+                                    //最后读取心跳
+                                    var result = await _server.ReadAsync(
+                                        _r_heartbeat_address.DataType,
+                                        _r_heartbeat_address.DB,
+                                        _r_heartbeat_address.StartByteAdr,
+                                        _r_heartbeat_address.VarType,
+                                        _r_heartbeat_address.Count);
+
+                                    //Console.Write(" {0} ", result);
+                                    _serviceStatus = TaskServiceStatus.Connected;
+                                    //_logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
+                                }
+                                catch (Exception ex)
+                                {
+                                    _serviceStatus = TaskServiceStatus.Connecting;
+                                    //_logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                                }
+                            }
+
+                            await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
+                        }
+                    }, TaskCreationOptions.LongRunning);
                     break;
                 default:
                     break;
