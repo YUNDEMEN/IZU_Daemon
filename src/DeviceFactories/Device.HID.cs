@@ -4,47 +4,54 @@ using IZU.Interfaces;
 namespace IZU.DeviceFactories
 {
     public class HID : Device, IHID
-	{
-		public string address_start { get; } = string.Empty;
-		public string address_stop { get; } = string.Empty;
-		public string address_emergency_stop { get; } = string.Empty;
-		public string address_power_off { get; } = string.Empty;
-		public string address_reset { get; } = string.Empty;
-		public HID() { }
-		public HID(DeviceEntity deviceEntity) : base(deviceEntity)
-		{
-			address_start = GetActionType(ActionTypes.START);
-			address_stop = GetActionType(ActionTypes.STOP);
-			address_emergency_stop = GetActionType(ActionTypes.EMERG);
-			address_power_off = GetActionType(ActionTypes.POWEROFF);
-			address_reset = GetActionType(ActionTypes.RESET);
-		}
+    {
+        public readonly (string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string W01, string W02, string W03, string W04, string W05) address_tup = new();
 
-		public async Task<string> EmergencyStopAsync()
+        public HID() { }
+        public HID(DeviceEntity deviceEntity) : base(deviceEntity)
         {
-            string res = await WriteBool(address_emergency_stop, true);
-            RunAfter(2000, () => { WriteBool(address_emergency_stop, false); });
+            address_tup.R01 = GetActionType("R01");  //   PSP待机状态
+            address_tup.R02 = GetActionType("R02");  //   PSP停止状态信号
+            address_tup.R03 = GetActionType("R03");  //   PSP运行状态信号
+            address_tup.R04 = GetActionType("R04");  //   PSP温度异常过高
+            address_tup.R05 = GetActionType("R05");  //   PSP温度正常
+            address_tup.R06 = GetActionType("R06");  //   电柜失电状态信号
+            address_tup.R07 = GetActionType("R07");  //   电柜送电状态信号
+            address_tup.R08 = GetActionType("R08");  //   PSP故障报警状态
+            address_tup.R09 = GetActionType("R09");  //   电柜当前温度值
+            address_tup.W01 = GetActionType("W01");  //   启动PSP运行
+            address_tup.W02 = GetActionType("W02");  //   停止PSP运行
+            address_tup.W03 = GetActionType("W03");  //   故障报警复位PSP运行
+            address_tup.W04 = GetActionType("W04");  //   PSP紧急停止
+            address_tup.W05 = GetActionType("W05");  //   火灾报警关闭PSP电源
+
+        }
+
+        public async Task<string> EmergencyStopAsync()
+        {
+            string res = await WriteBool(address_tup.W04, true);
+            RunAfter(2000, () => { WriteBool(address_tup.W04, false); });
             return "";
-		}
+        }
 
-		public async Task<string> PowerOffAsync()
-		{
-			return await WriteBool(address_power_off, true);
-		}
+        public async Task<string> PowerOffAsync()
+        {
+            return await WriteBool(address_tup.W05, true);
+        }
 
-		public async Task<string> ResetAsync()
-		{
-			return await WriteBool(address_reset, true);
-		}
+        public async Task<string> ResetAsync()
+        {
+            return await WriteBool(address_tup.W03, true);
+        }
 
-		public async Task<string> StartAsync()
-		{
-			return await WriteBool(address_start, true);
-		}
+        public async Task<string> StartAsync()
+        {
+            return await WriteBool(address_tup.W01, true);
+        }
 
-		public async Task<string> StopAsync()
-		{
-			return await WriteBool(address_stop, false);
-		}
-	}
+        public async Task<string> StopAsync()
+        {
+            return await WriteBool(address_tup.W02, false);
+        }
+    }
 }

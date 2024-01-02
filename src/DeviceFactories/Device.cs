@@ -20,7 +20,7 @@ namespace IZU.DeviceFactories
             _deviceEntity = deviceEntity;
         }
         ILogger<Device> _logger;
-        protected virtual string GetActionType(ActionTypes actionType)
+        protected virtual string GetActionType(string actionType)
         {
             _logger = IZULogging.Factory.CreateLogger<Device>();
             var v = _deviceEntity.Variables.FirstOrDefault(t => t.ActionType == actionType);
@@ -76,7 +76,7 @@ namespace IZU.DeviceFactories
                     _deviceEntity.Server.WriteBool(address_write, value);
                 else
                 {
-                    _logger.LogWarning("{0}, 地址{1}读取失败，{2}", _deviceEntity.Name,address_condition, result);
+                    _logger.LogWarning("{0}, 地址{1}读取失败，{2}", _deviceEntity.Name, address_condition, result);
                 }
             });
             return result;

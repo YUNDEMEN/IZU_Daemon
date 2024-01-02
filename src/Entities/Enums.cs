@@ -70,7 +70,6 @@
         DateTimeLong
     }
 
-
     public enum DeviceTypes
     {
         NONE,
@@ -79,6 +78,7 @@
         AUTODOOR,
         FIREDOOR
     }
+
     public enum ActionTypes
     {
         NONE,

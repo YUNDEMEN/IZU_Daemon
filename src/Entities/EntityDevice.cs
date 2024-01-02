@@ -5,7 +5,7 @@ using System.ServiceProcess;
 
 namespace IZU.Entities
 {
-    public class DeviceEntity :  IDisposable
+    public class DeviceEntity : IDisposable
     {
         private readonly ILogger<DeviceEntity> _logger;
 
@@ -49,27 +49,15 @@ namespace IZU.Entities
             Server = new PlcServer(loggerFactory, DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, GetActionTypes());
             Server.Config(Variables);
         }
-        protected IDictionary<ActionTypes, string> GetActionTypes()
+
+        protected IDictionary<string, string> GetActionTypes()
         {
-            var types = Enum.GetValues(typeof(ActionTypes));
-            IDictionary<ActionTypes, string> actionMap = new Dictionary<ActionTypes, string>();
-            foreach (var item in types)
+            IDictionary<string, string> actionMap = new Dictionary<string, string>();
+            foreach (var item in Variables)
             {
-                var v = Variables.FirstOrDefault(t => t.ActionType == (ActionTypes)item);
-                if (v == null)
-                {
-                    actionMap[(ActionTypes)item] = string.Empty;
-                }
-                else
-                {
-                    actionMap[(ActionTypes)item] = v.Address;
-                }
+                actionMap.Add(item.ActionType, item.Address);
             }
             return actionMap;
-            //var v = Variables.FirstOrDefault(t => t.ActionType == actionType);
-            //if (v == null || string.IsNullOrEmpty(v.Address))
-            //	throw new Exception($"{actionType} action is not marked in {Name}");
-            //return v.Address;
         }
 
         public void Dispose()

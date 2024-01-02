@@ -17,8 +17,7 @@ namespace IZU.Base
             MapProperty(5, x => x.Description);
             MapProperty(6, x => x.VariableType, new EnumConverter<VariableTypes>());
             MapProperty(7, x => x.Disabled, new DisabledConverter());
-            MapProperty(8, x => x.ActionType, new EnumConverter<ActionTypes>());
-            MapProperty(9, x => x.ActionType2);
+            MapProperty(8, x => x.ActionType);
         }
     }
     class EnumConverter<T> : ITypeConverter<T> where T : struct

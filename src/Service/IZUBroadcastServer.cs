@@ -156,19 +156,19 @@ namespace IZU.Service
                         string? name = it.Name;
 
                         // 系统开机状态（1开机；0关机；-1读null）
-                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
+                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R01");
                         object? online = null;
                         if (onlineEnt != null && onlineEnt.Value != null)
                             online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
 
                         // 启动状态（true触发启动；false不触发启动？）
-                        var runningStatusEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
+                        var runningStatusEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R04");
                         object? runningStatus = null;
                         if (runningStatusEnt != null && runningStatusEnt.Value != null)
                             runningStatus = runningStatusEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 故障状态
-                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R05");
+                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R05");
                         object? fault = null;
                         if (faultEnt != null && faultEnt.Value != null)
                             fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
@@ -181,13 +181,13 @@ namespace IZU.Service
                         string? name = it.Name;
 
                         // 系统开机状态（1开机；0关机；-1读null）
-                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
+                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R01");
                         object? online = null;
                         if (onlineEnt != null && onlineEnt.Value != null)
                             online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
 
                         // 故障状态
-                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
+                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R04");
                         object? fault = null;
                         if (faultEnt != null && faultEnt.Value != null)
                             fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
@@ -200,19 +200,19 @@ namespace IZU.Service
                         string? name = it.Name;
 
                         // 系统开机状态（1开机；0关机；-1读null）
-                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
+                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R01");
                         object? online = null;
                         if (onlineEnt != null && onlineEnt.Value != null)
                             online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
 
                         // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
-                        var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R05");
+                        var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R05");
                         var statusOpening = statusOpeningEnt?.Value;
-                        var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R07");
+                        var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R07");
                         var statusOpened = statusOpenedEnt?.Value;
-                        var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R06");
+                        var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R06");
                         var statusClosing = statusCloseingEnt?.Value;
-                        var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R08");
+                        var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R08");
                         var statusClosed = statusClosedEnt?.Value;
                         object? status = null;
                         if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
@@ -229,25 +229,25 @@ namespace IZU.Service
                         }
 
                         // 启动状态（true触发启动；false不触发启动？）
-                        var start_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R02");
+                        var start_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R02");
                         object? start = null;
                         if (start_sigEnt != null && start_sigEnt.Value != null)
                             start = start_sigEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 初始化状态（true触发初始化；false不触发初始化？）
-                        var initial_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R11");
+                        var initial_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R11");
                         object? initial = null;
                         if (initial_sigEnt != null && initial_sigEnt.Value != null)
                             initial = initial_sigEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 故障状态
-                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R04");
+                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R04");
                         object? fault = null;
                         if (faultEnt != null && faultEnt.Value != null)
                             fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
 
                         // 横式 (手动True 自动False) 默认手动
-                        var modeEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R02");
+                        var modeEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R02");
                         object? mode = 1;
 
                         data.autodoor.Add(new BroadcastAutodoorInfo(name, online, status, start, initial, fault, mode));
@@ -258,7 +258,7 @@ namespace IZU.Service
                         string? name = it.Name;
 
                         // 系统开机状态（1开机；0关机；-1读null）
-                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R01");
+                        var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R01");
                         object? online = null;
                         if (onlineEnt != null && onlineEnt.Value != null)
                             online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
@@ -314,13 +314,13 @@ namespace IZU.Service
                         string? name = it.Name;
 
                         // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
-                        var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R05");
+                        var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R05");
                         var statusOpening = statusOpeningEnt?.Value;
-                        var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R07");
+                        var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R07");
                         var statusOpened = statusOpenedEnt?.Value;
-                        var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R06");
+                        var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R06");
                         var statusClosing = statusCloseingEnt?.Value;
-                        var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType2 == "R08");
+                        var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R08");
                         var statusClosed = statusClosedEnt?.Value;
                         object? status = null;
                         if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
