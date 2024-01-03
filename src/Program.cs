@@ -7,7 +7,6 @@ using NLog.Extensions.Logging;
 #region 检查程序配置是否存在
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
 if (dir.Exists) dir.Delete(true);
-dir.Create();
 
 void StartInfo(string fileName, string? content)
 {

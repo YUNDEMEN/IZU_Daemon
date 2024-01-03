@@ -87,12 +87,12 @@ namespace IZU.Service
                             var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                             if (!resultObject!.ok)
                             {
-                                _logger.LogInformation($"add izu info failed: {resultObject.message}");
+                                _logger.LogWarning($"add izu info failed: {resultObject.message}");
                             }
                             else
                             {
                                 int.TryParse($"{resultObject.data}", out izu_id);
-                                _logger.LogInformation($"add izu info successfully");
+                                _logger.LogDebug($"add izu info successfully");
                             }
                         }
                     }
@@ -106,11 +106,11 @@ namespace IZU.Service
                             var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                             if (!resultObject!.ok)
                             {
-                                _logger.LogInformation($"update izu info failed: {resultObject.message}");
+                                _logger.LogWarning($"update izu info failed: {resultObject.message}");
                             }
                             else
                             {
-                                _logger.LogInformation($"update izu info successfully");
+                                _logger.LogDebug($"update izu info successfully");
                             }
                         }
 
@@ -138,11 +138,11 @@ namespace IZU.Service
                                 response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                                 if (!resultObject!.ok)
                                 {
-                                    _logger.LogInformation($"upload izu {item.Key} info failed: {resultObject.message}");
+                                    _logger.LogWarning($"upload izu {item.Key} info failed: {resultObject.message}");
                                 }
                                 else
                                 {
-                                    _logger.LogInformation($"upload izu {item.Key} info successfully");
+                                    _logger.LogDebug($"upload izu {item.Key} info successfully");
                                 }
                             }
                         }
