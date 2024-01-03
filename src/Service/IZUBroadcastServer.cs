@@ -335,12 +335,23 @@ namespace IZU.Service
                             else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
                             else status = null;
                         }
-
-                        data.Add($"{(int)DeviceTypes.AUTODOOR}:{name}:{status}");
+                        if (DateTime.Now.Second < 20)
+                            status = 0;
+                        else if(DateTime.Now.Second>=20 && DateTime.Now.Second<23)
+                            status = 2;
+                        else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
+                            status = 3;
+                        else if (DateTime.Now.Second > 33 && DateTime.Now.Second <= 36)
+                            status = 1;
+                        else if (DateTime.Now.Second > 36)
+                            status = 0;
+                        data.Add($"{name}:{status??0}");
                     }
 
                 }
-                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(string.Join(";", data)));
+                // 消息格式： {izu name}::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
+                string data_format = $"{_config.Name}::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
+                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data_format));
                 foreach (var client in _clients.Values)
                 {
                     if (client.Status == 1 || client.target == string.Empty) continue;
