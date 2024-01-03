@@ -71,7 +71,7 @@ namespace IZU.Service
         {
             if (!context.WebSockets.IsWebSocketRequest) return;
 
-            string token = context.Request.Query["token"];
+            string? token = context.Request.Query["token"];
             if (string.IsNullOrEmpty(token)) return;
 
             //token 验证

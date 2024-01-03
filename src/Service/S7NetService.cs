@@ -1,7 +1,6 @@
 ﻿using IZU.Base;
 using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Text;
@@ -26,7 +25,7 @@ namespace IZU.Service
         {
             _logger.LogInformation("start loading device table");
             _cDic.Clear();
-            DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,_config.DeviceFiles));
+            DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _config.DeviceFiles));
             if (!dir.Exists)
             {
                 _logger.LogWarning("device table missing");
@@ -57,7 +56,7 @@ namespace IZU.Service
                     foreach (var item in groups)
                     {
                         if (string.IsNullOrEmpty(item.Key)) continue;
-                        if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory,deviceFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList())))
+                        if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory, deviceFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList())))
                             _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, deviceFile);
                     }
                 }

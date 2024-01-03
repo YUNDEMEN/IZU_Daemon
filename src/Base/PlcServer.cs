@@ -75,13 +75,16 @@ namespace IZU.Base
                 _stopServer = value;
                 if (value)
                 {
-                    _serverReadTask.ContinueWith((task) => { }).Wait();
+                    _serverReadTask.ContinueWith((task) => {
+                        _logger.LogInformation($"{_deviceName} device connection server has stopped");
+                    }).Wait();
                 }
                 else
                 {
                     _serviceStatus = TaskServiceStatus.Connecting;
                     _serverHeartbeatTask.Start();
                     _serverReadTask.Start();
+                    _logger.LogInformation($"{_deviceName} device connection server has started");
                 }
             }
         }
@@ -392,8 +395,9 @@ namespace IZU.Base
             _server.Close();
             _hashes.Clear();
             _dataItems.Clear();
-            _serviceStatus = TaskServiceStatus.NotStarted;
             _serverReadTask.Dispose();
+            _serverHeartbeatTask.Dispose();
+            _serviceStatus = TaskServiceStatus.NotStarted;
         }
 
 
