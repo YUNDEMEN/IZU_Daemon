@@ -46,7 +46,14 @@ namespace IZU.DeviceFactories
 
         public async Task<string> StartAsync()
         {
-            return await WriteBool(address_tup.W01, true);
+            string res = await WriteBool(address_tup.W01, true);
+            if (string.IsNullOrEmpty(res))
+            {
+                res = ConditionWrite(address_tup.R03, address_tup.W01, false);
+                return res;
+            }
+            else
+                return res;
         }
 
         public async Task<string> StopAsync()
