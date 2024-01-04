@@ -2,36 +2,31 @@
 using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 
 namespace IZU.Service
 {
-	public class IZUService : IIZUService
-	{
-		public ServiceRuntime ServiceRuntime { get; }
-		public IZUConfig _config { get; private set; }
-		private readonly ILogger<IZUService> _logger;
-		private readonly Timer _timer;
+    public class IZUService : IIZUService
+    {
+        public ServiceRuntime ServiceRuntime { get; }
+        private readonly ILogger<IZUService> _logger;
+        private readonly Timer _timer;
         private readonly IIZUBroadcastServer _broadcastServer;
 
         public IS7NetService S7netService { get; }
-        public IZUConfig Config { get { return _config; } }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger,IOptions<IZUConfig> cfg, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
-		{
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
+        {
             IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;
-			_config = cfg.Value;
-			S7netService = s7netService;
-            _broadcastServer= broadcastServer;
+            S7netService = s7netService;
+            _broadcastServer = broadcastServer;
             _timer = new Timer(Callback);
-			ServiceRuntime = new ServiceRuntime();
+            ServiceRuntime = new ServiceRuntime();
             logger.LogInformation("IZU service initialized");
-		}
-		record class response_object(object data, bool ok, string message);
-		public async Task StartAsync()
+        }
+        record class response_object(object data, bool ok, string message);
+        public async Task StartAsync()
         {
             var _loggers = IZULogging.Factory.CreateLogger<Device>();
             //Task.Run(async () => {
@@ -47,57 +42,27 @@ namespace IZU.Service
             //    }
             //});
             _logger.LogInformation("---------------IZU service starting---------------");
-			_timer.Change(1000, 1000);
-			await S7netService.StartAsync();
+
+            await S7netService.StartAsync();
+
             await UploadIZUInfo2DatabaseAsync();
             _logger.LogInformation("---------------IZU service started---------------");
 
-		}
+        }
 
-		public async Task UploadIZUInfo2DatabaseAsync()
+        public async Task UploadIZUInfo2DatabaseAsync()
         {
             _logger.LogInformation($"begin upload izu info...");
             int izu_id = 0;
-            //string api_get_izu_exsit = Path.Combine(_config.izu_backend, $"izu/exist?n={_config.Name}");
-            //string api_post_izu_add = Path.Combine(_config.izu_backend, $"izu/add");
-            //string api_post_izu_edit = Path.Combine(_config.izu_backend, $"izu/edit");
-            //string api_post_izu_add_devices = Path.Combine(_config.izu_backend, $"izu/add/devices"); 
 
-            //var resp_obj = api_get_izu_exsit.HttpGetAsync<response_object>();
-            //await resp_obj.ContinueWith((task) =>
-            //{
-            //    if (task.IsFaulted)
-            //    {
-            //        _logger.LogInformation(task.Exception?.ToString());
-            //    }
-            //    else
-            //    {
-            //        if (task.Result.ok)
-            //        {
-            //            int.TryParse($"{task.Result.data}", out izu_id);
-            //            _logger.LogInformation($"upload izu info successfully");
-            //        }
-            //    }
-            //});
-
-            //if(izu_id == 0)
-            //{
-
-            //}
-            //else
-            //{
-
-            //}
-
-
-            using (HttpClient httpClient = new HttpClient())
+            using (HttpClient httpClient = new())
             {
                 try
                 {
                     httpClient.Timeout = TimeSpan.FromSeconds(5);
-                    httpClient.BaseAddress = new Uri(_config.izu_backend);
+                    httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={_config.Name}");
+                    HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={IZUConfig.Server}");
                     if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                     {
                         string result = await response.Content.ReadAsStringAsync();
@@ -112,7 +77,7 @@ namespace IZU.Service
 
                     if (izu_id == 0)
                     {
-                        response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new { name = _config.Name, ip = _config.Server }));
+                        response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new { name = IZUConfig.Server, ip = IZUConfig.Server }));
                         if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                         {
                             string result = await response.Content.ReadAsStringAsync();
@@ -120,18 +85,18 @@ namespace IZU.Service
                             var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                             if (!resultObject!.ok)
                             {
-                                _logger.LogInformation($"add izu info failed: {resultObject.message}");
+                                _logger.LogWarning($"add izu info failed: {resultObject.message}");
                             }
                             else
                             {
                                 int.TryParse($"{resultObject.data}", out izu_id);
-                                _logger.LogInformation($"add izu info successfully");
+                                _logger.LogDebug($"add izu info successfully");
                             }
                         }
                     }
                     if (izu_id > 0)
                     {
-                        response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new { id=izu_id, name = _config.Name, ip = _config.Server }));
+                        response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new { id = izu_id, name = IZUConfig.Server, ip = IZUConfig.Server }));
                         if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                         {
                             string result = await response.Content.ReadAsStringAsync();
@@ -139,54 +104,43 @@ namespace IZU.Service
                             var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                             if (!resultObject!.ok)
                             {
-                                _logger.LogInformation($"update izu info failed: {resultObject.message}");
+                                _logger.LogWarning($"update izu info failed: {resultObject.message}");
                             }
                             else
                             {
-                                _logger.LogInformation($"update izu info successfully");
+                                _logger.LogDebug($"update izu info successfully");
                             }
                         }
 
-
+                        /*
+                         由于设备的数量和名称需要以地图标注为主，所以变量表中的设备名称需要与地图保持一致
+                         以下方法是以设备名称为条件，更新每一条设备信息的izu id和网络地址ip。
+                               其中，izu_id 需要手动设置，位于配置中的izu节点name字段
+                                         ip字段为通讯地址（目前是所属izu的地址）
+                        */
                         var devices = S7netService.GetAllDevices();
                         var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
                         foreach (var item in groups)
                         {
-                            var ds = from x in item.ToList() select new { 
-                                device_type = (int)x.DeviceType, 
-                                name = x.Name,
-                                ip = x.Server!.IP, 
-                                izu_id, 
-                                _config.map_version };
-                            response = await httpClient.PostAsync($"izu/add/devices", JsonContent.Create(ds));
-                            
-                            //switch (item.Key)
-                            //{
-                            //    case DeviceTypes.NONE:
-                            //    default:
-                            //        break;
-                            //    case DeviceTypes.HID:
-                            //        response = await httpClient.PostAsync($"izu/add/hids", JsonContent.Create(ds));
-                            //        break;
-                            //    case DeviceTypes.AUTODOOR:
-                            //        response = await httpClient.PostAsync($"izu/add/auto/doors", JsonContent.Create(ds));
-                            //        break;
-                            //    case DeviceTypes.FIREDOOR:
-                            //        response = await httpClient.PostAsync($"izu/add/fire/doors", JsonContent.Create(ds));
-                            //        break;
-                            //}
-
+                            var ds = from x in item.ToList()
+                                     select new
+                                     {
+                                         name = x.Name,
+                                         ip = x.Server!.IP,
+                                         id = izu_id
+                                     };
+                            response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
                             if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                             {
                                 string result = await response.Content.ReadAsStringAsync();
                                 response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                                 if (!resultObject!.ok)
                                 {
-                                    _logger.LogInformation($"upload izu {item.Key} info failed: {resultObject.message}");
+                                    _logger.LogWarning($"upload izu {item.Key} info failed: {resultObject.message}");
                                 }
                                 else
                                 {
-                                    _logger.LogInformation($"upload izu {item.Key} info successfully");
+                                    _logger.LogDebug($"upload izu {item.Key} info successfully");
                                 }
                             }
                         }
@@ -208,26 +162,25 @@ namespace IZU.Service
             }
         }
 
-		void Callback(object? state)
-		{
-			//Console.SetCursorPosition(0, Console.GetCursorPosition().Top);
-			//Console.Write("★★★★★ IZU Service is running! [{0:yyyy-MM-dd HH:mm:ss:fff}] ★★★★★★★", DateTime.Now);
-		}
-
-
-		public void Stop()
-		{
-			_timer.Change(Timeout.Infinite, Timeout.Infinite);
-		}
-
-        public void RefreshConfig(IZUConfig config)
+        void Callback(object? state)
         {
-            _config = config;
-            S7netService.RefreshConfig(config);
-            _broadcastServer.Refresh(config);
+            //Console.SetCursorPosition(0, Console.GetCursorPosition().Top);
+            //Console.Write("★★★★★ IZU Service is running! [{0:yyyy-MM-dd HH:mm:ss:fff}] ★★★★★★★", DateTime.Now);
         }
 
-	}
+
+        public void Stop()
+        {
+            _timer.Change(Timeout.Infinite, Timeout.Infinite);
+        }
+
+        public void RefreshConfig()
+        {
+            S7netService.RefreshConfig();
+            _broadcastServer.Refresh();
+        }
+
+    }
 }
 /*
     获取本地系统 IP 

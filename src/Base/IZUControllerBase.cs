@@ -9,12 +9,10 @@ namespace IZU.Base
 {
 	public abstract class IZUControllerBase : ControllerBase
 	{
-		protected readonly IZUConfig _config;
 		protected readonly IIZUService _izuService;
 		protected readonly IS7NetService _s7netService;
-		public IZUControllerBase(IOptionsSnapshot<IZUConfig> cfg, IIZUService service, IS7NetService s7netService)
+		public IZUControllerBase(IIZUService service, IS7NetService s7netService)
 		{
-			_config = cfg.Value;
 			_izuService = service;
 			_s7netService = s7netService;
 		}

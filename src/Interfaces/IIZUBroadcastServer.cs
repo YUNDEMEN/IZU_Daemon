@@ -4,7 +4,7 @@ namespace IZU.Interfaces
 {
     public interface IIZUBroadcastServer
     {
-        void Refresh(IZUConfig config);
+        void Refresh();
         Task Acceptor(HttpContext context, Func<Task> next);
     }
 }

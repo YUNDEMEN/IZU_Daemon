@@ -1,6 +1,8 @@
 ﻿using IZU.Base;
 using IZU.Entities;
 using IZU.Interfaces;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
@@ -13,20 +15,18 @@ using System.Text;
 
 namespace IZU.Service
 {
-    public class IZUBroadcastServer : IIZUBroadcastServer
+    public class IZUWebsocketServer : IIZUBroadcastServer
     {
-        readonly ILogger<IZUBroadcastServer> _logger;
+        readonly ILogger<IZUWebsocketServer> _logger;
         const int BufferSize = 4096;
         int taskDelay = 1000;
         IS7NetService _s7NetService { get; }
-        IZUConfig _config { get; set; }
-        ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUBroadcastServer(ILogger<IZUBroadcastServer> logger, IS7NetService s7netService, IOptions<IZUConfig> cfg)
+        readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
+        public IZUWebsocketServer(IServer server, ILogger<IZUWebsocketServer> logger, IS7NetService s7netService)
         {
             _logger = logger;
             _s7NetService = s7netService;
-            _config = cfg.Value;
-            taskDelay = _config.PublishMillionSeconds;
+            taskDelay = IZUConfig.PublishMillionSeconds;
             Task.Factory.StartNew(async () =>
             {
                 while (true)
@@ -47,10 +47,9 @@ namespace IZU.Service
             });
         }
 
-        public void Refresh(IZUConfig config)
+        public void Refresh()
         {
-            _config = config;
-            taskDelay = config.PublishMillionSeconds;
+            taskDelay = IZUConfig.PublishMillionSeconds;
         }
 
         class InnerServerClient
@@ -71,7 +70,7 @@ namespace IZU.Service
         {
             if (!context.WebSockets.IsWebSocketRequest) return;
 
-            string token = context.Request.Query["token"];
+            string? token = context.Request.Query["token"];
             if (string.IsNullOrEmpty(token)) return;
 
             //token 验证
@@ -335,12 +334,23 @@ namespace IZU.Service
                             else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
                             else status = null;
                         }
-
-                        data.Add($"{(int)DeviceTypes.AUTODOOR}:{name}:{status}");
+                        if (DateTime.Now.Second < 20)
+                            status = 0;
+                        else if(DateTime.Now.Second>=20 && DateTime.Now.Second<23)
+                            status = 2;
+                        else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
+                            status = 3;
+                        else if (DateTime.Now.Second > 33 && DateTime.Now.Second <= 36)
+                            status = 1;
+                        else if (DateTime.Now.Second > 36)
+                            status = 0;
+                        data.Add($"{name}:{status??0}");
                     }
 
                 }
-                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(string.Join(";", data)));
+                // 消息格式： {izu name}::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
+                string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
+                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data_format));
                 foreach (var client in _clients.Values)
                 {
                     if (client.Status == 1 || client.target == string.Empty) continue;

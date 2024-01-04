@@ -1,7 +1,6 @@
 ﻿using IZU.Base;
 using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using System.Text;
@@ -12,21 +11,19 @@ namespace IZU.Service
     public class S7NetService : IS7NetService
     {
         private readonly ConcurrentDictionary<string, DeviceEntity> _cDic = new();
-        private IZUConfig _config { get; set; }
         private readonly ILogger<S7NetService> _logger;
         private readonly ILoggerFactory _loggerFactory;
 
-        public S7NetService(ILoggerFactory loggerFactory, ILogger<S7NetService> logger, IOptions<IZUConfig> cfg)
+        public S7NetService(ILoggerFactory loggerFactory, ILogger<S7NetService> logger)
         {
             _loggerFactory = loggerFactory;
             _logger = logger;
-            _config = cfg.Value;
         }
         public async Task StartAsync()
         {
             _logger.LogInformation("start loading device table");
             _cDic.Clear();
-            DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,_config.DeviceFiles));
+            DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DeviceTable"));
             if (!dir.Exists)
             {
                 _logger.LogWarning("device table missing");
@@ -57,7 +54,7 @@ namespace IZU.Service
                     foreach (var item in groups)
                     {
                         if (string.IsNullOrEmpty(item.Key)) continue;
-                        if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory,deviceFile.FullName, item.Key, _config.RefreshMillionSeconds, item.ToList())))
+                        if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory, deviceFile.FullName, item.Key, IZUConfig.RefreshMillionSeconds, item.ToList())))
                             _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, deviceFile);
                     }
                 }
@@ -103,12 +100,11 @@ namespace IZU.Service
             return device.Variables;
         }
 
-        public void RefreshConfig(IZUConfig config)
+        public void RefreshConfig()
         {
-            _config = config;
             foreach (var deviceEntity in GetAllDevices())
             {
-                deviceEntity.Refresh(config.RefreshMillionSeconds);
+                deviceEntity.Refresh(IZUConfig.RefreshMillionSeconds);
             }
         }
 
