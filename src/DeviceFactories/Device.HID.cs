@@ -24,7 +24,6 @@ namespace IZU.DeviceFactories
             address_tup.W03 = GetActionType("W03");  //   故障报警复位PSP运行
             address_tup.W04 = GetActionType("W04");  //   PSP紧急停止
             address_tup.W05 = GetActionType("W05");  //   火灾报警关闭PSP电源
-
         }
 
         public async Task<string> EmergencyStopAsync()
