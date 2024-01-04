@@ -352,7 +352,7 @@ namespace IZU.Service
 
                 }
                 // 消息格式： {izu name}::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
-                string data_format = $"{_config.Name}::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
+                string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
                 var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data_format));
                 foreach (var client in _clients.Values)
                 {

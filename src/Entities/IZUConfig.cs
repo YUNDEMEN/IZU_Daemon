@@ -11,14 +11,9 @@
 		/// </summary>
 		public const string NlogConfig = "nlog.config";
 		/// <summary>
-		/// 此服务会部署在多台服务器中
-		/// 表示从API获取的服务名称
-		/// </summary>
-		public string Name { get; set; } = string.Empty;
-		/// <summary>
 		/// 服务的本地IP地址
 		/// </summary>
-		public string Server { get; set; } = "127.0.0.1:80";
+		public static string Server { get; set; } = "127.0.0.1:80";
 		/// <summary>
 		/// 测试数据文件
 		/// </summary>

@@ -65,7 +65,7 @@ namespace IZU.Service
                     httpClient.Timeout = TimeSpan.FromSeconds(5);
                     httpClient.BaseAddress = new Uri(_config.izu_backend);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={_config.Name}");
+                    HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={IZUConfig.Server}");
                     if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                     {
                         string result = await response.Content.ReadAsStringAsync();
@@ -80,7 +80,7 @@ namespace IZU.Service
 
                     if (izu_id == 0)
                     {
-                        response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new { name = _config.Name, ip = _config.Server }));
+                        response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new { name = IZUConfig.Server, ip = IZUConfig.Server }));
                         if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                         {
                             string result = await response.Content.ReadAsStringAsync();
@@ -99,7 +99,7 @@ namespace IZU.Service
                     }
                     if (izu_id > 0)
                     {
-                        response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new { id = izu_id, name = _config.Name, ip = _config.Server }));
+                        response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new { id = izu_id, name = IZUConfig.Server, ip = IZUConfig.Server }));
                         if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                         {
                             string result = await response.Content.ReadAsStringAsync();

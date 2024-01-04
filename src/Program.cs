@@ -11,11 +11,12 @@ if (dir.Exists) dir.Delete(true);
 void StartInfo(string fileName, string? content)
 {
     if (!dir.Exists) dir.Create();
+    Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine("[{0:yyyy-MM-dd HH:mm:ss}]: {1}", DateTime.Now, content);
     File.AppendAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName), content);
+    Console.ForegroundColor = ConsoleColor.White;
 }
 
-int recoverySeconds = 0;
 AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
 {
     StartInfo($"{AppDomain.CurrentDomain.BaseDirectory}logs\\{DateTime.Now:yyyyMMddHHmmss}-crash.log", e.ExceptionObject?.ToString());
@@ -38,13 +39,6 @@ try
         StartInfo($"startinfo.log", "service node not found!");
         return;
     }
-    var recoverySecondsNode = izuNode["recoverySeconds"];
-    if (recoverySecondsNode == null)
-    {
-        StartInfo($"startinfo.log", "recoverySecondsNode not found!");
-        return;
-    }
-    recoverySeconds = recoverySecondsNode.Value<int>();
 }
 catch (Exception ex)
 {
@@ -59,12 +53,31 @@ if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.confi
 
 #endregion
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+var opt = new WebApplicationOptions
 {
     Args = args,
     ContentRootPath = AppDomain.CurrentDomain.BaseDirectory,
     WebRootPath = AppDomain.CurrentDomain.BaseDirectory
-});
+};
+
+try
+{
+    int index= Array.IndexOf(opt.Args, "--urls");
+    if (index < 0)
+        throw new Exception("未设置Url");
+    if (opt.Args.Length > index + 1)
+    {
+        var url = new Uri(opt.Args[index + 1]);
+        IZUConfig.Server = $"{url.Host}:{url.Port}";
+    }
+}
+catch(Exception ex)
+{
+    StartInfo($"startinfo.log", $"服务IP设置不正确: {ex.Message}");
+    return;
+}
+
+var builder = WebApplication.CreateBuilder(opt);
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config"));
 builder.Logging.AddTelnetLogger(configuration =>
@@ -119,7 +132,6 @@ builder.Services.AddIZU(builder.Configuration.GetSection(IZUConfig.KEY));
 var app = builder.Build();
 
 app.UseTelnet();
-var url = app.Urls;
 //app.UseAuthorization();
 app.UseCors("AllowAnyOrigin");
 app.MapControllers();
