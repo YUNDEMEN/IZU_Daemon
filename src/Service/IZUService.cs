@@ -10,18 +10,15 @@ namespace IZU.Service
     public class IZUService : IIZUService
     {
         public ServiceRuntime ServiceRuntime { get; }
-        public IZUConfig _config { get; private set; }
         private readonly ILogger<IZUService> _logger;
         private readonly Timer _timer;
         private readonly IIZUBroadcastServer _broadcastServer;
 
         public IS7NetService S7netService { get; }
-        public IZUConfig Config { get { return _config; } }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IOptions<IZUConfig> cfg, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
         {
             IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;
-            _config = cfg.Value;
             S7netService = s7netService;
             _broadcastServer = broadcastServer;
             _timer = new Timer(Callback);
@@ -63,7 +60,7 @@ namespace IZU.Service
                 try
                 {
                     httpClient.Timeout = TimeSpan.FromSeconds(5);
-                    httpClient.BaseAddress = new Uri(_config.izu_backend);
+                    httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={IZUConfig.Server}");
                     if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
@@ -177,11 +174,10 @@ namespace IZU.Service
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
-        public void RefreshConfig(IZUConfig config)
+        public void RefreshConfig()
         {
-            _config = config;
-            S7netService.RefreshConfig(config);
-            _broadcastServer.Refresh(config);
+            S7netService.RefreshConfig();
+            _broadcastServer.Refresh();
         }
 
     }

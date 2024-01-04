@@ -34,6 +34,11 @@ namespace IZU.Base
             });
         }
 
+        public static int ToInt32(this string value)
+        {
+            int.TryParse(value, out int result);
+            return result;
+        }
 
         public static async Task<Resp> HttpGetAsync(this string api, int timeoutSeconds = 5)
         {

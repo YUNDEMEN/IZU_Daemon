@@ -21,14 +21,12 @@ namespace IZU.Service
         const int BufferSize = 4096;
         int taskDelay = 1000;
         IS7NetService _s7NetService { get; }
-        IZUConfig _config { get; set; }
         readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUWebsocketServer(IServer server, ILogger<IZUWebsocketServer> logger, IS7NetService s7netService, IOptions<IZUConfig> cfg)
+        public IZUWebsocketServer(IServer server, ILogger<IZUWebsocketServer> logger, IS7NetService s7netService)
         {
             _logger = logger;
             _s7NetService = s7netService;
-            _config = cfg.Value;
-            taskDelay = _config.PublishMillionSeconds;
+            taskDelay = IZUConfig.PublishMillionSeconds;
             Task.Factory.StartNew(async () =>
             {
                 while (true)
@@ -49,10 +47,9 @@ namespace IZU.Service
             });
         }
 
-        public void Refresh(IZUConfig config)
+        public void Refresh()
         {
-            _config = config;
-            taskDelay = config.PublishMillionSeconds;
+            taskDelay = IZUConfig.PublishMillionSeconds;
         }
 
         class InnerServerClient

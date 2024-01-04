@@ -9,7 +9,6 @@ namespace IZU.Interfaces
 		Task StartAsync();
         void Stop();
 		Task UploadIZUInfo2DatabaseAsync();
-		void RefreshConfig(IZUConfig config);
-		IZUConfig Config { get; }
+		void RefreshConfig();
     }
 }

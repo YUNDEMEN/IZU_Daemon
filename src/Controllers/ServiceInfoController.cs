@@ -19,8 +19,8 @@ namespace IZU.Controllers
     {
         private readonly ILogger<ServiceInfoController> _logger;
         IServiceProvider _serviceProvider { get; }
-        public ServiceInfoController(ILogger<ServiceInfoController> logger, IOptionsSnapshot<IZUConfig> cfg, IIZUService service, IS7NetService s7netService, IServiceProvider serviceProvider)
-            : base(cfg, service, s7netService)
+        public ServiceInfoController(ILogger<ServiceInfoController> logger, IIZUService service, IS7NetService s7netService, IServiceProvider serviceProvider)
+            : base(service, s7netService)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
@@ -42,8 +42,7 @@ namespace IZU.Controllers
         [HttpGet]
         public WonderResponse Get()
         {
-            _izuService.RefreshConfig(_config);
-            _izuService.ServiceRuntime.Set(_config);
+            _izuService.RefreshConfig();
             return WonderResponse.Create(_izuService.ServiceRuntime.Set(DateTime.Now));
         }
 
@@ -73,7 +72,7 @@ namespace IZU.Controllers
             {
                 _s7netService.Stop();
                 await _s7netService.StartAsync();
-                _izuService.RefreshConfig(_config);
+                _izuService.RefreshConfig();
                 return WonderResponse.Create("已重载配置和变量表");
             }
             catch (Exception ex)
