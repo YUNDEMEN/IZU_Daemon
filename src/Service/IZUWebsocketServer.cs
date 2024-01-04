@@ -1,6 +1,8 @@
 ﻿using IZU.Base;
 using IZU.Entities;
 using IZU.Interfaces;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
@@ -13,15 +15,15 @@ using System.Text;
 
 namespace IZU.Service
 {
-    public class IZUBroadcastServer : IIZUBroadcastServer
+    public class IZUWebsocketServer : IIZUBroadcastServer
     {
-        readonly ILogger<IZUBroadcastServer> _logger;
+        readonly ILogger<IZUWebsocketServer> _logger;
         const int BufferSize = 4096;
         int taskDelay = 1000;
         IS7NetService _s7NetService { get; }
         IZUConfig _config { get; set; }
-        ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUBroadcastServer(ILogger<IZUBroadcastServer> logger, IS7NetService s7netService, IOptions<IZUConfig> cfg)
+        readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
+        public IZUWebsocketServer(IServer server, ILogger<IZUWebsocketServer> logger, IS7NetService s7netService, IOptions<IZUConfig> cfg)
         {
             _logger = logger;
             _s7NetService = s7netService;

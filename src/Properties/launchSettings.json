@@ -1,23 +1,14 @@
-﻿{
-  "$schema": "https://json.schemastore.org/launchsettings.json",
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:14702",
-      "sslPort": 0
-    }
-  },
+{
   "profiles": {
     "IZU_Daemon": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
+      "commandLineArgs": "--urls http://127.0.0.1:8000",
       "launchUrl": "izu",
-      "applicationUrl": "http://localhost:8031",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:8031"
     },
     "IIS Express": {
       "commandName": "IISExpress",
@@ -26,6 +17,15 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:14702",
+      "sslPort": 0
     }
   }
 }

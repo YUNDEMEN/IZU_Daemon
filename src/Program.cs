@@ -117,7 +117,9 @@ builder.Services.AddIZU(builder.Configuration.GetSection(IZUConfig.KEY));
 //});
 
 var app = builder.Build();
+
 app.UseTelnet();
+var url = app.Urls;
 //app.UseAuthorization();
 app.UseCors("AllowAnyOrigin");
 app.MapControllers();

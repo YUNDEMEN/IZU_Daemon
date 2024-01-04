@@ -12,7 +12,7 @@ namespace IZU.Base
             service.Configure<IZUConfig>(config);
             service.AddSingleton<IIZUService, IZUService>();
             service.AddSingleton<IS7NetService, S7NetService>();
-            service.AddSingleton<IIZUBroadcastServer, IZUBroadcastServer>();
+            service.AddSingleton<IIZUBroadcastServer, IZUWebsocketServer>();
             return service;
         }
         public static async Task UseIZUAsync(this WebApplication app)

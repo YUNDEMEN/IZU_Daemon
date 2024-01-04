@@ -45,8 +45,9 @@ namespace IZU.Service
             //    }
             //});
             _logger.LogInformation("---------------IZU service starting---------------");
-            _timer.Change(1000, 1000);
+
             await S7netService.StartAsync();
+
             await UploadIZUInfo2DatabaseAsync();
             _logger.LogInformation("---------------IZU service started---------------");
 
@@ -57,7 +58,7 @@ namespace IZU.Service
             _logger.LogInformation($"begin upload izu info...");
             int izu_id = 0;
 
-            using (HttpClient httpClient = new HttpClient())
+            using (HttpClient httpClient = new())
             {
                 try
                 {
