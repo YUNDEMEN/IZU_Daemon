@@ -24,7 +24,6 @@ namespace IZU.DeviceFactories
             address_tup.W03 = GetActionType("W03");  //   故障报警复位PSP运行
             address_tup.W04 = GetActionType("W04");  //   PSP紧急停止
             address_tup.W05 = GetActionType("W05");  //   火灾报警关闭PSP电源
-
         }
 
         public async Task<string> EmergencyStopAsync()
@@ -46,7 +45,14 @@ namespace IZU.DeviceFactories
 
         public async Task<string> StartAsync()
         {
-            return await WriteBool(address_tup.W01, true);
+            string res = await WriteBool(address_tup.W01, true);
+            if (string.IsNullOrEmpty(res))
+            {
+                res = ConditionWrite(address_tup.R03, address_tup.W01, false);
+                return res;
+            }
+            else
+                return res;
         }
 
         public async Task<string> StopAsync()
