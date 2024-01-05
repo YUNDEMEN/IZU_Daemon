@@ -106,7 +106,7 @@ namespace IZU.Service
                     httpClient.Timeout = TimeSpan.FromSeconds(5);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    HttpResponseMessage response = await httpClient.GetAsync($"izu/get/device/vars?id={IZUConfig.ID}");
+                    HttpResponseMessage response = await httpClient.GetAsync($"izu/get/device/vars/by?id={IZUConfig.ID}");
                     response.EnsureSuccessStatusCode();
 
                     string result = await response.Content.ReadAsStringAsync();
