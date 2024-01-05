@@ -10,20 +10,21 @@
 		/// NLog 配置文件
 		/// </summary>
 		public const string NlogConfig = "nlog.config";
-		/// <summary>
-		/// 服务的本地IP地址
-		/// </summary>
-		public static string Server { get; set; } = "127.0.0.1:80";
-        public static string BackendIZUBaseUrl { get; set; } = string.Empty;
+        public static int ID { get; set; } = 0;
         /// <summary>
-        /// 从设备读取数据刷新时间（毫秒）
+        /// 服务的本地IP地址
         /// </summary>
-        public static int RefreshMillionSeconds { get; set; } = 500;
+        public static string Server { get; set; } = "127.0.0.1:80";
+        public static string BackendIZUBaseUrl { get; set; } = string.Empty;
         /// <summary>
         /// 发布数据时间间隔（毫秒）
         /// </summary>
-        public static int PublishMillionSeconds { get; set; } = 500; 
-
+        public static int PublishMillionSeconds { get; set; } = 500;
+        /// <summary>
+        /// 默认从数据库中读取变量表
+        /// 如果在appsettings.json中配置了 usecsv 节点则使用本地csv文件
+        /// </summary>
+        public static string DeviceTableFrom = "db";
 
 
     }

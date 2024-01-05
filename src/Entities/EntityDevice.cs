@@ -31,12 +31,11 @@ namespace IZU.Entities
         /// 变量表
         /// </summary>
         public List<VariableEntity> Variables { get; set; }
-        public DeviceEntity(ILoggerFactory loggerFactory, string file, string name, int refreshTimeInterval, List<VariableEntity>? variables = null)
+        public DeviceEntity(ILoggerFactory loggerFactory, string file, string name, List<VariableEntity>? variables = null)
         {
             _logger = loggerFactory.CreateLogger<DeviceEntity>();
             FromFile = file;
             Name = name.ToLower();
-            PullDataFromDeviceTimeInterval = refreshTimeInterval;
             if (variables == null) variables = new List<VariableEntity>();
             Variables = variables;
             var item = Variables.FirstOrDefault(t => !string.IsNullOrEmpty(t.ServerIP));
@@ -44,9 +43,10 @@ namespace IZU.Entities
                 //	throw new RowNotInTableException($"Server IP address missing!");
                 _logger.LogWarning($"server IP address is not found in {name} ({FromFile})! default IP address is 127.0.0.1");
 
+            PullDataFromDeviceTimeInterval = item!.RefreshInterval;
             DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
 
-            Server = new PlcServer(loggerFactory, DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, refreshTimeInterval, GetActionTypes());
+            Server = new PlcServer(loggerFactory, DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, PullDataFromDeviceTimeInterval, GetActionTypes());
             Server.Config(Variables);
         }
 
@@ -73,7 +73,7 @@ namespace IZU.Entities
             Server?.Refresh(PullDataFromDeviceTimeInterval);
         }
 
-        public static DeviceEntity DummyDevice => new DeviceEntity(loggerFactory: null!, "sampledata", "dummy", 0);
+        public static DeviceEntity DummyDevice => new DeviceEntity(loggerFactory: null!, "sampledata", "dummy");
     }
 
     public class BroadcastData

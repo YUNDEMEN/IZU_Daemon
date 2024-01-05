@@ -8,7 +8,7 @@ namespace IZU.Interfaces
 		ServiceRuntime ServiceRuntime { get; }
 		Task StartAsync();
         void Stop();
-		Task UploadIZUInfo2DatabaseAsync();
+		Task ReadConfigFromDBAsync();
 		void RefreshConfig();
     }
 }

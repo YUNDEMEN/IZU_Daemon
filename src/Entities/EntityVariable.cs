@@ -68,10 +68,13 @@ namespace IZU.Entities
         /// 最后一次刷新时间
         /// </summary>
         public DateTime? LastRefreshTime { get; set; }
+        public int RefreshInterval { get; set; } = 100;
         /// <summary>
         /// 已禁用
         /// </summary>
         public bool Disabled { get; set; } = false;
         public VariableEntity() { }
     }
+
+
 }

@@ -3,6 +3,7 @@ using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using System.Text.Json.Nodes;
 
 namespace IZU.Service
@@ -25,7 +26,6 @@ namespace IZU.Service
             ServiceRuntime = new ServiceRuntime();
             logger.LogInformation("IZU service initialized");
         }
-        record class response_object(object data, bool ok, string message);
         public async Task StartAsync()
         {
             var _loggers = IZULogging.Factory.CreateLogger<Device>();
@@ -43,16 +43,17 @@ namespace IZU.Service
             //});
             _logger.LogInformation("---------------IZU service starting---------------");
 
+            await ReadConfigFromDBAsync();
+
             await S7netService.StartAsync();
 
-            await UploadIZUInfo2DatabaseAsync();
             _logger.LogInformation("---------------IZU service started---------------");
 
         }
 
-        public async Task UploadIZUInfo2DatabaseAsync()
+        public async Task ReadConfigFromDBAsync()
         {
-            _logger.LogInformation($"begin upload izu info...");
+            _logger.LogInformation($"begin get izu info...");
             int izu_id = 0;
 
             using (HttpClient httpClient = new())
@@ -70,8 +71,10 @@ namespace IZU.Service
                         var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                         if (resultObject!.ok)
                         {
-                            int.TryParse($"{resultObject.data}", out izu_id);
-                            _logger.LogInformation($"upload izu info successfully");
+                            JObject izuObj = resultObject.data as JObject;
+                            IZUConfig.PublishMillionSeconds = (int)izuObj["wspub_interval"]!;
+                            izu_id = (int)izuObj["id"];
+                            _logger.LogInformation($"get izu info successfully");
                         }
                     }
 
@@ -96,22 +99,6 @@ namespace IZU.Service
                     }
                     if (izu_id > 0)
                     {
-                        response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new { id = izu_id, name = IZUConfig.Server, ip = IZUConfig.Server }));
-                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
-                        {
-                            string result = await response.Content.ReadAsStringAsync();
-                            var jsonResult = JsonObject.Parse(result);
-                            var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                            if (!resultObject!.ok)
-                            {
-                                _logger.LogWarning($"update izu info failed: {resultObject.message}");
-                            }
-                            else
-                            {
-                                _logger.LogDebug($"update izu info successfully");
-                            }
-                        }
-
                         /*
                          由于设备的数量和名称需要以地图标注为主，所以变量表中的设备名称需要与地图保持一致
                          以下方法是以设备名称为条件，更新每一条设备信息的izu id和网络地址ip。
@@ -146,6 +133,7 @@ namespace IZU.Service
                         }
                     }
 
+                    IZUConfig.ID = izu_id;
                 }
                 catch (HttpRequestException http_ex)
                 {

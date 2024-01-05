@@ -71,6 +71,7 @@ namespace IZU.Controllers
             try
             {
                 _s7netService.Stop();
+                await _izuService.ReadConfigFromDBAsync();
                 await _s7netService.StartAsync();
                 _izuService.RefreshConfig();
                 return WonderResponse.Create("已重载配置和变量表");
@@ -78,20 +79,6 @@ namespace IZU.Controllers
             catch (Exception ex)
             {
                 return WonderResponse.Error($"重载变量表失败: {ex.Message}");
-            }
-        }
-
-        [HttpGet("upload")]
-        public async Task<WonderResponse> UploadInfoAsync()
-        {
-            try
-            {
-                await _izuService.UploadIZUInfo2DatabaseAsync();
-                return WonderResponse.Create("已上传变量表");
-            }
-            catch (Exception ex)
-            {
-                return WonderResponse.Error($"上传变量表失败: {ex.Message}");
             }
         }
 

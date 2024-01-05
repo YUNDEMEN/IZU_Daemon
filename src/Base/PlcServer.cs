@@ -54,6 +54,7 @@ namespace IZU.Base
         private S7.Net.Types.DataItem _w_online_address;
         private S7.Net.Types.DataItem _w_onlinestate_address;
         private int _heart_beat_interval_millionsec = 100;
+        private int _refresh_interval_millionsec = 100;
 
         private TaskServiceStatus _serviceStatus;
         //private CancellationTokenSource cancelConnect = new CancellationTokenSource();
@@ -365,7 +366,7 @@ namespace IZU.Base
                         }
                     }
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(_heart_beat_interval_millionsec));
+                    await Task.Delay(TimeSpan.FromMilliseconds(_refresh_interval_millionsec));
                 }
             }, TaskCreationOptions.LongRunning);
         }
@@ -443,7 +444,7 @@ namespace IZU.Base
 
         public void Refresh(int refreshTimeInterval)
         {
-            _heart_beat_interval_millionsec = refreshTimeInterval;
+            _refresh_interval_millionsec = refreshTimeInterval;
         }
         public async Task<string> WriteBool(string address, bool boolValue)
         {
