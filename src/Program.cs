@@ -39,18 +39,10 @@ try
         return;
     }
     IZUConfig.BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
-    if (configJson["websocket_pub_interval"] == null)
+    if (configJson["usecsv"]!=null)
     {
-        StartInfo($"startinfo.log", "websocket_pub_interval node not found!");
-        return;
+        IZUConfig.DeviceTableFrom = "localcsv";
     }
-    IZUConfig.PublishMillionSeconds = configJson!["websocket_pub_interval"]!.ToString().ToInt32();
-    if (configJson["refreshMillionSeconds"] == null)
-    {
-        StartInfo($"startinfo.log", "refreshMillionSeconds node not found!");
-        return;
-    }
-    IZUConfig.RefreshMillionSeconds = configJson!["refreshMillionSeconds"]!.ToString().ToInt32();
 }
 catch (Exception ex)
 {

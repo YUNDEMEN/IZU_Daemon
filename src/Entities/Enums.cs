@@ -79,29 +79,6 @@
         FIREDOOR
     }
 
-    public enum ActionTypes
-    {
-        NONE,
-        HEARTBEAT,
-        SENDBACK,
-        START,
-        STARTSIG,
-        STOP,
-        EMERG,
-        RESET,
-        POWEROFF,
-        OPEN,
-        OPENSIG,
-        CLOSE,
-        CLOSESIG,
-        ONLINE,
-        ONLINESTATE,
-        MOPEN,
-        MCLOSE,
-        INITIAL,
-        SWITCH
-    }
-
     public enum TaskServiceStatus
     {
         NotStarted,

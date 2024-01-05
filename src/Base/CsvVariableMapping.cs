@@ -18,6 +18,7 @@ namespace IZU.Base
             MapProperty(6, x => x.VariableType, new EnumConverter<VariableTypes>());
             MapProperty(7, x => x.Disabled, new DisabledConverter());
             MapProperty(8, x => x.ActionType);
+            MapProperty(9, x => x.RefreshInterval,new IntConverter());
         }
     }
     class EnumConverter<T> : ITypeConverter<T> where T : struct
@@ -40,6 +41,18 @@ namespace IZU.Base
         public bool TryConvert(string value, out bool result)
         {
             result = value?.Trim().ToLower() == "1" || value?.Trim().ToLower() == "true";
+            return true;
+        }
+    }
+
+    class IntConverter : ITypeConverter<int>
+    {
+        public Type TargetType => typeof(int);
+
+        public bool TryConvert(string value, out int result)
+        {
+            if (!int.TryParse(value, out result))
+                result = 100;
             return true;
         }
     }
