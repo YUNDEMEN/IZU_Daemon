@@ -42,7 +42,6 @@ namespace IZU.Controllers
         [HttpGet]
         public WonderResponse Get()
         {
-            _izuService.RefreshConfig();
             return WonderResponse.Create(_izuService.ServiceRuntime.Set(DateTime.Now));
         }
 
@@ -71,9 +70,8 @@ namespace IZU.Controllers
             try
             {
                 _s7netService.Stop();
-                await _izuService.ReadConfigFromDBAsync();
-                await _s7netService.StartAsync();
-                _izuService.RefreshConfig();
+                await _izuService.StartAsync();
+
                 return WonderResponse.Create("已重载配置和变量表");
             }
             catch (Exception ex)

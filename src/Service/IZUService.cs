@@ -4,7 +4,9 @@ using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
+using System.Text;
 using System.Text.Json.Nodes;
+using TinyCsvParser;
 
 namespace IZU.Service
 {
@@ -44,11 +46,10 @@ namespace IZU.Service
             _logger.LogInformation("---------------IZU service starting---------------");
 
             await ReadConfigFromDBAsync();
-
-            await S7netService.StartAsync();
+            var device_var_list = await GetDeviceVariables();
+            S7netService.Start(device_var_list);
 
             _logger.LogInformation("---------------IZU service started---------------");
-
         }
 
         public async Task ReadConfigFromDBAsync()
@@ -134,6 +135,8 @@ namespace IZU.Service
                     }
 
                     IZUConfig.ID = izu_id;
+
+                    _broadcastServer.Refresh();
                 }
                 catch (HttpRequestException http_ex)
                 {
@@ -150,6 +153,122 @@ namespace IZU.Service
             }
         }
 
+        public async Task<List<VariableEntity>> GetDeviceVariables()
+        {
+            if (IZUConfig.DeviceTableFrom == "db")
+            {
+                return await GetDeviceTableFromDBAsync();
+            }
+            else
+            {
+                return await GetDeviceTableFromLocalFileAsync();
+            }
+            
+        }
+
+
+
+        async Task<List<VariableEntity>> GetDeviceTableFromDBAsync()
+        {
+            using (HttpClient httpClient = new())
+            {
+                List<VariableEntity> variables = new List<VariableEntity>();
+                try
+                {
+                    httpClient.Timeout = TimeSpan.FromSeconds(5);
+                    httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    HttpResponseMessage response = await httpClient.GetAsync($"izu/get/device/vars/by?id={IZUConfig.ID}");
+                    response.EnsureSuccessStatusCode();
+
+                    string result = await response.Content.ReadAsStringAsync();
+                    var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                    if (!resultObject!.ok)
+                        throw new Exception(resultObject.message);
+
+                    _logger.LogInformation($"download izu device table successfully");
+                    var arr = Newtonsoft.Json.JsonConvert.DeserializeObject<JArray>(resultObject!.data!.ToString()!);
+                    foreach (var item in arr!)
+                    {
+                        variables.Add(new VariableEntity
+                        {
+                            ServerIP = $"{item["ip"]}",
+                            DeviceName = $"{item["name"]}",
+                            DeviceType = (DeviceTypes)(int)item["device_type"]!,
+                            FunctionType = (FunctionTypes)(int)item["function"]!,
+                            ActionType = $"{item["bindary"]}",
+                            Address = $"{item["address"]}",
+                            VariableType = (VariableTypes)(int)item["data_type"]!,
+                            Description = $"{item["description"]}",
+                            Disabled = $"{item["status"]}" == "disabled",
+                            RefreshInterval = $"{item["refresh"]}".ToInt32(100)
+                        });
+                    }
+                }
+                catch (HttpRequestException http_ex)
+                {
+                    _logger.LogWarning($"download izu device table failed: {http_ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"download izu device table failed: {ex.Message}");
+                }
+                return variables;
+            }
+        }
+
+        async Task<List<VariableEntity>> GetDeviceTableFromLocalFileAsync()
+        {
+            _logger.LogInformation("start loading device table");
+            
+            DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DeviceTable"));
+            if (!dir.Exists)
+            {
+                _logger.LogWarning("device table missing");
+                return new List<VariableEntity>();
+            }
+            List<VariableEntity> variables = new List<VariableEntity>();
+            var files = dir.GetFiles("*.csv");
+            foreach (var deviceFile in files)
+            {
+                CsvParserOptions csvParserOptions = new(true, ',');
+                CsvVariableMapping csvMapper = new();
+                CsvParser<VariableEntity> csvParser = new(csvParserOptions, csvMapper);
+                try
+                {
+                    var csvs = csvParser.ReadFromFile(deviceFile.FullName, Encoding.ASCII);
+                    foreach (var item in csvs)
+                    {
+                        if (!item.IsValid || item.Error != null)
+                        {
+                            _logger.LogWarning("load device table {0} error, {1}", deviceFile, item.Error);
+                            continue;
+                        }
+                        variables.Add(item.Result);
+                        _logger.LogDebug("device table loaded {0}, variable count {1}", deviceFile, variables.Count);
+                    }
+                    //var groups = variables.GroupBy(t => t.DeviceName, t => t);
+                    //foreach (var item in groups)
+                    //{
+                    //    if (string.IsNullOrEmpty(item.Key)) continue;
+                    //    if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory, deviceFile.FullName, item.Key, IZUConfig.RefreshMillionSeconds, item.ToList())))
+                    //        _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, deviceFile);
+                    //}
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("load device table {0} exception, {1}", deviceFile, ex.Message);
+                    throw;
+                }
+            }
+
+            _logger.LogInformation("end loading device table");
+            await Task.Delay(10);
+            return variables;
+        }
+
+
+
         void Callback(object? state)
         {
             //Console.SetCursorPosition(0, Console.GetCursorPosition().Top);
@@ -162,11 +281,6 @@ namespace IZU.Service
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
-        public void RefreshConfig()
-        {
-            S7netService.RefreshConfig();
-            _broadcastServer.Refresh();
-        }
 
     }
 }
