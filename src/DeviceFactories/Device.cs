@@ -2,6 +2,7 @@
 using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
+using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Timers;
@@ -36,6 +37,15 @@ namespace IZU.DeviceFactories
             if (_deviceEntity.Server == null)
                 return "device server not exist!";
             return await _deviceEntity.Server.WriteBool(address, value);
+        }
+
+        public async Task<string?> GetBool(string address)
+        {
+            if (_deviceEntity == null)
+                return "device not exist!";
+            if (_deviceEntity.Server == null)
+                return "device server not exist!";
+            return (await _deviceEntity.Server.GetBool(address)).ToString();
         }
 
         /// <summary>
@@ -86,7 +96,6 @@ namespace IZU.DeviceFactories
         {
             return !string.IsNullOrEmpty(address);
         }
-
 
         //protected void RunAfter(int millionSecs, Action action)
         //{

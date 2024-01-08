@@ -45,19 +45,38 @@ namespace IZU.DeviceFactories
 
         public async Task<string> StartAsync()
         {
-            string res = await WriteBool(address_tup.W01, true);
-            if (string.IsNullOrEmpty(res))
+            // 启动运行写true，停止运行写false，确保启动运行
+            await WriteBool(address_tup.W02, false);
+
+            string? status = await GetBool(address_tup.R01);
+            if (status != null && status == "True")
             {
-                res = ConditionWrite(address_tup.R03, address_tup.W01, false);
-                return res;
+                string res = await WriteBool(address_tup.W01, true);
+                if (string.IsNullOrEmpty(res))
+                {
+                    res = ConditionWrite(address_tup.R03, address_tup.W01, false);
+                    return res;
+                }
+                else
+                    return res;
             }
             else
-                return res;
+                return "不是待机状态，不能执行启动指令";
         }
 
         public async Task<string> StopAsync()
         {
-            return await WriteBool(address_tup.W02, false);
+            // 启动运行写false，停止运行写true，确保停止运行
+            await WriteBool(address_tup.W01, false);
+
+            string res = await WriteBool(address_tup.W02, true);
+            if (string.IsNullOrEmpty(res))
+            {
+                res = ConditionWrite(address_tup.R02, address_tup.W02, false);
+                return res;
+            }
+            else
+                return res;
         }
     }
 }
