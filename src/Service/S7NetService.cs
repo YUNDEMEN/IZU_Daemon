@@ -23,29 +23,19 @@ namespace IZU.Service
             _loggerFactory = loggerFactory;
             _logger = logger;
         }
-        public async Task StartAsync()
+        public void Start(List<VariableEntity> variables)
         {
-            string devicefile;
-            List<VariableEntity> variables = new List<VariableEntity>();
-            if (IZUConfig.DeviceTableFrom == "db")
-            {
-                devicefile = "db";
-                 variables = await GetDeviceTableFromDBAsync();
-            }
-            else
-            {
-                devicefile = "csv";
-                variables = await GetDeviceTableFromLocalFileAsync();
-            }
+            _cDic.Clear();           
             var groups = variables.GroupBy(t => t.DeviceName, t => t);
             foreach (var item in groups)
             {
                 if (string.IsNullOrEmpty(item.Key)) continue;
-                if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory, devicefile, item.Key, item.ToList())))
-                    _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, devicefile);
+                if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory, IZUConfig.DeviceTableFrom, item.Key, item.ToList())))
+                    _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, IZUConfig.DeviceTableFrom);
             }
         }
 
+#if false
         async Task<List<VariableEntity>> GetDeviceTableFromLocalFileAsync()
         {
             _logger.LogInformation("start loading device table");
@@ -137,10 +127,14 @@ namespace IZU.Service
                 {
                     _logger.LogWarning($"download izu device table failed: {http_ex.Message}");
                 }
+                catch(Exception ex)
+                {
+                    _logger.LogWarning($"download izu device table failed: {ex.Message}");
+                }
                 return variables;
             }
         }
-
+#endif
         public void Stop()
         {
             foreach (var deviceEntity in _cDic.Values.ToList())
@@ -173,13 +167,6 @@ namespace IZU.Service
             return device.Variables;
         }
 
-        public void RefreshConfig()
-        {
-            foreach (var deviceEntity in GetAllDevices())
-            {
-                deviceEntity.Refresh(100);
-            }
-        }
 
     }
 }

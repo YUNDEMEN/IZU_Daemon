@@ -47,6 +47,9 @@ namespace IZU.Service
             });
         }
 
+        /// <summary>
+        /// 刷新websocket发布数据频率
+        /// </summary>
         public void Refresh()
         {
             taskDelay = IZUConfig.PublishMillionSeconds;

@@ -17,7 +17,7 @@
         public static string Server { get; set; } = "127.0.0.1:80";
         public static string BackendIZUBaseUrl { get; set; } = string.Empty;
         /// <summary>
-        /// 发布数据时间间隔（毫秒）
+        /// websocket发布数据时间间隔（毫秒）
         /// </summary>
         public static int PublishMillionSeconds { get; set; } = 500;
         /// <summary>

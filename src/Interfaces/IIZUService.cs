@@ -9,6 +9,5 @@ namespace IZU.Interfaces
 		Task StartAsync();
         void Stop();
 		Task ReadConfigFromDBAsync();
-		void RefreshConfig();
     }
 }

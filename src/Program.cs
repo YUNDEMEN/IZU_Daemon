@@ -13,7 +13,7 @@ void StartInfo(string fileName, string? content)
     if (!dir.Exists) dir.Create();
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine("[{0:yyyy-MM-dd HH:mm:ss}]: {1}", DateTime.Now, content);
-    File.AppendAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName), content);
+    File.AppendAllText(Path.Combine(dir.FullName, fileName), content);
     Console.ForegroundColor = ConsoleColor.White;
 }
 
