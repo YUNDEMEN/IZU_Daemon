@@ -70,7 +70,7 @@ namespace IZU.Service
                         string result = await response.Content.ReadAsStringAsync();
                         var jsonResult = JsonObject.Parse(result);
                         var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                        if (resultObject!.ok)
+                        if (resultObject!.ok && resultObject.data!=null)
                         {
                             JObject izuObj = resultObject.data as JObject;
                             IZUConfig.PublishMillionSeconds = (int)izuObj["wspub_interval"]!;

@@ -136,14 +136,14 @@ namespace IZU.Controllers
 		[Authorize]
 #endif
         [HttpPost("device/hid/emerg")]
-        public async Task<WonderResponse> DeviceHIDEmerg([FromQuery] string name, [FromQuery] bool o)
+        public async Task<WonderResponse> DeviceHIDEmerg([FromQuery] string name, [FromQuery] bool oper)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IHID, HID>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.EmergencyStopAsync();
+            string result = await deviceObject.EmergencyStopAsync(oper);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
@@ -335,14 +335,14 @@ namespace IZU.Controllers
 		[Authorize]
 #endif
         [HttpPost("device/autodoor/emerg")]
-        public async Task<WonderResponse> DeviceAutoDoorEmerg([FromQuery] string name, [FromQuery] bool o)
+        public async Task<WonderResponse> DeviceAutoDoorEmerg([FromQuery] string name, [FromQuery] bool oper)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.EmergencyStopAsync();
+            string result = await deviceObject.EmergencyStopAsync(oper);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
@@ -494,14 +494,14 @@ namespace IZU.Controllers
 		[Authorize]
 #endif
         [HttpPost("device/firedoor/emerg")]
-        public async Task<WonderResponse> DeviceFireDoorEmerg([FromQuery] string name, [FromQuery] bool o)
+        public async Task<WonderResponse> DeviceFireDoorEmerg([FromQuery] string name, [FromQuery] bool oper)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IFireDoor, FireDoor>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.EmergencyStopAsync();
+            string result = await deviceObject.EmergencyStopAsync(oper);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else

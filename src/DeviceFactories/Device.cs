@@ -49,46 +49,53 @@ namespace IZU.DeviceFactories
         }
 
         /// <summary>
-        /// 根据提供的 address_condition 判断是否为True
-        /// 如果是True，则按照提供的 address_write 写如对应的 value
+        /// 根据提供的 address_condition 判断是否为 condValue
+        /// 如果是，则按照提供的 address_write 写如对应的 value
         /// </summary>
         /// <param name="address_condition">条件地址</param>
         /// <param name="address_write">写入地址</param>
         /// <param name="value">写入值</param>
         /// <returns></returns>
-        protected string ConditionWrite(string address_condition, string address_write, bool value)
+        protected async Task<string> ConditionWriteAsync(string address_condition, string address_write, bool value, bool condValue = true)
         {
             DateTime startTime = DateTime.Now;
             string result = string.Empty;
-            Task.Run(async () =>
-            {
-                bool? cond = false;
-                while (true)
-                {
-                    if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
-                    {
-                        result = "读取超时";
-                        break;
-                    }
 
-                    cond = await _deviceEntity!.Server!.GetBool(address_condition);
-                    if (result == null || !(bool)cond)
-                    {
-                        await Task.Delay(10);
-                        continue;
-                    }
-                    else if ((bool)cond)
-                    {
-                        break;
-                    }
-                }
-                if ((bool)cond)
-                    _deviceEntity.Server.WriteBool(address_write, value);
-                else
+            bool? cond = false;
+            while (true)
+            {
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
                 {
-                    _logger.LogWarning("{0}, 地址{1}读取失败，{2}", _deviceEntity.Name, address_condition, result);
+                    result = "读取超时";
+                    break;
                 }
-            });
+
+                cond = await _deviceEntity!.Server!.GetBool(address_condition);
+                if (result == null || (bool)cond != condValue)
+                {
+                    await Task.Delay(10);
+                    continue;
+                }
+                else if ((bool)cond == condValue)
+                {
+                    break;
+                }
+            }
+            if ((bool)cond)
+                _deviceEntity.Server.WriteBool(address_write, value);
+            else
+            {
+                _logger.LogWarning("{0}, 地址{1}读取失败，{2}", _deviceEntity.Name, address_condition, result);
+            }
+            return result;
+        }
+
+        protected async Task<string> DelayWriteAsync(string address_write, bool value, string delay_address_write, bool delayValue, int delay)
+        {
+            await _deviceEntity.Server!.WriteBool(address_write, value);
+            string result = string.Empty;
+            await Task.Delay(delay);
+            result = await _deviceEntity.Server!.WriteBool(delay_address_write, delayValue);
             return result;
         }
 

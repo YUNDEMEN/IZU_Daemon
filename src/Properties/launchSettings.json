@@ -2,7 +2,7 @@
   "profiles": {
     "IZU_Daemon": {
       "commandName": "Project",
-      "commandLineArgs": "--urls http://127.0.0.1:8000",
+      "commandLineArgs": "--urls http://127.0.0.1:8031",
       "launchUrl": "izu",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
