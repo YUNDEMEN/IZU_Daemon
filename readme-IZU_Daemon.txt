@@ -1,3 +1,15 @@
+###---------2024-01-18 ----------------------------------------
+
+★发布命令：
+旧版：dotnet publish -c Release -r win-x64 /p:PublishsingleFile=false
+
+新版发布全量包：dotnet publish -c Release -r win-x64 --self-contained
+IIS中部署不支持单独文件（single file）
+
+新版发布全量包，单独文件：
+dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
+windows服务部署可以使用此方式发布
+
 ###---------2023-12-19 ----------------------------------------
 更改windows service部署方式
 安装命令：sc create izu-daemon binPath=绝对路径\IZU-Service.exe
