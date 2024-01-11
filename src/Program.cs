@@ -1,13 +1,16 @@
 using IZU.Base;
+using IZU.DeviceFactories;
 using IZU.Entities;
+using IZU.Interfaces;
 using IZU.Service;
 using Newtonsoft.Json.Linq;
 using NLog.Extensions.Logging;
+using System.Text;
 
 #region 检查程序配置是否存在
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
 if (dir.Exists) dir.Delete(true);
-
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 void StartInfo(string fileName, string? content)
 {
     if (!dir.Exists) dir.Create();

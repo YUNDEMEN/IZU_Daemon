@@ -13,14 +13,18 @@
  */
 namespace IZU.Service
 {
+    using IZU.Commands;
+    using IZU.Interfaces;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging.Configuration;
     using Microsoft.Extensions.Options;
     using System.Collections.Concurrent;
+    using System.CommandLine;
     using System.Net;
     using System.Net.Sockets;
     using System.Runtime.Versioning;
     using System.Text;
+
     /// <summary>
     /// 扩展方法使用顺序（注：顺序不能颠倒，因为日志在一开始就需要初始化）
     /// 1. 在CreateBuilder后添加AddTelnetLogger（该方法会初始化TelnetLogger）
@@ -68,20 +72,60 @@ namespace IZU.Service
             telnetService.Start();
         }
     }
-    /// <summary>
-    /// 命令收集服务
-    /// </summary>
-    public class CommandService
+
+
+    public interface ITelnetCommandService
     {
-        private readonly IDictionary<string, Action> _commands;
-        public CommandService()
+        void CollectCommands();
+        string RunCommand(params string[] args);
+    }
+
+    public class TelnetCommandService : ITelnetCommandService
+    {
+        protected readonly IServiceProvider _serviceProvider;
+        protected IIZUService? _izuService;
+        protected IS7NetService? _s7netService;
+        private readonly List<ITelnetCommand> _commands;
+        public TelnetCommandService(IServiceProvider serviceProvider)
         {
-            _commands = new Dictionary<string, Action>();
+            _serviceProvider = serviceProvider;
+            _commands = new List<ITelnetCommand>();
         }
 
         public void CollectCommands()
         {
-            _commands[""] = () => { };
+            _izuService = _serviceProvider.GetService<IIZUService>()!;
+            _s7netService = _serviceProvider.GetService<IS7NetService>()!;
+
+            var commandTypes = GetAllTypesThatImplementInterface<ITelnetCommand>();
+            foreach (var type in commandTypes)
+            {
+                var command = Activator.CreateInstance(type, _izuService, _s7netService) as ITelnetCommand;
+                if (command == null)
+                    continue;
+
+                _commands.Add(command);
+            }
+        }
+        public string RunCommand(params string[] args)
+        {
+            string name = args[0];
+            string result = string.Empty;
+            var command = _commands.FirstOrDefault(t => t.Name == name);
+            if (command == null)
+                result = $"command [{name}] not exist!";
+            else
+            {
+                //result = command.Execute(args.Length > 1 ? args.Skip(1).ToArray() : Array.Empty<string>());
+                result = command.Execute(args);
+            }
+            return result;
+        }
+        private IEnumerable<Type> GetAllTypesThatImplementInterface<T>()
+        {
+            return System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(type => typeof(T).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
         }
     }
 
@@ -94,14 +138,16 @@ namespace IZU.Service
     }
     public class WonderTelnetService : ITelnetService
     {
+        protected readonly ITelnetCommandService _telnetCommandService;
         private readonly ILogger<WonderTelnetService> _logger;
         List<TelnetClient> log_clients = new List<TelnetClient>();
         private readonly TelnetServer? _telnetServer;
         public TelnetServer Server { get { return _telnetServer!; } }
         public static ITelnetService? TelnetService { get; set; }
-        public WonderTelnetService(ILogger<WonderTelnetService> logger)
+        public WonderTelnetService(ILogger<WonderTelnetService> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
+            _telnetCommandService = new TelnetCommandService(serviceProvider);
             _telnetServer = new TelnetServer(IPAddress.Any, 666);
         }
         public void Start()
@@ -109,15 +155,16 @@ namespace IZU.Service
             _telnetServer!.ClientConnected += OnClientConnected;
             _telnetServer.ClientDisconnected += OnClientDisconnected;
             _telnetServer.ConnectionBlocked += OnConnectionBlocked;
-            _telnetServer.MessageReceived += OnMessageReceived;
+            _telnetServer.MessageReceived += OnMessageReceivedAsync;
             _telnetServer.Start();
+            _telnetCommandService.CollectCommands();
         }
         public void Stop()
         {
             _telnetServer.ClientConnected -= OnClientConnected;
             _telnetServer.ClientDisconnected -= OnClientDisconnected;
             _telnetServer.ConnectionBlocked -= OnConnectionBlocked;
-            _telnetServer.MessageReceived -= OnMessageReceived;
+            _telnetServer.MessageReceived -= OnMessageReceivedAsync;
             _telnetServer.Stop();
         }
         private void Login(TelnetClient c, string message)
@@ -140,6 +187,7 @@ namespace IZU.Service
                         if (message == "wonder")
                         {
                             Reply(c, "User Successfully authenticated.", true, true);
+                            ResetInput(c, true, true);
                             c.SetStatus(ClientTypes.LoggedIn);
                         }
 
@@ -155,7 +203,7 @@ namespace IZU.Service
         private void OnClientConnected(TelnetClient c)
         {
             //_logger.LogInformation("client connected. {0}", c);
-            _telnetServer.SendMessage(c, "Welcom to Wonder.inc command server, please login first!" + TelnetServer.END_LINE + "Username: ");
+            _telnetServer.SendMessage(c, "Welcom to Wonder.inc command server, please login first!" + TelnetServer.END_LINE + TelnetServer.REPLY + "Username: ");
         }
 
         private void OnClientDisconnected(TelnetClient c)
@@ -165,27 +213,28 @@ namespace IZU.Service
 
         private void OnConnectionBlocked(IPEndPoint ep)
         {
-            Console.WriteLine(string.Format("BLOCKED: {0}:{1} at {2}", ep.Address, ep.Port, DateTime.Now));
+            Console.WriteLine(string.Format("BLOCKED: {0}:{1} at {2}", ep.Address, ep.Port, System.DateTime.Now));
         }
 
-        private void OnMessageReceived(TelnetClient c, string message)
+        private void OnMessageReceivedAsync(TelnetClient c, string message)
         {
             if (c.Status != ClientTypes.LoggedIn)
             {
                 Login(c, message);
                 return;
             }
-
             switch (message)
             {
-                case "h":
-                    Reply(c, "aa", true, true);
+                default:
+                    string result = _telnetCommandService.RunCommand(message.ToLower().Split(" "));
+                    Reply(c, result, false, true);
+                    ResetInput(c, true, true);
                     break;
-                case "log":
+                case "postlog":
                     log_clients.Add(c);
                     ResetInput(c, true, true);
                     break;
-                case "log-off":
+                case "postlog-off":
                     log_clients.Remove(c);
                     ResetInput(c, true, true);
                     break;
@@ -199,9 +248,6 @@ namespace IZU.Service
                 case "cls":
                     ClearScreen(c);
                     break;
-                default:
-                    ResetInput(c, true, true);
-                    break;
             }
 
         }
@@ -211,7 +257,7 @@ namespace IZU.Service
         }
         void Reply(TelnetClient client, string message, bool end = false, bool tip = false)
         {
-            _telnetServer!.SendMessage(client, $"{TelnetServer.END_LINE}{message}{(end ? TelnetServer.END_LINE : string.Empty)}{(tip ? TelnetServer.CURSOR : string.Empty)}");
+            _telnetServer!.SendMessage(client, $"{TelnetServer.END_LINE}{TelnetServer.REPLY}{message}{(end ? TelnetServer.END_LINE : string.Empty)}");
         }
         void ClearScreen(TelnetClient client)
         {
@@ -224,7 +270,8 @@ namespace IZU.Service
 
             foreach (var client in log_clients)
             {
-                Server.SendMessage(client, log);
+                Reply(client, log, true, true);
+                //Server.SendMessage(client, log);
             }
         }
     }
@@ -446,8 +493,9 @@ namespace IZU.Service
     public abstract class SocketBase : ClientBase
     {
         public const string END_LINE = "\r\n";
+        public const string REPLY = "";
         public const string CURSOR = " >> ";
-        protected readonly Encoding SocketEncoding = Encoding.UTF8;
+        protected readonly Encoding SocketEncoding = Encoding.GetEncoding("GB2312");
         protected IPAddress ServerIPAddress { get; }
         protected int Port { get; }
         protected bool AcceptIncomingConnections { get; set; }
@@ -594,7 +642,7 @@ namespace IZU.Service
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            WonderTelnetService.TelnetService!.PostLog($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {logLevel.ToString(),-12}: {name} - {formatter(state, exception)}{TelnetServer.END_LINE}{TelnetServer.CURSOR}");
+            WonderTelnetService.TelnetService!.PostLog($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {logLevel.ToString(),-12}: {name} - {formatter(state, exception)}");
         }
         public void Logbackup<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {

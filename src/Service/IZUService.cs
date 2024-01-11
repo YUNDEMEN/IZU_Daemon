@@ -140,11 +140,11 @@ namespace IZU.Service
                 }
                 catch (HttpRequestException http_ex)
                 {
-                    _logger.LogWarning($"upload izu info error: {http_ex.Message}");
+                    _logger.LogWarning($"get izu info error: {http_ex.Message}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"upload izu info error: {ex.Message}");
+                    _logger.LogWarning($"get izu info error: {ex.Message}");
                 }
                 finally
                 {
@@ -170,6 +170,7 @@ namespace IZU.Service
 
         async Task<List<VariableEntity>> GetDeviceTableFromDBAsync()
         {
+            if (IZUConfig.ID == 0) return new List<VariableEntity>();
             using (HttpClient httpClient = new())
             {
                 List<VariableEntity> variables = new List<VariableEntity>();
