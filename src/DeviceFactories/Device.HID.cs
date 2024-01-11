@@ -26,31 +26,17 @@ namespace IZU.DeviceFactories
             address_tup.W05 = GetActionType("W05");  //   火灾报警关闭PSP电源     按住写true，放开写false
         }
 
-        public async Task<string> EmergencyStopAsync(bool oper)
-        {
-            string res = await WriteBool(address_tup.W04, oper);
-            return "";
-        }
-
-        public async Task<string> PowerOffAsync()
-        {
-            return await WriteBool(address_tup.W05, true);
-        }
-
-        public async Task<string> ResetAsync()
-        {
-            return await WriteBool(address_tup.W03, true);
-        }
-
         public async Task<string> StartAsync()
         {
             // 停止运行写false，启动运行写true，双保险
-            await WriteBool(address_tup.W02, false);
+            string res = await WriteBool(address_tup.W02, false);
+            if (!string.IsNullOrEmpty(res))
+                return res;
 
             string? status = await GetBool(address_tup.R01);
             if (status != null && status == "True")
             {
-                string res = await WriteBool(address_tup.W01, true);
+                res = await WriteBool(address_tup.W01, true);
                 if (string.IsNullOrEmpty(res))
                 {
                     res = await ConditionWriteAsync(address_tup.R03, address_tup.W01, false);
@@ -66,9 +52,11 @@ namespace IZU.DeviceFactories
         public async Task<string> StopAsync()
         {
             // 启动运行写false，停止运行写true，双保险
-            await WriteBool(address_tup.W01, false);
+            string res = await WriteBool(address_tup.W01, false);
+            if (!string.IsNullOrEmpty(res))
+                return res;
 
-            string res = await WriteBool(address_tup.W02, true);
+            res = await WriteBool(address_tup.W02, true);
             if (string.IsNullOrEmpty(res))
             {
                 res = await ConditionWriteAsync(address_tup.R02, address_tup.W02, false);
@@ -76,6 +64,21 @@ namespace IZU.DeviceFactories
             }
             else
                 return res;
+        }
+
+        public async Task<string> ResetAsync(bool oper)
+        {
+            return await WriteBool(address_tup.W03, oper);
+        }
+
+        public async Task<string> EmergencyStopAsync(bool oper)
+        {
+            return await WriteBool(address_tup.W04, oper);
+        }
+
+        public async Task<string> PowerOffAsync(bool oper)
+        {
+            return await WriteBool(address_tup.W05, oper);
         }
     }
 }

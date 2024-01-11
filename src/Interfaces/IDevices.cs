@@ -79,7 +79,7 @@ namespace IZU.Interfaces
         /// 复位
         /// </summary>
         /// <returns></returns>
-        Task<string> ResetAsync();
+        Task<string> ResetAsync(bool oper);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ namespace IZU.Interfaces
         /// 关闭电源
         /// </summary>
         /// <returns></returns>
-        Task<string> PowerOffAsync();
+        Task<string> PowerOffAsync(bool oper);
     }
 
 
@@ -101,7 +101,7 @@ namespace IZU.Interfaces
         /// 关闭电源
         /// </summary>
         /// <returns></returns>
-        Task<string> InitialAsync(bool oper);
+        Task<string> InitialAsync();
     }
     public interface ISwitch
     {

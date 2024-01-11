@@ -49,12 +49,13 @@ namespace IZU.DeviceFactories
         }
 
         /// <summary>
-        /// 根据提供的 address_condition 判断是否为 condValue
+        /// 根据提供的 address_condition 判断其值是否为 condValue
         /// 如果是，则按照提供的 address_write 写如对应的 value
         /// </summary>
         /// <param name="address_condition">条件地址</param>
         /// <param name="address_write">写入地址</param>
         /// <param name="value">写入值</param>
+        /// <param name="condValue">用于和address_condition的值进行比较的值</param>
         /// <returns></returns>
         protected async Task<string> ConditionWriteAsync(string address_condition, string address_write, bool value, bool condValue = true)
         {
@@ -71,7 +72,7 @@ namespace IZU.DeviceFactories
                 }
 
                 cond = await _deviceEntity!.Server!.GetBool(address_condition);
-                if (result == null || (bool)cond != condValue)
+                if ((bool)cond != condValue)
                 {
                     await Task.Delay(10);
                     continue;
@@ -81,8 +82,8 @@ namespace IZU.DeviceFactories
                     break;
                 }
             }
-            if ((bool)cond)
-                _deviceEntity.Server.WriteBool(address_write, value);
+            if (string.IsNullOrWhiteSpace(result))
+                await _deviceEntity.Server!.WriteBool(address_write, value);
             else
             {
                 _logger.LogWarning("{0}, 地址{1}读取失败，{2}", _deviceEntity.Name, address_condition, result);

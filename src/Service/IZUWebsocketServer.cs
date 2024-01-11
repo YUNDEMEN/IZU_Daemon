@@ -206,58 +206,65 @@ namespace IZU.Service
                         // 名称
                         string? name = it.Name;
 
-                        // 系统开机状态（1开机；0关机；-1读null）
+                        // 上电状态
+                        var powerOnEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R00");
+                        var powerOn = powerOnEnt?.Value;
+
+                        // 系统待机状态，系统开机状态（1开机；0关机；-1读null）
                         var onlineEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R01");
-                        object? online = null;
-                        if (onlineEnt != null && onlineEnt.Value != null)
-                            online = onlineEnt.Value.ToString().ToLower() == true.ToString() ? 1 : 0;
+                        object? online = onlineEnt?.Value?.ToString()?.ToLower() == true.ToString() ? 1 : 0;
 
                         // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
-                        var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R05");
-                        var statusOpening = statusOpeningEnt?.Value;
-                        var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R07");
-                        var statusOpened = statusOpenedEnt?.Value;
-                        var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R06");
-                        var statusClosing = statusCloseingEnt?.Value;
-                        var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R08");
-                        var statusClosed = statusClosedEnt?.Value;
+                        var opening = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
+                        var opened = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
+                        var openStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
+                        var closing = it.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
+                        var closed = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
+                        var closeStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
+
+                        Console.WriteLine("\n------------------------------------------------------");
+                        Console.WriteLine("【  " + opening + " " + opened + " " + openStatus + " " + closing + " " + closed + " " + closeStatus + " 】");
+                        Console.WriteLine("------------------------------------------------------\n");
                         object? status = null;
-                        if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
+                        if (opening == null || opened == null || openStatus == null || closing == null || closed == null || closeStatus == null)
                         {
                             status = null;
                         }
                         else
                         {
-                            if (statusClosed.ToString().ToLower().Equals(true.ToString())) status = 0;
-                            else if (statusClosing.ToString().ToLower().Equals(true.ToString())) status = 1;
-                            else if (statusOpening.ToString().ToLower().Equals(true.ToString())) status = 2;
-                            else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
-                            else status = null;
+                            if ((bool)closed & (bool)closeStatus) status = 0;
+                            else if ((bool)closing) status = 1;
+                            else if ((bool)opening) status = 2;
+                            else if ((bool)opened & (bool)openStatus) status = 3;
                         }
+                        //Console.WriteLine("\n------------------------------------------------------");
+                        //Console.WriteLine("【  " + status + " 】");
+                        //Console.WriteLine("------------------------------------------------------\n");
 
-                        // 启动状态（true触发启动；false不触发启动？）
+                        ///////////////////////////////和模式重复---------------------------------------
+                        // 系统自动运行状态（true触发启动；false不触发启动？）
                         var start_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R02");
-                        object? start = null;
-                        if (start_sigEnt != null && start_sigEnt.Value != null)
-                            start = start_sigEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
+                        object? start = start_sigEnt?.Value;
 
                         // 初始化状态（true触发初始化；false不触发初始化？）
                         var initial_sigEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R11");
-                        object? initial = null;
-                        if (initial_sigEnt != null && initial_sigEnt.Value != null)
-                            initial = initial_sigEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
+                        object? initial = initial_sigEnt?.Value;
 
                         // 故障状态
-                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R04");
-                        object? fault = null;
-                        if (faultEnt != null && faultEnt.Value != null)
-                            fault = faultEnt.Value.ToString().ToLower() == true.ToString() ? true : false;
+                        var faultEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R09");
+                        object? fault = faultEnt?.Value;
 
                         // 横式 (手动True 自动False) 默认手动
                         var modeEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R02");
-                        object? mode = 1;
+                        object? mode = modeEnt?.Value;
+                        if (mode != null)
+                            mode = !(bool)mode;
 
-                        data.autodoor.Add(new BroadcastAutodoorInfo(name, online, status, start, initial, fault, mode));
+                        //Console.WriteLine("\n------------------------------------------------------");
+                        //Console.WriteLine("【  " + start + " " + initial + " " + fault + " 】");
+                        //Console.WriteLine("------------------------------------------------------\n");
+
+                        data.autodoor.Add(new BroadcastAutodoorInfo(name, powerOn, online, status, start, initial, fault, mode));
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.FIREDOOR))
                     {
@@ -344,7 +351,7 @@ namespace IZU.Service
                         }
                         if (DateTime.Now.Second < 20)
                             status = 0;
-                        else if(DateTime.Now.Second>=20 && DateTime.Now.Second<23)
+                        else if (DateTime.Now.Second >= 20 && DateTime.Now.Second < 23)
                             status = 2;
                         else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
                             status = 3;
@@ -352,7 +359,7 @@ namespace IZU.Service
                             status = 1;
                         else if (DateTime.Now.Second > 36)
                             status = 0;
-                        data.Add($"{name}:{status??0}");
+                        data.Add($"{name}:{status ?? 0}");
                     }
 
                 }

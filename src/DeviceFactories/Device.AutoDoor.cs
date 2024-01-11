@@ -35,6 +35,56 @@ namespace IZU.DeviceFactories
             address_tup.W10 = GetActionType("W10");  //        自动 / 手动模式
         }
 
+        public async Task<string> InitialAsync()
+        {
+            var status = await GetBool(address_tup.R00);
+            if (status == "False")
+                return "未上电";
+            if (await GetBool(address_tup.R02) == "True")
+                return "自动运行状态下禁止初始化，请停止运行后再执行初始化！";
+
+            await WriteBool(address_tup.W01, false);
+            await WriteBool(address_tup.W02, false);
+            await WriteBool(address_tup.W03, false);
+            await WriteBool(address_tup.W04, false);
+            await WriteBool(address_tup.W07, false);
+            await WriteBool(address_tup.W08, false);
+            await WriteBool(address_tup.W05, false);
+            await WriteBool(address_tup.W06, false);
+            await WriteBool(address_tup.W10, false);
+
+            string ret = await WriteBool(address_tup.W09, true);
+            if (string.IsNullOrEmpty(ret))
+            {
+                ret = await ConditionWriteAsync(address_tup.R10, address_tup.W09, false);
+            }
+            return ret;
+        }
+
+        public async Task<string> StartAsync()
+        {
+            string res = await ConditionWriteAsync(address_tup.R11, address_tup.W01, true, condValue: true);
+            if (string.IsNullOrEmpty(res))
+            {
+                res = await ConditionWriteAsync(address_tup.R02, address_tup.W01, false, condValue: true);
+                return res;
+            }
+            else
+                return res;
+        }
+
+        public async Task<string> StopAsync()
+        {
+            string res = await WriteBool(address_tup.W02, true);
+            if (string.IsNullOrEmpty(res))
+            {
+                res = await ConditionWriteAsync(address_tup.R02, address_tup.W02, false, condValue: false);
+                return res;
+            }
+            else
+                return res;
+        }
+
         public async Task<string> OpenAsync()
         {
             string res = await WriteBool(address_tup.W07, true);
@@ -69,71 +119,24 @@ namespace IZU.DeviceFactories
             return await WriteBool(address_tup.W04, oper);
         }
 
+        public async Task<string> SwitchAsync(bool oper)
+        {
+            var status = await GetBool(address_tup.R02);
+            if (status == "True")
+                return "当前是自动运行状态，请停止运行后再切换为手动模式！";
+
+            return await WriteBool(address_tup.W10, oper);
+        }
+
         public async Task<string> EmergencyStopAsync(bool oper)
         {
             string res = await WriteBool(address_tup.W05, oper);
             return "";
         }
 
-        public async Task<string> ResetAsync()
+        public async Task<string> ResetAsync(bool oper)
         {
-            return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false,2000);
-        }
-
-        public async Task<string> StartAsync()
-        {
-            string res =await ConditionWriteAsync(address_tup.R11, address_tup.W01, true, condValue: true);
-             //res = await WriteBool(address_tup.W01, true);
-            if (string.IsNullOrEmpty(res))
-            {
-                res = await ConditionWriteAsync(address_tup.R02, address_tup.W01, false, condValue:true);
-                return res;
-            }
-            else
-                return res;
-        }
-
-        public async Task<string> StopAsync()
-        {
-            string res = await WriteBool(address_tup.W02, true);
-            if (string.IsNullOrEmpty(res))
-            {
-                res = await ConditionWriteAsync(address_tup.R02, address_tup.W02, false, condValue:false);
-                return res;
-            }
-            else
-                return res;
-        }
-
-        public async Task<string> InitialAsync(bool oper)
-        {
-            var status = await GetBool(address_tup.R00);
-            if (status == "False")
-                return "未上电";
-            if (oper)
-            {
-                await WriteBool(address_tup.W01, false);
-                await WriteBool(address_tup.W02, false);
-                await WriteBool(address_tup.W03, false);
-                await WriteBool(address_tup.W04, false);
-                await WriteBool(address_tup.W07, false);
-                await WriteBool(address_tup.W08, false);
-                await WriteBool(address_tup.W05, false);
-                await WriteBool(address_tup.W06, false);
-                await WriteBool(address_tup.W10, false);
-            }
-            string res = await DelayWriteAsync(address_tup.W09, true, address_tup.W09, false, 2000);
-            //string res = await WriteBool(address_tup.W09, true);
-            //if (string.IsNullOrEmpty(res))
-            //{
-            //    res = ConditionWrite(address_tup.R10, address_tup.W09, false);
-            //}
-            return res;
-        }
-
-        public async Task<string> SwitchAsync(bool oper)
-        {
-            return await WriteBool(address_tup.W10, oper);
+            return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
         }
     }
 }
