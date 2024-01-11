@@ -49,7 +49,7 @@ namespace IZU.DeviceFactories
             return "";
         }
 
-        public async Task<string> ResetAsync()
+        public async Task<string> ResetAsync(bool oper)
         {
             return await WriteBool(address_tup.W06, true);
         }

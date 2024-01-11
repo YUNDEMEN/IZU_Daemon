@@ -95,7 +95,6 @@ namespace IZU.Controllers
                 return WonderResponse.Error(error);
             return WonderResponse.Create(deviceObject);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -113,7 +112,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -131,7 +129,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -149,37 +146,35 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
         [HttpPost("device/hid/poweroff")]
-        public async Task<WonderResponse> DeviceHIDPowerOff([FromQuery] string name)
+        public async Task<WonderResponse> DeviceHIDPowerOff([FromQuery] string name, [FromQuery] bool oper)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IHID, HID>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.PowerOffAsync();
+            string result = await deviceObject.PowerOffAsync(oper);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
         [HttpPost("device/hid/reset")]
-        public async Task<WonderResponse> DeviceHIDReset([FromQuery] string name)
+        public async Task<WonderResponse> DeviceHIDReset([FromQuery] string name, [FromQuery] bool oper)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IHID, HID>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.ResetAsync();
+            string result = await deviceObject.ResetAsync(oper);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
@@ -193,26 +188,6 @@ namespace IZU.Controllers
 #if ENABLE_AUTH
 		[Authorize]
 #endif
-        [HttpPost("device/autodoor/on")]
-        public async Task<WonderResponse> DeviceAutoDoorOn([FromQuery] string name)
-        {
-            string error = string.Empty;
-            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
-            if (deviceObject == null)
-                return WonderResponse.Error(error);
-
-            string result1 = await deviceObject.InitialAsync(true);
-            string result2 = await deviceObject.StartAsync();
-
-            if (string.IsNullOrEmpty(result1) && string.IsNullOrEmpty(result2))
-                return WonderResponse.Create("ok");
-            else
-                return WonderResponse.Error(result1 + " " + result2);
-        }
-
-#if ENABLE_AUTH
-		[Authorize]
-#endif
         [HttpPost("device/autodoor")]
         public WonderResponse DeviceAutoDoor([FromQuery] string name)
         {
@@ -222,7 +197,23 @@ namespace IZU.Controllers
                 return WonderResponse.Error(error);
             return WonderResponse.Create(deviceObject);
         }
+#if ENABLE_AUTH
+		[Authorize]
+#endif
+        [HttpPost("device/autodoor/initial")]
+        public async Task<WonderResponse> DeviceAutoDoorInitial([FromQuery] string name)
+        {
+            string error = string.Empty;
+            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
+            if (deviceObject == null)
+                return WonderResponse.Error(error);
 
+            string result = await deviceObject.InitialAsync();
+            if (string.IsNullOrEmpty(result))
+                return WonderResponse.Create("ok");
+            else
+                return WonderResponse.Error(result);
+        }
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -240,25 +231,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
-#if ENABLE_AUTH
-		[Authorize]
-#endif
-        [HttpPost("device/autodoor/stop")]
-        public async Task<WonderResponse> DeviceAutoDoorStop([FromQuery] string name)
-        {
-            string error = string.Empty;
-            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
-            if (deviceObject == null)
-                return WonderResponse.Error(error);
-
-            string result = await deviceObject.StopAsync();
-            if (string.IsNullOrEmpty(result))
-                return WonderResponse.Create("ok");
-            else
-                return WonderResponse.Error(result);
-        }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -276,7 +248,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -294,43 +265,23 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
-        [HttpPost("device/autodoor/mopen")]
-        public async Task<WonderResponse> DeviceAutoDoorManOpen([FromQuery] string name, [FromQuery] bool o)
+        [HttpPost("device/autodoor/stop")]
+        public async Task<WonderResponse> DeviceAutoDoorStop([FromQuery] string name)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.OpenManualAsync(o);
+            string result = await deviceObject.StopAsync();
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
                 return WonderResponse.Error(result);
         }
-
-#if ENABLE_AUTH
-		[Authorize]
-#endif
-        [HttpPost("device/autodoor/mclose")]
-        public async Task<WonderResponse> DeviceAutoDoorManClose([FromQuery] string name, [FromQuery] bool o)
-        {
-            string error = string.Empty;
-            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
-            if (deviceObject == null)
-                return WonderResponse.Error(error);
-
-            string result = await deviceObject.CloseManualAsync(o);
-            if (string.IsNullOrEmpty(result))
-                return WonderResponse.Create("ok");
-            else
-                return WonderResponse.Error(result);
-        }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -348,7 +299,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -360,25 +310,7 @@ namespace IZU.Controllers
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.ResetAsync();
-            if (string.IsNullOrEmpty(result))
-                return WonderResponse.Create("ok");
-            else
-                return WonderResponse.Error(result);
-        }
-
-#if ENABLE_AUTH
-		[Authorize]
-#endif
-        [HttpPost("device/autodoor/initial")]
-        public async Task<WonderResponse> DeviceAutoDoorInitial([FromQuery] string name, [FromQuery] bool o)
-        {
-            string error = string.Empty;
-            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
-            if (deviceObject == null)
-                return WonderResponse.Error(error);
-
-            string result = await deviceObject.InitialAsync(o);
+            string result = await deviceObject.ResetAsync(true);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
@@ -388,19 +320,54 @@ namespace IZU.Controllers
 		[Authorize]
 #endif
         [HttpPost("device/autodoor/switch")]
-        public async Task<WonderResponse> DeviceAutoDoorSwitch([FromQuery] string name, [FromQuery] bool o)
+        public async Task<WonderResponse> DeviceAutoDoorSwitch([FromQuery] string name, [FromQuery] bool oper)
         {
             string error = string.Empty;
             var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.SwitchAsync(o);
+            string result = await deviceObject.SwitchAsync(oper);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
                 return WonderResponse.Error(result);
         }
+#if ENABLE_AUTH
+		[Authorize]
+#endif
+        [HttpPost("device/autodoor/mopen")]
+        public async Task<WonderResponse> DeviceAutoDoorManOpen([FromQuery] string name, [FromQuery] bool oper)
+        {
+            string error = string.Empty;
+            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
+            if (deviceObject == null)
+                return WonderResponse.Error(error);
+
+            string result = await deviceObject.OpenManualAsync(oper);
+            if (string.IsNullOrEmpty(result))
+                return WonderResponse.Create("ok");
+            else
+                return WonderResponse.Error(result);
+        }
+#if ENABLE_AUTH
+		[Authorize]
+#endif
+        [HttpPost("device/autodoor/mclose")]
+        public async Task<WonderResponse> DeviceAutoDoorManClose([FromQuery] string name, [FromQuery] bool oper)
+        {
+            string error = string.Empty;
+            var deviceObject = CreateDeviceObject<IAutoDoor, AutoDoor>(name, ref error);
+            if (deviceObject == null)
+                return WonderResponse.Error(error);
+
+            string result = await deviceObject.CloseManualAsync(oper);
+            if (string.IsNullOrEmpty(result))
+                return WonderResponse.Create("ok");
+            else
+                return WonderResponse.Error(result);
+        }
+
         #endregion
 
         #region fire door Control
@@ -417,7 +384,6 @@ namespace IZU.Controllers
                 return WonderResponse.Error(error);
             return WonderResponse.Create(deviceObject);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -435,7 +401,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -453,7 +418,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -471,7 +435,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -489,7 +452,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -507,7 +469,6 @@ namespace IZU.Controllers
             else
                 return WonderResponse.Error(result);
         }
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif
@@ -519,7 +480,7 @@ namespace IZU.Controllers
             if (deviceObject == null)
                 return WonderResponse.Error(error);
 
-            string result = await deviceObject.ResetAsync();
+            string result = await deviceObject.ResetAsync(true);
             if (string.IsNullOrEmpty(result))
                 return WonderResponse.Create("ok");
             else
@@ -527,6 +488,5 @@ namespace IZU.Controllers
         }
 
         #endregion
-
     }
 }
