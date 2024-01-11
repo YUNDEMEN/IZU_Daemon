@@ -259,7 +259,7 @@ namespace IZU.Service
                 catch (Exception ex)
                 {
                     _logger.LogWarning("load device table {0} exception, {1}", deviceFile, ex.Message);
-                    throw;
+                    //throw;
                 }
             }
 

@@ -17,6 +17,8 @@ namespace IZU.Service
 {
     public class IZUWebsocketServer : IIZUBroadcastServer
     {
+        Guid oso = Guid.Parse("6F998BD2-B59F-4510-8E42-B50D18D22432");
+        Guid cfg = Guid.Parse("3cfeec89-feea-4be9-9e8f-f59d4feb8347");
         readonly ILogger<IZUWebsocketServer> _logger;
         const int BufferSize = 4096;
         int taskDelay = 1000;
@@ -40,7 +42,7 @@ namespace IZU.Service
             {
                 while (true)
                 {
-                    await BroadcastDevicesToOSOAsync();
+                    await BroadcastDevicesToConfigClientAsync();
                     await Task.Delay(20);
                 }
 
@@ -82,8 +84,11 @@ namespace IZU.Service
                 throw new Exception("token should be Guid");
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
-            if (sessionid == Guid.Parse("6F998BD2-B59F-4510-8E42-B50D18D22432"))
+            
+            if (sessionid == oso)
                 _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid, "oso"));
+            else if (sessionid == cfg)
+                _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid, "cfg"));
             else
                 _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid));
 
@@ -289,7 +294,7 @@ namespace IZU.Service
                 }
                 foreach (var client in _clients.Values)
                 {
-                    if (client.Status == 0 || client.target == "oso")
+                    if (client.Status == 0 || !string.IsNullOrEmpty(client.target))
                         continue;
                     _clients.TryRemove(client.SessionId, out var removedClient);
                 }
@@ -356,7 +361,43 @@ namespace IZU.Service
                 var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data_format));
                 foreach (var client in _clients.Values)
                 {
-                    if (client.Status == 1 || client.target == string.Empty) continue;
+                    if (client.Status == 1 || client.target != "oso") continue;
+
+                    await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
+                        .ContinueWith(async (t, state) =>
+                        {
+                            if (t.Exception != null && state is InnerServerClient client)
+                            {
+                                try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
+                                try { client.Socket.Abort(); } catch { }
+                                try { client.Socket.Dispose(); } catch { }
+                                client.Status = 1;//marked as wasted
+                            }
+                        }, client).ConfigureAwait(false);
+                }
+                foreach (var client in _clients.Values)
+                {
+                    if (client.Status == 0 || client.target == string.Empty)
+                        continue;
+                    _clients.TryRemove(client.SessionId, out var removedClient);
+                }
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogWarning($"broadcast server error: {ex.Message}");
+            }
+        }
+
+
+        public async Task BroadcastDevicesToConfigClientAsync()
+        {
+            try
+            {
+                var msg = _s7NetService.GetAllDevices();
+                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(msg)));
+                foreach (var client in _clients.Values)
+                {
+                    if (client.Status == 1 || client.target != "cfg") continue;
 
                     await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
                         .ContinueWith(async (t, state) =>
