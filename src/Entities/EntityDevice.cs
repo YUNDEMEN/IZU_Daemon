@@ -86,6 +86,6 @@ namespace IZU.Entities
 
     public record BroadcastIzuInfo(string? name, object? online, object? runningStatus, object? fault);
     public record BroadcastHidInfo(string? name, object? online, object? fault);
-    public record BroadcastAutodoorInfo(string? name,object? powerOn, object? online, object? status, object? start_sig, object? initial_sig, object? fault, object? mode);
+    public record BroadcastAutodoorInfo(string? name,object? poweron, object? online, object? status, object? start_sig, object? initial_sig, object? fault, object? mode);
     public record BroadcastFiredoorInfo(string? name, object? online);
 }

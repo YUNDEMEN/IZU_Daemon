@@ -222,9 +222,9 @@ namespace IZU.Service
                         var closed = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
                         var closeStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
 
-                        Console.WriteLine("\n------------------------------------------------------");
-                        Console.WriteLine("【  " + opening + " " + opened + " " + openStatus + " " + closing + " " + closed + " " + closeStatus + " 】");
-                        Console.WriteLine("------------------------------------------------------\n");
+                        //Console.WriteLine("\n------------------------------------------------------");
+                        //Console.WriteLine("【  " + opening + " " + opened + " " + openStatus + " " + closing + " " + closed + " " + closeStatus + " 】");
+                        //Console.WriteLine("------------------------------------------------------\n");
                         object? status = null;
                         if (opening == null || opened == null || openStatus == null || closing == null || closed == null || closeStatus == null)
                         {
@@ -282,10 +282,10 @@ namespace IZU.Service
                 }
                 var test = JsonConvert.SerializeObject(data);
 
-                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data)));
+                var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(JsonConvert.SerializeObject(data)));
                 foreach (var client in _clients.Values)
                 {
-                    if (client.Status == 1 || client.target == "oso") continue;
+                    if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
 
                     await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
                         .ContinueWith(async (t, state) =>
@@ -401,7 +401,7 @@ namespace IZU.Service
             try
             {
                 var msg = _s7NetService.GetAllDevices();
-                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(msg)));
+                var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(msg)));
                 foreach (var client in _clients.Values)
                 {
                     if (client.Status == 1 || client.target != "cfg") continue;
