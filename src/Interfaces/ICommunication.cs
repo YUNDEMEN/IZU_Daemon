@@ -2,7 +2,7 @@
 
 namespace IZU.Interfaces
 {
-    public interface IIZUBroadcastServer
+    public interface ICommunication
     {
         /// <summary>
         /// 刷新websocket发布数据频率

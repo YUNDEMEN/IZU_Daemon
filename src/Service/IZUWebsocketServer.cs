@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using NNanomsg.Protocols;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,16 +17,16 @@ using System.Text;
 
 namespace IZU.Service
 {
-    public class IZUWebsocketServer : IIZUBroadcastServer
+    public class IZUCommunicationServer : ICommunication
     {
         Guid oso = Guid.Parse("6F998BD2-B59F-4510-8E42-B50D18D22432");
         Guid cfg = Guid.Parse("3cfeec89-feea-4be9-9e8f-f59d4feb8347");
-        readonly ILogger<IZUWebsocketServer> _logger;
+        readonly ILogger<IZUCommunicationServer> _logger;
         const int BufferSize = 4096;
         int taskDelay = 1000;
         IS7NetService _s7NetService { get; }
         readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUWebsocketServer(IServer server, ILogger<IZUWebsocketServer> logger, IS7NetService s7netService)
+        public IZUCommunicationServer(IServer server, ILogger<IZUCommunicationServer> logger, IS7NetService s7netService)
         {
             _logger = logger;
             _s7NetService = s7netService;
@@ -38,15 +40,17 @@ namespace IZU.Service
                 }
 
             });
-            Task.Factory.StartNew(async () =>
-            {
-                while (true)
-                {
-                    await BroadcastDevicesToConfigClientAsync();
-                    await Task.Delay(20);
-                }
+            //Task.Factory.StartNew(async () =>
+            //{
+            //    while (true)
+            //    {
+            //        await BroadcastDevicesToConfigClientAsync();
+            //        await Task.Delay(20);
+            //    }
 
-            });
+            //});
+
+            CreateNanoServer();
         }
 
         /// <summary>
@@ -205,7 +209,7 @@ namespace IZU.Service
                     {
                         // 名称
                         string? name = it.Name;
-
+                        var readableList = from x in it.Variables where x.ActionType.StartsWith("R") select (KeyValueObject)x;
                         // 上电状态
                         var powerOnEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R00");
                         var powerOn = powerOnEnt?.Value;
@@ -395,6 +399,25 @@ namespace IZU.Service
             }
         }
 
+
+        private Task t_server;
+        PairSocket nanoServer = new PairSocket();
+
+        void CreateNanoServer()
+        {
+            List<DeviceEntity> cur = new List<DeviceEntity>();
+            nanoServer.Bind($"tcp://{IZUConfig.ServerIP}:18031");
+            t_server = Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    nanoServer.Receive();
+                    cur = _s7NetService.GetAllDevices();
+                    nanoServer.Send(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(cur)));
+                    await Task.Delay(10);
+                }
+            });
+        }
 
         public async Task BroadcastDevicesToConfigClientAsync()
         {

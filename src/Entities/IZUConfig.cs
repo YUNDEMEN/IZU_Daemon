@@ -14,7 +14,9 @@
         /// <summary>
         /// 服务的本地IP地址
         /// </summary>
-        public static string Server { get; set; } = "127.0.0.1:80";
+        public static string Server { get { return $"{ServerIP}:{ServerPort}"; } }
+        public static string ServerIP { get; set; } = "127.0.0.1";
+        public static int ServerPort { get; set; } = 8031;
         public static string BackendIZUBaseUrl { get; set; } = string.Empty;
         /// <summary>
         /// websocket发布数据时间间隔（毫秒）

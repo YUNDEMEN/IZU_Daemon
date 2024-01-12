@@ -15,10 +15,10 @@ namespace IZU.Service
         public ServiceRuntime ServiceRuntime { get; }
         private readonly ILogger<IZUService> _logger;
         private readonly Timer _timer;
-        private readonly IIZUBroadcastServer _broadcastServer;
+        private readonly ICommunication _broadcastServer;
 
         public IS7NetService S7netService { get; }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IS7NetService s7netService, IIZUBroadcastServer broadcastServer)
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IS7NetService s7netService, ICommunication broadcastServer)
         {
             IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;

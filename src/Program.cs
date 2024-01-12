@@ -75,7 +75,8 @@ try
     if (opt.Args.Length > index + 1)
     {
         var url = new Uri(opt.Args[index + 1]);
-        IZUConfig.Server = $"{url.Host}:{url.Port}";
+        IZUConfig.ServerIP = url.Host;
+        IZUConfig.ServerPort = url.Port;
     }
 }
 catch(Exception ex)
