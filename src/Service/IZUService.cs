@@ -31,9 +31,9 @@ namespace IZU.Service
         }
         public async Task StartAsync()
         {
-            var _loggers = IZULogging.Factory.CreateLogger<Device>();
+            //var _loggers = IZULogging.Factory.CreateLogger<Device>();
             _logger.LogInformation("---------------IZU service starting---------------");
-
+            IZUConfig.Read();
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
             await ReadConfigFromDBAsync();

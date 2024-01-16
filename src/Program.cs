@@ -25,38 +25,10 @@ AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledException
     StartInfo($"{AppDomain.CurrentDomain.BaseDirectory}logs\\{DateTime.Now:yyyyMMddHHmmss}-crash.log", e.ExceptionObject?.ToString());
 };
 
-string appsettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-if (!File.Exists(appsettingsPath))
-{
-    StartInfo($"startinfo.log", $"config file [{appsettingsPath}] missing!");
-    return;
-}
+string result = IZUConfig.Read();
+if(!string.IsNullOrEmpty(result))
+    StartInfo($"startinfo.log", result);
 
-string json = File.ReadAllText(appsettingsPath);
-try
-{
-    JObject configJson = JObject.Parse(json);
-    if (configJson["izu_backend"] == null)
-    {
-        StartInfo($"startinfo.log", "izu_backend node not found!");
-        return;
-    }
-    if (configJson["map_version"] == null)
-    {
-        StartInfo($"startinfo.log", "map_version node not found!");
-        return;
-    }
-
-    IZUConfig.BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
-    IZUConfig.DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
-    IZUConfig.MapVersion = configJson!["map_version"]!.ToString();
-    
-}
-catch (Exception ex)
-{
-    StartInfo($"startinfo.log", ex.Message + ex.StackTrace);
-    return;
-}
 if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config")))
 {
     StartInfo($"startinfo.log", "NLog config file missing (nlog.config)");
