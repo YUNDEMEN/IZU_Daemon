@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Reflection.Metadata.Ecma335;
 using System.ServiceProcess;
@@ -25,12 +26,15 @@ namespace IZU.Service
         const int BufferSize = 4096;
         int taskDelay = 1000;
         IS7NetService _s7NetService { get; }
+        UDPSocket _udpClient;
+        Task loopTask;
         readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
         public IZUCommunicationServer(IServer server, ILogger<IZUCommunicationServer> logger, IS7NetService s7netService)
         {
             _logger = logger;
             _s7NetService = s7netService;
             taskDelay = IZUConfig.PublishMillionSeconds;
+            InitialUdpSocket();
             Task.Factory.StartNew(async () =>
             {
                 while (true)
@@ -52,6 +56,72 @@ namespace IZU.Service
 
             CreateNanoServer();
         }
+
+        CancellationTokenSource cts = new CancellationTokenSource();
+        void InitialUdpSocket()
+        {
+            _udpClient = new();
+            _udpClient.Connect("127.0.0.1", 18031);
+
+            loopTask = Task.Factory.StartNew(async () => {
+                while (!cts.IsCancellationRequested)
+                {
+                    var msg = _s7NetService.GetAllDevices();
+                    // 提取数据
+                    List<string> data = new();
+                    foreach (var it in msg)
+                    {
+                        if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
+                        {
+                            // 名称
+                            string? name = it.Name;
+
+                            // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
+                            var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R05");
+                            var statusOpening = statusOpeningEnt?.Value;
+                            var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R07");
+                            var statusOpened = statusOpenedEnt?.Value;
+                            var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R06");
+                            var statusClosing = statusCloseingEnt?.Value;
+                            var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R08");
+                            var statusClosed = statusClosedEnt?.Value;
+                            object? status = null;
+                            if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
+                            {
+                                status = null;
+                            }
+                            else
+                            {
+                                if (statusClosed.ToString().ToLower().Equals(true.ToString())) status = 0;
+                                else if (statusClosing.ToString().ToLower().Equals(true.ToString())) status = 1;
+                                else if (statusOpening.ToString().ToLower().Equals(true.ToString())) status = 2;
+                                else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
+                                else status = null;
+                            }
+                            if (DateTime.Now.Second < 20)
+                                status = 0;
+                            else if (DateTime.Now.Second >= 20 && DateTime.Now.Second < 23)
+                                status = 2;
+                            else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
+                                status = 3;
+                            else if (DateTime.Now.Second > 33 && DateTime.Now.Second <= 36)
+                                status = 1;
+                            else if (DateTime.Now.Second > 36)
+                                status = 0;
+                            data.Add($"{name}:{status ?? 0}");
+                        }
+
+                    }
+                    // 消息格式： {izu name}::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
+                    string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
+
+                    _udpClient.Send(data_format);
+                    await Task.Delay(50);
+                }
+            }, cts.Token);
+        }
+
+
 
         /// <summary>
         /// 刷新websocket发布数据频率

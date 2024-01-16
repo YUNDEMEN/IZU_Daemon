@@ -31,18 +31,6 @@ namespace IZU.Service
         public async Task StartAsync()
         {
             var _loggers = IZULogging.Factory.CreateLogger<Device>();
-            //Task.Run(async () => {
-            //    while (true)
-            //    {
-            //        _logger.LogDebug("---------------LogInformation 这是一个八哥---------------");
-            //        _logger.LogInformation("---------------LogInformation---------------");
-            //        _logger.LogWarning("---------------LogWarning---------------");
-            //        _logger.LogError("---------------LogError---------------");
-            //        _logger.LogCritical("---------------LogError---------------");
-            //        NLog.LogManager.GetCurrentClassLogger().Info("nlog info");
-            //        await Task.Delay(2000);
-            //    }
-            //});
             _logger.LogInformation("---------------IZU service starting---------------");
 
             await ReadConfigFromDBAsync();
@@ -61,7 +49,7 @@ namespace IZU.Service
             {
                 try
                 {
-                    httpClient.Timeout = TimeSpan.FromSeconds(5);
+                    httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={IZUConfig.Server}");

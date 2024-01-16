@@ -20,6 +20,7 @@ namespace IZU.Service
     using Microsoft.Extensions.Options;
     using System.Collections.Concurrent;
     using System.CommandLine;
+    using System.CommandLine.IO;
     using System.Net;
     using System.Net.Sockets;
     using System.Runtime.Versioning;
@@ -78,6 +79,7 @@ namespace IZU.Service
     {
         void CollectCommands();
         string RunCommand(params string[] args);
+        void WriteLine(string message);
     }
 
     public class TelnetCommandService : ITelnetCommandService
@@ -85,11 +87,12 @@ namespace IZU.Service
         protected readonly IServiceProvider _serviceProvider;
         protected IIZUService? _izuService;
         protected IS7NetService? _s7netService;
-        private readonly List<ITelnetCommand> _commands;
+        private readonly RootCommand _commandRoot;
+        private TestConsole? _telnetConsole;
         public TelnetCommandService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _commands = new List<ITelnetCommand>();
+            _commandRoot = new RootCommand("izu command line") { Name="izu"};
         }
 
         public void CollectCommands()
@@ -97,28 +100,40 @@ namespace IZU.Service
             _izuService = _serviceProvider.GetService<IIZUService>()!;
             _s7netService = _serviceProvider.GetService<IS7NetService>()!;
 
-            var commandTypes = GetAllTypesThatImplementInterface<ITelnetCommand>();
+            var commandTypes = GetAllTypesThatImplementInterface<Command>();
             foreach (var type in commandTypes)
             {
-                var command = Activator.CreateInstance(type, _izuService, _s7netService) as ITelnetCommand;
+                var command = Activator.CreateInstance(type,this, _izuService, _s7netService) as Command;
                 if (command == null)
                     continue;
 
-                _commands.Add(command);
+                _commandRoot.Add(command);
             }
+        }
+        public void WriteLine(string message)
+        {
+            _telnetConsole!.WriteLine(message);
         }
         public string RunCommand(params string[] args)
         {
             string name = args[0];
-            string result = string.Empty;
-            var command = _commands.FirstOrDefault(t => t.Name == name);
-            if (command == null)
-                result = $"command [{name}] not exist!";
-            else
-            {
-                //result = command.Execute(args.Length > 1 ? args.Skip(1).ToArray() : Array.Empty<string>());
-                result = command.Execute(args);
-            }
+            if (string.IsNullOrEmpty(name)) 
+                return string.Empty;
+            
+            _telnetConsole = new();
+            _commandRoot.Invoke(args, _telnetConsole);
+            string result = _telnetConsole.Out.ToString()!;
+            //var command = _commandRoot.FirstOrDefault(t => t.Name == name);
+            //if (command == null)
+            //    result = $"command [{name}] not exist!";
+            //else
+            //{
+            //    _telnetConsole = new();
+            //    _commandRoot.Invoke(args, _telnetConsole);
+            //    result = _telnetConsole.Out.ToString()!;
+            //    //result = command.Execute(args.Length > 1 ? args.Skip(1).ToArray() : Array.Empty<string>());
+            //    //result = command.Execute(args);
+            //}
             return result;
         }
         private IEnumerable<Type> GetAllTypesThatImplementInterface<T>()

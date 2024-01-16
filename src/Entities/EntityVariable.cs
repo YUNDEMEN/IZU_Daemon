@@ -67,7 +67,7 @@ namespace IZU.Entities
              */
             if (ActionType != "R01")
             {
-                //string header =                                     "设备名称,       设备类型,        地址,              操作              旧值,         新值,           变量类型,               描述,          记录时间";
+                //string header =                                     "设备名称,       设备类型,        地址,           操作              旧值,         新值,           变量类型,          描述,                记录时间";
                 TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{FunctionType},{oldValue},{newValue},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             }
             LastRefreshTime = DateTime.Now;

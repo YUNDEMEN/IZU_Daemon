@@ -1,58 +1,23 @@
 ﻿using IZU.Interfaces;
-using NLog.Fluent;
+using IZU.Service;
 using System.CommandLine;
 using System.CommandLine.IO;
 
 namespace IZU.Commands
 {
-    public interface ITelnetCommand
+    public abstract class TelnetCommandBase : Command
     {
-        string Name { get; }
-        string Execute(string[] args);
-    }
-
-    public abstract class TelnetCommandBase : RootCommand, ITelnetCommand
-    {
-        //public override string Name
-        //{
-        //    get => base.Name;
-        //    set => base.Name = CommandName;
-        //}
-        //RootCommand log = new RootCommand
-        //        {
-        //            new Argument<string>("url","web site url"),
-        //            new Option<bool>(new string[]{ "--gethtml" ,"-html"},"Get html source"),
-        //            new Option<bool>(new string[]{ "--getimage" ,"-image"},"Get images"),
-        //            new Option<bool>(new string[]{ "--regex-option" ,"-regex"},"Use regex"),
-        //            new Option<bool>(new string[]{ "--htmlagilitypack-option", "-agpack"},"Use HtmlAgilityPack"),
-        //            new Option<bool>(new string[]{ "--anglesharp-option", "-agsharp"},"Use AngleSharp"),
-        //            new Option<string>(new string[]{ "--download-path" ,"-path"},"Designate download path")
-        //        };
-
-
+        protected ITelnetCommandService commandService;
         protected IIZUService _izuService;
         protected IS7NetService _s7netService;
-        public TelnetCommandBase(string commandName, IIZUService service, IS7NetService s7netService)
+        public TelnetCommandBase(string commandName, ITelnetCommandService commandService, IIZUService service, IS7NetService s7netService)
+            : base(commandName)
         {
+            this.commandService = commandService;
             _izuService = service;
             _s7netService = s7netService;
             Name = commandName;
         }
-
-        protected virtual void CreateOption(string[] alias,string description)
-        {
-            var opt = new Option<bool>(alias, description);
-            Add(opt);
-            //this.SetHandler(() => { }, opt);
-        }
-
-        public virtual string Execute(string[] args)
-        { 
-            TestConsole testConsole = new();
-            this.Invoke(args, testConsole);
-            return testConsole.Out.ToString()!;
-        }
-
     }
 
     public class CustomConsole : IConsole

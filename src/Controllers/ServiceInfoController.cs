@@ -18,12 +18,10 @@ namespace IZU.Controllers
     public class ServiceInfoController : IZUControllerBase
     {
         private readonly ILogger<ServiceInfoController> _logger;
-        IServiceProvider _serviceProvider { get; }
-        public ServiceInfoController(ILogger<ServiceInfoController> logger, IIZUService service, IS7NetService s7netService, IServiceProvider serviceProvider)
+        public ServiceInfoController(ILogger<ServiceInfoController> logger, IIZUService service, IS7NetService s7netService)
             : base(service, s7netService)
         {
             _logger = logger;
-            _serviceProvider = serviceProvider;
         }
 
         //[Authorize]
