@@ -41,11 +41,16 @@ try
         StartInfo($"startinfo.log", "izu_backend node not found!");
         return;
     }
-    IZUConfig.BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
-    if (configJson["usecsv"]!=null)
+    if (configJson["map_version"] == null)
     {
-        IZUConfig.DeviceTableFrom = "localcsv";
+        StartInfo($"startinfo.log", "map_version node not found!");
+        return;
     }
+
+    IZUConfig.BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
+    IZUConfig.DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
+    IZUConfig.MapVersion = configJson!["map_version"]!.ToString();
+    
 }
 catch (Exception ex)
 {
