@@ -432,7 +432,12 @@ namespace IZU.Service
         }
 
 
-
+        enum DeviceOperations
+        {
+            None,
+            Open,
+            Close
+        }
         /// <summary>
         /// 开门指令
         /// </summary>
@@ -440,21 +445,26 @@ namespace IZU.Service
         /// <returns></returns>
         public async Task<string> OperationFromOso(string data)
         {
-            string[] args = data.Split(':');
-            if (args.Length > 4)
+            string[] cmdArray = data.Split(':');
+            if (cmdArray.Length > 4)
                 return "command not available";
 
-            int type = args[1].ToInt32();
+            int type = cmdArray[0].ToInt32();
             if (type == 0)
                 return "device type not available";
 
             DeviceTypes deviceType = (DeviceTypes)type;
-            string deviceName = args[0];
+            string deviceName = cmdArray[1];
             var device = _s7NetService.GetDevice(deviceName);
             if (device == null)
                 return $"device {deviceName} is not existed";
 
-            ICanOpen? deviceObject = null;
+            int oper = cmdArray[2].ToInt32();
+            if (oper == 0)
+                return "device operation not available";
+            DeviceOperations deviceOperation = (DeviceOperations)oper;
+
+            IOperatable? deviceObject = null;
             switch (deviceType)
             {
                 case DeviceTypes.NONE:
@@ -472,7 +482,19 @@ namespace IZU.Service
             if (deviceObject == null)
                 return $"unknown device {deviceName}";
             else
-                return await deviceObject!.OpenAsync();
+            {
+                switch(deviceOperation)
+                {
+                    default:
+                    case DeviceOperations.None:
+                        return "unkown device operation";
+                    case DeviceOperations.Open:
+                        return await deviceObject!.OpenAsync();
+                    case DeviceOperations.Close:
+                        return await deviceObject!.CloseAsync();
+
+                }
+            }
 
         }
     }

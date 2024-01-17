@@ -111,4 +111,9 @@ namespace IZU.Interfaces
         /// <returns></returns>
         Task<string> SwitchAsync(bool oper);
     }
+
+    public interface IOperatable:ICanOpen,ICanClose
+    {
+
+    }
 }

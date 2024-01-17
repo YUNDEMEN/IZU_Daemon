@@ -2,7 +2,7 @@
 
 namespace IZU.Interfaces
 {
-	public interface IFireDoor : IDevice, ICanStart, ICanStop, ICanOpen, ICanClose, IEmergency, IReset
+	public interface IFireDoor : IDevice, ICanStart, ICanStop, IOperatable, IEmergency, IReset
 	{
 
 	}
