@@ -45,6 +45,9 @@ namespace IZU.DeviceFactories
                 return "device not exist!";
             if (_deviceEntity.Server == null)
                 return "device server not exist!";
+            bool? t = await _deviceEntity.Server.GetBool(address);
+            if (t == null)
+                return null;
             return (await _deviceEntity.Server.GetBool(address)).ToString();
         }
 

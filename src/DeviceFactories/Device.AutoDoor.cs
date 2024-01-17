@@ -37,104 +37,140 @@ namespace IZU.DeviceFactories
 
         public async Task<string> InitialAsync()
         {
-            var status = await GetBool(address_tup.R00);
-            if (status == "False")
-                return "未上电";
-            if (await GetBool(address_tup.R02) == "True")
-                return "自动运行状态下禁止初始化，请停止运行后再执行初始化！";
+            string? s1 = await GetBool(address_tup.R00);
+            if (string.IsNullOrEmpty(s1))
+                return $"Read signal {address_tup.R00} null!";
+            if (s1 == false.ToString())
+                return "No power!";
 
-            await WriteBool(address_tup.W01, false);
-            await WriteBool(address_tup.W02, false);
-            await WriteBool(address_tup.W03, false);
-            await WriteBool(address_tup.W04, false);
-            await WriteBool(address_tup.W07, false);
-            await WriteBool(address_tup.W08, false);
-            await WriteBool(address_tup.W05, false);
-            await WriteBool(address_tup.W06, false);
-            await WriteBool(address_tup.W10, false);
+            string? s2 = await GetBool(address_tup.R02);
+            if (string.IsNullOrEmpty(s2))
+                return $"Read signal {address_tup.R02} null!";
+            if (s2 == true.ToString())
+                return "Initialization is prohibited in automatic state, please stop running and then initialize!";
+
+            string w1 = await WriteBool(address_tup.W01, false);
+            string w2 = await WriteBool(address_tup.W02, false);
+            string w3 = await WriteBool(address_tup.W03, false);
+            string w4 = await WriteBool(address_tup.W04, false);
+            string w5 = await WriteBool(address_tup.W05, false);
+            string w6 = await WriteBool(address_tup.W06, false);
+            string w7 = await WriteBool(address_tup.W07, false);
+            string w8 = await WriteBool(address_tup.W08, false);
+            string w9 = await WriteBool(address_tup.W10, false);
+            if (!string.IsNullOrEmpty(w1) || !string.IsNullOrEmpty(w2) || !string.IsNullOrEmpty(w3) || !string.IsNullOrEmpty(w4) || !string.IsNullOrEmpty(w5) || !string.IsNullOrEmpty(w6) || !string.IsNullOrEmpty(w7) || !string.IsNullOrEmpty(w8) || !string.IsNullOrEmpty(w9))
+                return "Failed to reset related parameters during initialization!";
 
             string ret = await WriteBool(address_tup.W09, true);
-            if (string.IsNullOrEmpty(ret))
-            {
-                ret = await ConditionWriteAsync(address_tup.R10, address_tup.W09, false);
-            }
-            return ret;
+            if (!string.IsNullOrEmpty(ret))
+                return ret;
+            return await ConditionWriteAsync(address_tup.R10, address_tup.W09, false);
         }
 
         public async Task<string> StartAsync()
         {
             string res = await ConditionWriteAsync(address_tup.R11, address_tup.W01, true, condValue: true);
-            if (string.IsNullOrEmpty(res))
-            {
-                res = await ConditionWriteAsync(address_tup.R02, address_tup.W01, false, condValue: true);
+            if (!string.IsNullOrEmpty(res))
                 return res;
-            }
-            else
-                return res;
+            return await ConditionWriteAsync(address_tup.R02, address_tup.W01, false, condValue: true);
         }
 
         public async Task<string> StopAsync()
         {
             string res = await WriteBool(address_tup.W02, true);
-            if (string.IsNullOrEmpty(res))
-            {
-                res = await ConditionWriteAsync(address_tup.R02, address_tup.W02, false, condValue: false);
+            if (!string.IsNullOrEmpty(res))
                 return res;
-            }
-            else
-                return res;
+            return await ConditionWriteAsync(address_tup.R02, address_tup.W02, false, condValue: false);
         }
 
         public async Task<string> OpenAsync()
         {
-            string res = await WriteBool(address_tup.W07, true);
-            if (string.IsNullOrEmpty(res))
+            // 防止重复操作
+            string? r05 = await GetBool(address_tup.R05);
+            string? r07 = await GetBool(address_tup.R07);
+            string? r04 = await GetBool(address_tup.R04);
+            if (string.IsNullOrEmpty(r05) || string.IsNullOrEmpty(r07) || string.IsNullOrEmpty(r04))
+                return "Read open door signal null!";
+            if (bool.Parse(r05) || bool.Parse(r07) || bool.Parse(r04))
+                return "door is opening!";
+
+            //禁止关门未完成时执行开门
+            string? r06 = await GetBool(address_tup.R06);
+            string? r08 = await GetBool(address_tup.R08);
+            string? r03 = await GetBool(address_tup.R03);
+            if (string.IsNullOrEmpty(r06) || string.IsNullOrEmpty(r08) || string.IsNullOrEmpty(r03))
+                return "Read close door signal null!";
+            if (bool.Parse(r06) == false && bool.Parse(r08) && bool.Parse(r03))
             {
-                res = await ConditionWriteAsync(address_tup.R05, address_tup.W07, false);
-                return res;
+                // 将关门写false，双重保险
+                await WriteBool(address_tup.W08, false);
+
+                string res = await WriteBool(address_tup.W07, true);
+                if (!string.IsNullOrEmpty(res))
+                    return res;
+                return await ConditionWriteAsync(address_tup.R05, address_tup.W07, false);
             }
             else
-                return res;
+                return "Closing in progress! Do not open door!";
         }
 
         public async Task<string> CloseAsync()
         {
-            string res = await WriteBool(address_tup.W08, true);
-            if (string.IsNullOrEmpty(res))
+            // 防止重复操作
+            string? r06 = await GetBool(address_tup.R06);
+            string? r08 = await GetBool(address_tup.R08);
+            string? r03 = await GetBool(address_tup.R03);
+            if (string.IsNullOrEmpty(r06) || string.IsNullOrEmpty(r08) || string.IsNullOrEmpty(r03))
+                return "Read close door signal null!";
+            if (bool.Parse(r06) || bool.Parse(r08) || bool.Parse(r03))
+                return "door is closing!";
+
+            //禁止开门未完成时执行关门
+            string? r05 = await GetBool(address_tup.R05);
+            string? r07 = await GetBool(address_tup.R07);
+            string? r04 = await GetBool(address_tup.R04);
+            if (string.IsNullOrEmpty(r05) || string.IsNullOrEmpty(r07) || string.IsNullOrEmpty(r04))
+                return "Read open door signal null!";
+            if (bool.Parse(r05) == false && bool.Parse(r07) && bool.Parse(r04))
             {
-                res = await ConditionWriteAsync(address_tup.R06, address_tup.W08, false);
-                return res;
+                // 将开门写false，双重保险
+                await WriteBool(address_tup.W07, false);
+
+                string res = await WriteBool(address_tup.W08, true);
+                if (!string.IsNullOrEmpty(res))
+                    return res;
+                return await ConditionWriteAsync(address_tup.R06, address_tup.W08, false);
             }
             else
-                return res;
+                return "Opening in progress! Do not close door!";
         }
 
-        public async Task<string> OpenManualAsync(bool oper)
+        public async Task<string> OpenManualAsync(bool o)
         {
-            return await WriteBool(address_tup.W03, oper);
+            return await WriteBool(address_tup.W03, o);
         }
 
-        public async Task<string> CloseManualAsync(bool oper)
+        public async Task<string> CloseManualAsync(bool o)
         {
-            return await WriteBool(address_tup.W04, oper);
+            return await WriteBool(address_tup.W04, o);
         }
 
-        public async Task<string> SwitchAsync(bool oper)
+        public async Task<string> SwitchAsync(bool o)
         {
-            var status = await GetBool(address_tup.R02);
-            if (status == "True")
-                return "当前是自动运行状态，请停止运行后再切换为手动模式！";
-
-            return await WriteBool(address_tup.W10, oper);
+            var ret = await GetBool(address_tup.R02);
+            if (string.IsNullOrEmpty(ret))
+                return $"Read running state {address_tup.R02} signal null!";
+            if (ret == true.ToString())
+                return "It is currently in automatic mode. Please stop running and then switch to manual mode!";
+            return await WriteBool(address_tup.W10, o);
         }
 
-        public async Task<string> EmergencyStopAsync(bool oper)
+        public async Task<string> EmergencyStopAsync(bool o)
         {
-            string res = await WriteBool(address_tup.W05, oper);
-            return "";
+            return await WriteBool(address_tup.W05, o);
         }
 
-        public async Task<string> ResetAsync(bool oper)
+        public async Task<string> ResetAsync(bool o)
         {
             return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
         }
