@@ -52,8 +52,8 @@ namespace IZU.Service
                 while (true)
                 {
                     //if (_clients.Count != 0)
-                    await BroadcastDevicesAsync();
-                    await Task.Delay(taskDelay);
+                    await WsPublishDevicesAsync();
+                    await Task.Delay(task_ws_delay);
                 }
             });
         }
