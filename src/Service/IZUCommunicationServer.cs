@@ -1,70 +1,74 @@
 ﻿using IZU.Base;
+using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using NNanomsg.Protocols;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
 using System.Net.WebSockets;
-using System.Reflection.Metadata.Ecma335;
-using System.ServiceProcess;
 using System.Text;
 
 namespace IZU.Service
 {
     public class IZUCommunicationServer : ICommunication
     {
-        Guid oso = Guid.Parse("6F998BD2-B59F-4510-8E42-B50D18D22432");
-        Guid cfg = Guid.Parse("3cfeec89-feea-4be9-9e8f-f59d4feb8347");
-        readonly ILogger<IZUCommunicationServer> _logger;
-        const int BufferSize = 4096;
-        int taskDelay = 1000;
-        IS7NetService _s7NetService { get; }
-        UDPSocket _udpClient;
-        Task loopTask;
+        private Guid oso = Guid.Parse("6F998BD2-B59F-4510-8E42-B50D18D22432");
+        private Guid cfg = Guid.Parse("3cfeec89-feea-4be9-9e8f-f59d4feb8347");
+        private readonly ILogger<IZUCommunicationServer> _logger;
+        private const int BufferSize = 4096;
+        private int task_ws_delay = 1000;
+        private IS7NetService _s7NetService { get; }
+        private UDPSocket _udpClient;
+        private ReplySocket replySocket;
+        private PairSocket nanoPairSocketServer;
+        private Task task_nano_pair_server;
+        private Task task_socket_udp;
+        private CancellationTokenSource _cancelSourceUDP;
+        private Task task_nano_server;
         readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
         public IZUCommunicationServer(IServer server, ILogger<IZUCommunicationServer> logger, IS7NetService s7netService)
         {
             _logger = logger;
             _s7NetService = s7netService;
-            taskDelay = IZUConfig.PublishMillionSeconds;
+            task_ws_delay = IZUConfig.PublishMillionSeconds;
+            InitialNanoReplyServer();
+            InitialNanoPairServer();
             InitialUdpSocket();
+            InitialWebsocket();
+        }
+
+        /// <summary>
+        /// WEBSOCKET SERVER
+        /// PORT 8031
+        /// REMOTE SERVER
+        /// </summary>
+        void InitialWebsocket()
+        {
             Task.Factory.StartNew(async () =>
             {
                 while (true)
                 {
-                    await BroadcastDevicesAsync();
-                    await Task.Delay(taskDelay);
+                    await WsPublishDevicesAsync();
+                    await Task.Delay(task_ws_delay);
                 }
-
             });
-            //Task.Factory.StartNew(async () =>
-            //{
-            //    while (true)
-            //    {
-            //        await BroadcastDevicesToConfigClientAsync();
-            //        await Task.Delay(20);
-            //    }
-
-            //});
-
-            CreateNanoServer();
         }
-
-        CancellationTokenSource cts = new CancellationTokenSource();
+        /// <summary>
+        /// SOCKET UDP CLIENT
+        /// PORT 8131
+        /// REMOTE CLIENT
+        /// </summary>
         void InitialUdpSocket()
         {
+            _cancelSourceUDP = new CancellationTokenSource();
             _udpClient = new();
-            _udpClient.Connect("127.0.0.1", 18031);
+            _udpClient.Connect(IZUConfig.Server, 8131);
 
-            loopTask = Task.Factory.StartNew(async () => {
-                while (!cts.IsCancellationRequested)
+            task_socket_udp = Task.Factory.StartNew(async () =>
+            {
+                while (!_cancelSourceUDP.IsCancellationRequested)
                 {
                     var msg = _s7NetService.GetAllDevices();
                     // 提取数据
@@ -112,15 +116,56 @@ namespace IZU.Service
                         }
 
                     }
-                    // 消息格式： {izu name}::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
+                    // 消息格式： izu::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
                     string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
 
                     _udpClient.Send(data_format);
                     await Task.Delay(50);
                 }
-            }, cts.Token);
+            }, _cancelSourceUDP.Token);
+        }
+        /// <summary>
+        /// NANO REPLY SERVER
+        /// PORT 8231
+        /// REMOTE SERVER
+        /// </summary>
+        void InitialNanoReplyServer()
+        {
+            replySocket = new ReplySocket();
+            replySocket.Bind($"tcp://{IZUConfig.Server}:8231");
+            task_nano_server = Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    byte[] buffer = replySocket.Receive();
+                    string operation = System.Text.Encoding.UTF8.GetString(buffer);
+                    operation = await OperationFromOso(operation);
+                    replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation));
+                }
+            });
         }
 
+        /// <summary>
+        /// NANO PAIR SERVER
+        /// PORT 18031
+        /// LOCAL SYSTEM
+        /// </summary>
+        void InitialNanoPairServer()
+        {
+            List<DeviceEntity> cur = new List<DeviceEntity>();
+            nanoPairSocketServer = new PairSocket();
+            nanoPairSocketServer.Bind($"tcp://{IZUConfig.ServerIP}:18031");
+            task_nano_pair_server = Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    nanoPairSocketServer.Receive();
+                    cur = _s7NetService.GetAllDevices();
+                    nanoPairSocketServer.Send(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(cur)));
+                    await Task.Delay(10);
+                }
+            });
+        }
 
 
         /// <summary>
@@ -128,7 +173,7 @@ namespace IZU.Service
         /// </summary>
         public void Refresh()
         {
-            taskDelay = IZUConfig.PublishMillionSeconds;
+            task_ws_delay = IZUConfig.PublishMillionSeconds;
         }
 
         class InnerServerClient
@@ -158,7 +203,7 @@ namespace IZU.Service
                 throw new Exception("token should be Guid");
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
-            
+
             if (sessionid == oso)
                 _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid, "oso"));
             else if (sessionid == cfg)
@@ -210,7 +255,7 @@ namespace IZU.Service
         //	}
         //}
 
-        public async Task BroadcastDevicesAsync()
+        public async Task WsPublishDevicesAsync()
         {
             try
             {
@@ -387,141 +432,48 @@ namespace IZU.Service
         }
 
 
-        public async Task BroadcastDevicesToOSOAsync()
+
+        /// <summary>
+        /// 开门指令
+        /// </summary>
+        /// <param name="data">接受指令( 格式：{deviceType}:{deviceName}:{commandName}:{commandArg} )</param>
+        /// <returns></returns>
+        public async Task<string> OperationFromOso(string data)
         {
-            try
+            string[] args = data.Split(':');
+            if (args.Length > 4)
+                return "command not available";
+
+            int type = args[1].ToInt32();
+            if (type == 0)
+                return "device type not available";
+
+            DeviceTypes deviceType = (DeviceTypes)type;
+            string deviceName = args[0];
+            var device = _s7NetService.GetDevice(deviceName);
+            if (device == null)
+                return $"device {deviceName} is not existed";
+
+            ICanOpen? deviceObject = null;
+            switch (deviceType)
             {
-                var msg = _s7NetService.GetAllDevices();
-                // 提取数据
-                List<string> data = new();
-                foreach (var it in msg)
-                {
-                    if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
-                    {
-                        // 名称
-                        string? name = it.Name;
-
-                        // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
-                        var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R05");
-                        var statusOpening = statusOpeningEnt?.Value;
-                        var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R07");
-                        var statusOpened = statusOpenedEnt?.Value;
-                        var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R06");
-                        var statusClosing = statusCloseingEnt?.Value;
-                        var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R08");
-                        var statusClosed = statusClosedEnt?.Value;
-                        object? status = null;
-                        if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
-                        {
-                            status = null;
-                        }
-                        else
-                        {
-                            if (statusClosed.ToString().ToLower().Equals(true.ToString())) status = 0;
-                            else if (statusClosing.ToString().ToLower().Equals(true.ToString())) status = 1;
-                            else if (statusOpening.ToString().ToLower().Equals(true.ToString())) status = 2;
-                            else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
-                            else status = null;
-                        }
-                        if (DateTime.Now.Second < 20)
-                            status = 0;
-                        else if (DateTime.Now.Second >= 20 && DateTime.Now.Second < 23)
-                            status = 2;
-                        else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
-                            status = 3;
-                        else if (DateTime.Now.Second > 33 && DateTime.Now.Second <= 36)
-                            status = 1;
-                        else if (DateTime.Now.Second > 36)
-                            status = 0;
-                        data.Add($"{name}:{status ?? 0}");
-                    }
-
-                }
-                // 消息格式： {izu name}::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
-                string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
-                var outgoing = new ArraySegment<byte>(Encoding.UTF8.GetBytes(data_format));
-                foreach (var client in _clients.Values)
-                {
-                    if (client.Status == 1 || client.target != "oso") continue;
-
-                    await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
-                        .ContinueWith(async (t, state) =>
-                        {
-                            if (t.Exception != null && state is InnerServerClient client)
-                            {
-                                try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
-                                try { client.Socket.Abort(); } catch { }
-                                try { client.Socket.Dispose(); } catch { }
-                                client.Status = 1;//marked as wasted
-                            }
-                        }, client).ConfigureAwait(false);
-                }
-                foreach (var client in _clients.Values)
-                {
-                    if (client.Status == 0 || client.target == string.Empty)
-                        continue;
-                    _clients.TryRemove(client.SessionId, out var removedClient);
-                }
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    break;
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
+                    deviceObject = new AutoDoor(device);
+                    break;
+                case DeviceTypes.FIREDOOR:
+                    break;
             }
-            catch (Exception ex)
-            {
-                //_logger.LogWarning($"broadcast server error: {ex.Message}");
-            }
-        }
+            if (deviceObject == null)
+                return $"unknown device {deviceName}";
+            else
+                return await deviceObject!.OpenAsync();
 
-
-        private Task t_server;
-        PairSocket nanoServer = new PairSocket();
-
-        void CreateNanoServer()
-        {
-            List<DeviceEntity> cur = new List<DeviceEntity>();
-            nanoServer.Bind($"tcp://{IZUConfig.ServerIP}:18031");
-            t_server = Task.Factory.StartNew(async () =>
-            {
-                while (true)
-                {
-                    nanoServer.Receive();
-                    cur = _s7NetService.GetAllDevices();
-                    nanoServer.Send(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(cur)));
-                    await Task.Delay(10);
-                }
-            });
-        }
-
-        public async Task BroadcastDevicesToConfigClientAsync()
-        {
-            try
-            {
-                var msg = _s7NetService.GetAllDevices();
-                var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(msg)));
-                foreach (var client in _clients.Values)
-                {
-                    if (client.Status == 1 || client.target != "cfg") continue;
-
-                    await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
-                        .ContinueWith(async (t, state) =>
-                        {
-                            if (t.Exception != null && state is InnerServerClient client)
-                            {
-                                try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
-                                try { client.Socket.Abort(); } catch { }
-                                try { client.Socket.Dispose(); } catch { }
-                                client.Status = 1;//marked as wasted
-                            }
-                        }, client).ConfigureAwait(false);
-                }
-                foreach (var client in _clients.Values)
-                {
-                    if (client.Status == 0 || client.target == string.Empty)
-                        continue;
-                    _clients.TryRemove(client.SessionId, out var removedClient);
-                }
-            }
-            catch (Exception ex)
-            {
-                //_logger.LogWarning($"broadcast server error: {ex.Message}");
-            }
         }
     }
 }

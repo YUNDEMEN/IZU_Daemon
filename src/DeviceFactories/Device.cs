@@ -67,7 +67,7 @@ namespace IZU.DeviceFactories
             {
                 if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
                 {
-                    result = "读取超时";
+                    result = "read timeout in 5 seconds";
                     break;
                 }
 
@@ -86,7 +86,7 @@ namespace IZU.DeviceFactories
                 await _deviceEntity.Server!.WriteBool(address_write, value);
             else
             {
-                _logger.LogWarning("{0}, 地址{1}读取失败，{2}", _deviceEntity.Name, address_condition, result);
+                _logger.LogWarning("{0}, access address {1} failed，{2}", _deviceEntity.Name, address_condition, result);
             }
             return result;
         }
