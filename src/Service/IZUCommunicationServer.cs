@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿#define DEBUG
+
+using AutoMapper;
 using IZU.Base;
 using IZU.DeviceFactories;
 using IZU.Entities;
@@ -51,7 +53,9 @@ namespace IZU.Service
             {
                 while (true)
                 {
-                    //if (_clients.Count != 0)
+#if RELEASE
+                    if (_clients.Count != 0)
+#endif
                     await WsPublishDevicesAsync();
                     await Task.Delay(task_ws_delay);
                 }
@@ -345,7 +349,6 @@ namespace IZU.Service
                         }
                         data2.hid.Add(temp);
                         #endregion
-
 
                         string? name = it.Name;
                         var powerOn = it.Variables.FirstOrDefault(p => p.ActionType == "R00")?.Value;
@@ -660,7 +663,7 @@ namespace IZU.Service
                 return $"unknown device {deviceName}";
             else
             {
-                switch(deviceOperation)
+                switch (deviceOperation)
                 {
                     default:
                     case DeviceOperations.None:
