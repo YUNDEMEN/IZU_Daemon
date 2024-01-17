@@ -43,13 +43,13 @@ namespace IZU.DeviceFactories
             return await WriteBool(address_tup.W08, true);
         }
 
-        public async Task<string> EmergencyStopAsync(bool oper)
+        public async Task<string> EmergencyStopAsync(bool o)
         {
-            string res = await WriteBool(address_tup.W05, oper);
+            string res = await WriteBool(address_tup.W05, o);
             return "";
         }
 
-        public async Task<string> ResetAsync(bool oper)
+        public async Task<string> ResetAsync(bool o)
         {
             return await WriteBool(address_tup.W06, true);
         }
@@ -64,12 +64,12 @@ namespace IZU.DeviceFactories
             return await WriteBool(address_tup.W02, false);
         }
 
-        public Task<string> OpenManualAsync(bool oper)
+        public Task<string> OpenManualAsync(bool o)
         {
             throw new NotImplementedException();
         }
 
-        public Task<string> CloseManualAsync(bool oper)
+        public Task<string> CloseManualAsync(bool o)
         {
             throw new NotImplementedException();
         }

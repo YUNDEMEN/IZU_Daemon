@@ -1,12 +1,15 @@
 ﻿using IZU.Entities;
 using IZU.Interfaces;
+using Newtonsoft.Json.Linq;
+using System.CommandLine.Binding;
 
 namespace IZU.DeviceFactories
 {
     public class HID : Device, IHID
     {
-        public readonly (string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string W01, string W02, string W03, string W04, string W05) address_tup = new();
+        public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string W01, string W02, string W03, string W04, string W05) address_tup = new();
 
+        public string? fireAlarmInfo = string.Empty;
         public HID() { }
         public HID(DeviceEntity deviceEntity) : base(deviceEntity)
         {
@@ -18,67 +21,112 @@ namespace IZU.DeviceFactories
             address_tup.R06 = GetActionType("R06");  //   电柜失电状态信号
             address_tup.R07 = GetActionType("R07");  //   电柜送电状态信号
             address_tup.R08 = GetActionType("R08");  //   PSP故障报警状态
+            address_tup.R00 = GetActionType("R00");  //   PSP上电完成
+            address_tup.R10 = GetActionType("R10");  //   火警信号
             address_tup.R09 = GetActionType("R09");  //   电柜当前温度值
             address_tup.W01 = GetActionType("W01");  //   启动PSP运行
             address_tup.W02 = GetActionType("W02");  //   停止PSP运行
             address_tup.W03 = GetActionType("W03");  //   故障报警复位PSP运行     按住写true，放开写false
             address_tup.W04 = GetActionType("W04");  //   PSP紧急停止             按一下写true，再按一下写false
             address_tup.W05 = GetActionType("W05");  //   火灾报警关闭PSP电源     按住写true，放开写false
+
+#if false
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    await Task.Delay(1000);
+
+                    string? status = await GetBool(address_tup.R10);
+                    if (string.IsNullOrEmpty(status))
+                    {
+                        fireAlarmInfo = $"Read signal {address_tup.R10} null!";
+                        continue;
+                    }
+                    if (status == false.ToString())
+                    {
+                        fireAlarmInfo = string.Empty;
+                        continue;
+                    }
+
+                    DateTime dt = DateTime.Now;
+                    string ret = await WriteBool(address_tup.W05, true);
+                    if (!string.IsNullOrEmpty(ret))
+                    {
+                        fireAlarmInfo = "Failed to power off PSP! Please deal with the fire alarm immediately!";
+                        continue;
+                    }
+                    while (true)
+                    {
+                        string? fireAlarm = await GetBool(address_tup.R10);
+                        if (string.IsNullOrEmpty(fireAlarm))
+                        {
+                            fireAlarmInfo = $"Read signal {address_tup.R10} null!";
+                            continue;
+                        }
+                        if (fireAlarm == false.ToString())
+                        {
+                            fireAlarmInfo = string.Empty;
+                            continue;
+                        }
+                        if (DateTime.Now - dt > TimeSpan.FromSeconds(3))
+                        {
+                            fireAlarmInfo = "Failed to power off PSP! Please deal with the fire alarm immediately!";
+                            break;
+                        }
+                        await Task.Delay(100);
+                    }
+                }
+            });
+#endif
         }
 
         public async Task<string> StartAsync()
         {
+            string? ret = await GetBool(address_tup.R00);
+            if (string.IsNullOrEmpty(ret))
+                return $"Read signal {address_tup.R00} null!";
+            if (ret == false.ToString())
+                return "No power!";
+
+            string? status = await GetBool(address_tup.R08);
+            if (string.IsNullOrEmpty(status))
+                return $"Read signal {address_tup.R08} null!";
+            if (status == true.ToString())
+                return "There is a fault alarm, the start command cannot be executed!";
+
             // 停止运行写false，启动运行写true，双保险
-            string res = await WriteBool(address_tup.W02, false);
+            string ret2 = await WriteBool(address_tup.W02, false);
+            if (!string.IsNullOrEmpty(ret2))
+                return ret2;
+
+            string res = await WriteBool(address_tup.W01, true);
             if (!string.IsNullOrEmpty(res))
                 return res;
-
-            string? status = await GetBool(address_tup.R01);
-            if (status != null && status == "True")
-            {
-                res = await WriteBool(address_tup.W01, true);
-                if (string.IsNullOrEmpty(res))
-                {
-                    res = await ConditionWriteAsync(address_tup.R03, address_tup.W01, false);
-                    return res;
-                }
-                else
-                    return res;
-            }
-            else
-                return "不是待机状态，不能执行启动指令";
+            return await ConditionWriteAsync(address_tup.R03, address_tup.W01, false);
         }
 
         public async Task<string> StopAsync()
         {
             // 启动运行写false，停止运行写true，双保险
-            string res = await WriteBool(address_tup.W01, false);
-            if (!string.IsNullOrEmpty(res))
-                return res;
+            string ret = await WriteBool(address_tup.W01, false);
+            if (!string.IsNullOrEmpty(ret))
+                return ret;
 
-            res = await WriteBool(address_tup.W02, true);
-            if (string.IsNullOrEmpty(res))
-            {
-                res = await ConditionWriteAsync(address_tup.R02, address_tup.W02, false);
-                return res;
-            }
-            else
-                return res;
+            ret = await WriteBool(address_tup.W02, true);
+            if (!string.IsNullOrEmpty(ret))
+                return ret;
+            return await ConditionWriteAsync(address_tup.R02, address_tup.W02, false);
         }
 
-        public async Task<string> ResetAsync(bool oper)
+        public async Task<string> ResetAsync(bool o)
         {
-            return await WriteBool(address_tup.W03, oper);
+            return await WriteBool(address_tup.W03, o);
         }
 
-        public async Task<string> EmergencyStopAsync(bool oper)
+        public async Task<string> EmergencyStopAsync(bool o)
         {
-            return await WriteBool(address_tup.W04, oper);
-        }
-
-        public async Task<string> PowerOffAsync(bool oper)
-        {
-            return await WriteBool(address_tup.W05, oper);
+            return await WriteBool(address_tup.W04, o);
         }
     }
 }

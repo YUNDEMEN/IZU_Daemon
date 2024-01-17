@@ -86,6 +86,39 @@ namespace IZU.Entities
 
     public record BroadcastIzuInfo(string? name, object? online, object? runningStatus, object? fault);
     public record BroadcastHidInfo(string? name, object? online, object? fault);
-    public record BroadcastAutodoorInfo(string? name,object? poweron, object? online, object? status, object? start_sig, object? initial_sig, object? fault, object? mode);
+    public record BroadcastAutodoorInfo(string? name, object? power_on, object? initialized, object? running_status, object? fault, object? emerg_status, object? door_status);
     public record BroadcastFiredoorInfo(string? name, object? online);
+
+    public class BroadcastData2
+    {
+        public List<IzuStatus> izu = new();
+        public List<HidStatus> hid = new();
+        public List<AutodoorStatus> autodoor = new();
+        public List<FiredoorStatus> firedoor = new();
+    }
+    public class IzuStatus
+    {
+        public string name;
+        public object? r01 = null; public object? r02 = null; public object? r03 = null; public object? r04 = null; public object? r05 = null; public object? r06 = null; public object? r07 = null; public object? r08 = null; public object? r09 = null;
+        public object? r10 = null; public object? r11 = null; public object? r12 = null; public object? r13 = null; public object? r14 = null; public object? r15 = null; public object? r16 = null; public object? r17 = null; public object? r18 = null; public object? r19 = null;
+        public object? r20 = null;
+    }
+    public class HidStatus
+    {
+        public string name;
+        public object? r00 = null; public object? r01 = null; public object? r02 = null; public object? r03 = null; public object? r04 = null; public object? r05 = null; public object? r06 = null; public object? r07 = null; public object? r08 = null; public object? r09 = null;
+        public object? r10 = null;
+    }
+    public record AutodoorStatus
+    {
+        public string name;
+        public object? r00 = null; public object? r01 = null; public object? r02 = null; public object? r03 = null; public object? r04 = null; public object? r05 = null; public object? r06 = null; public object? r07 = null; public object? r08 = null; public object? r09 = null;
+        public object? r10 = null; public object? r11 = null; public object? r12 = null; public object? r13 = null;
+    }
+    public record FiredoorStatus
+    {
+        public string name;
+        public object? r00 = null; public object? r01 = null; public object? r02 = null; public object? r03 = null; public object? r04 = null; public object? r05 = null; public object? r06 = null; public object? r07 = null; public object? r08 = null; public object? r09 = null;
+        public object? r10 = null; public object? r11 = null; public object? r12 = null; public object? r13 = null;
+    }
 }

@@ -182,7 +182,7 @@ namespace IZU.Base
                                         _r_heartbeat_address.Count);
 
                                     //Console.SetCursorPosition(0, 30);
-                                    Console.Write(" {0} ", result);
+                                    //Console.Write(" {0} ", result);
                                     _serviceStatus = TaskServiceStatus.Connected;
                                     //_logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                                 }
