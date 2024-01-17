@@ -4,6 +4,7 @@ using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
 using TinyCsvParser;
@@ -30,24 +31,12 @@ namespace IZU.Service
         }
         public async Task StartAsync()
         {
-            var _loggers = IZULogging.Factory.CreateLogger<Device>();
-            //Task.Run(async () => {
-            //    while (true)
-            //    {
-            //        _logger.LogDebug("---------------LogInformation 这是一个八哥---------------");
-            //        _logger.LogInformation("---------------LogInformation---------------");
-            //        _logger.LogWarning("---------------LogWarning---------------");
-            //        _logger.LogError("---------------LogError---------------");
-            //        _logger.LogCritical("---------------LogError---------------");
-            //        NLog.LogManager.GetCurrentClassLogger().Info("nlog info");
-            //        await Task.Delay(2000);
-            //    }
-            //});
+            //var _loggers = IZULogging.Factory.CreateLogger<Device>();
             _logger.LogInformation("---------------IZU service starting---------------");
-
-            await ReadConfigFromDBAsync();
+            IZUConfig.Read();
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
+            await ReadConfigFromDBAsync();
 
             _logger.LogInformation("---------------IZU service started---------------");
         }
@@ -61,7 +50,7 @@ namespace IZU.Service
             {
                 try
                 {
-                    httpClient.Timeout = TimeSpan.FromSeconds(5);
+                    httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     HttpResponseMessage response = await httpClient.GetAsync($"izu/exist?n={IZUConfig.Server}");
@@ -98,14 +87,9 @@ namespace IZU.Service
                             }
                         }
                     }
+
                     if (izu_id > 0)
                     {
-                        /*
-                         由于设备的数量和名称需要以地图标注为主，所以变量表中的设备名称需要与地图保持一致
-                         以下方法是以设备名称为条件，更新每一条设备信息的izu id和网络地址ip。
-                               其中，izu_id 需要手动设置，位于配置中的izu节点name字段
-                                         ip字段为通讯地址（目前是所属izu的地址）
-                        */
                         var devices = S7netService.GetAllDevices();
                         var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
                         foreach (var item in groups)
@@ -114,8 +98,8 @@ namespace IZU.Service
                                      select new
                                      {
                                          name = x.Name,
-                                         ip = x.Server!.IP,
-                                         id = izu_id
+                                         izu_id,
+                                         map_version = IZUConfig.MapVersion
                                      };
                             response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
                             if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
@@ -135,7 +119,6 @@ namespace IZU.Service
                     }
 
                     IZUConfig.ID = izu_id;
-
                     _broadcastServer.Refresh();
                 }
                 catch (HttpRequestException http_ex)
@@ -176,7 +159,7 @@ namespace IZU.Service
                 List<VariableEntity> variables = new List<VariableEntity>();
                 try
                 {
-                    httpClient.Timeout = TimeSpan.FromSeconds(5);
+                    httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     HttpResponseMessage response = await httpClient.GetAsync($"izu/get/device/vars/by?id={IZUConfig.ID}");
@@ -246,15 +229,8 @@ namespace IZU.Service
                             continue;
                         }
                         variables.Add(item.Result);
-                        _logger.LogDebug("device table loaded {0}, variable count {1}", deviceFile, variables.Count);
                     }
-                    //var groups = variables.GroupBy(t => t.DeviceName, t => t);
-                    //foreach (var item in groups)
-                    //{
-                    //    if (string.IsNullOrEmpty(item.Key)) continue;
-                    //    if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory, deviceFile.FullName, item.Key, IZUConfig.RefreshMillionSeconds, item.ToList())))
-                    //        _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, deviceFile);
-                    //}
+                    _logger.LogDebug("device table loaded {0}, variable count {1}", deviceFile, variables.Count);
                 }
                 catch (Exception ex)
                 {

@@ -1,4 +1,6 @@
-﻿namespace IZU.Entities
+﻿using Newtonsoft.Json.Linq;
+
+namespace IZU.Entities
 {
 	public class IZUConfig
 	{
@@ -26,8 +28,41 @@
         /// 默认从数据库中读取变量表
         /// 如果在appsettings.json中配置了 usecsv 节点则使用本地csv文件
         /// </summary>
-        public static string DeviceTableFrom = "db";
+        public static string DeviceTableFrom { get; set; } = "db";
 
 
+        public static string MapVersion { get; set; } = string.Empty;
+
+        public static string Read()
+        {
+            string appsettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+            if (!File.Exists(appsettingsPath))
+            {
+                return $"config file [{appsettingsPath}] missing!";
+            }
+            string json = File.ReadAllText(appsettingsPath);
+            try
+            {
+                JObject configJson = JObject.Parse(json);
+                if (configJson["izu_backend"] == null)
+                {
+                    return "izu_backend node not found!";
+                }
+                if (configJson["map_version"] == null)
+                {
+                    return "map_version node not found!";
+                }
+
+                IZUConfig.BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
+                IZUConfig.DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
+                IZUConfig.MapVersion = configJson!["map_version"]!.ToString();
+
+            }
+            catch (Exception ex)
+            {
+                return ex.Message +"\r\n"+ ex.StackTrace;
+            }
+            return string.Empty;
+        }
     }
 }

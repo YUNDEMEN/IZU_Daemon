@@ -17,7 +17,7 @@ namespace IZU.Service
         }
         public void Start(List<VariableEntity> variables)
         {
-            _cDic.Clear();           
+            _cDic.Clear();
             var groups = variables.GroupBy(t => t.DeviceName, t => t);
             foreach (var item in groups)
             {
