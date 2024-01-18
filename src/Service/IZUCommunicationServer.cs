@@ -49,6 +49,7 @@ namespace IZU.Service
         {
             Task.Factory.StartNew(async () =>
             {
+                _logger.LogDebug($"websocket publish task started, sending on port {IZUConfig.ServerPort}");
                 while (true)
                 {
                     //if (_clients.Count != 0)
@@ -66,10 +67,11 @@ namespace IZU.Service
         {
             _cancelSourceUDP = new CancellationTokenSource();
             _udpClient = new();
-            _udpClient.Connect(IZUConfig.Server, 8131);
+            _udpClient.Connect(IZUConfig.ServerIP, 8131);
 
             task_socket_udp = Task.Factory.StartNew(async () =>
             {
+                _logger.LogDebug("socket UDP client task started, sending on port 8131");
                 while (!_cancelSourceUDP.IsCancellationRequested)
                 {
                     var msg = _s7NetService.GetAllDevices();
@@ -134,9 +136,10 @@ namespace IZU.Service
         void InitialNanoReplyServer()
         {
             replySocket = new ReplySocket();
-            replySocket.Bind($"tcp://{IZUConfig.Server}:8231");
+            replySocket.Bind($"tcp://{IZUConfig.ServerIP}:8231");
             task_nano_server = Task.Factory.StartNew(async () =>
             {
+                _logger.LogDebug("nano repley server task started, listening on port 8231");
                 while (true)
                 {
                     byte[] buffer = replySocket.Receive();
@@ -159,6 +162,7 @@ namespace IZU.Service
             nanoPairSocketServer.Bind($"tcp://{IZUConfig.ServerIP}:18031");
             task_nano_pair_server = Task.Factory.StartNew(async () =>
             {
+                _logger.LogDebug("nano pair server task started, listening on port 18031");
                 while (true)
                 {
                     nanoPairSocketServer.Receive();
@@ -206,12 +210,8 @@ namespace IZU.Service
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
 
-            if (sessionid == oso)
-                _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid, "oso"));
-            else if (sessionid == cfg)
-                _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid, "cfg"));
-            else
-                _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid));
+            _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid));
+            _logger.LogDebug($"websocket client connected, session id {sessionid}");
 
             var buffer = new byte[BufferSize];
             var seg = new ArraySegment<byte>(buffer);
@@ -228,34 +228,8 @@ namespace IZU.Service
             {
             }
             _clients.TryRemove(sessionid, out var removedClient);
+            _logger.LogDebug($"websocket client disconnected, session id {sessionid}");
         }
-
-        /// <summary>
-        /// 向指定的多个客户端id发送消息
-        /// </summary>
-        /// <param name="senderClientId">发送者的客户端id</param>
-        /// <param name="receiveClientId">接收者的客户端id</param>
-        /// <param name="message">消息</param>
-        /// <param name="receipt">是否回执</param>
-        //internal void SendMessage(Guid senderClientId, IEnumerable<Guid> receiveClientId, object message, bool receipt = false)
-        //{
-        //	receiveClientId = receiveClientId.Distinct().ToArray();
-        //	Dictionary<string, DalvsiSendEventArgs> redata = new Dictionary<string, DalvsiSendEventArgs>();
-
-        //	foreach (var uid in receiveClientId)
-        //	{
-        //		string server = SelectServer(uid);
-        //		if (!redata.ContainsKey(server)) 
-        //			redata.Add(server, new DalvsiSendEventArgs(server, senderClientId, message, receipt));
-        //		redata[server].ReceiveClientId.Add(uid);
-        //	}
-        //	var messageJson = JsonConvert.SerializeObject(message);
-        //	foreach (var sendArgs in redata.Values)
-        //	{
-        //		//OnSend?.Invoke(this, sendArgs);
-        //		_redis.Publish($"{_redisPrefix}Server{sendArgs.Server}", JsonConvert.SerializeObject((senderClientId, sendArgs.ReceiveClientId, messageJson, sendArgs.Receipt)));
-        //	}
-        //}
 
         public async Task WsPublishDevicesAsync()
         {
@@ -676,3 +650,30 @@ namespace IZU.Service
         }
     }
 }
+
+/// <summary>
+/// 向指定的多个客户端id发送消息
+/// </summary>
+/// <param name="senderClientId">发送者的客户端id</param>
+/// <param name="receiveClientId">接收者的客户端id</param>
+/// <param name="message">消息</param>
+/// <param name="receipt">是否回执</param>
+//internal void SendMessage(Guid senderClientId, IEnumerable<Guid> receiveClientId, object message, bool receipt = false)
+//{
+//	receiveClientId = receiveClientId.Distinct().ToArray();
+//	Dictionary<string, DalvsiSendEventArgs> redata = new Dictionary<string, DalvsiSendEventArgs>();
+
+//	foreach (var uid in receiveClientId)
+//	{
+//		string server = SelectServer(uid);
+//		if (!redata.ContainsKey(server)) 
+//			redata.Add(server, new DalvsiSendEventArgs(server, senderClientId, message, receipt));
+//		redata[server].ReceiveClientId.Add(uid);
+//	}
+//	var messageJson = JsonConvert.SerializeObject(message);
+//	foreach (var sendArgs in redata.Values)
+//	{
+//		//OnSend?.Invoke(this, sendArgs);
+//		_redis.Publish($"{_redisPrefix}Server{sendArgs.Server}", JsonConvert.SerializeObject((senderClientId, sendArgs.ReceiveClientId, messageJson, sendArgs.Receipt)));
+//	}
+//}
