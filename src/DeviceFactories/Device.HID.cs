@@ -7,7 +7,7 @@ namespace IZU.DeviceFactories
 {
     public class HID : Device, IHID
     {
-        public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string W01, string W02, string W03, string W04, string W05) address_tup = new();
+        public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string W01, string W02, string W03, string W04, string W05) address_tup = new();
 
         public string? fireAlarmInfo = string.Empty;
         public HID() { }
@@ -23,6 +23,7 @@ namespace IZU.DeviceFactories
             address_tup.R08 = GetActionType("R08");  //   PSP故障报警状态
             address_tup.R00 = GetActionType("R00");  //   PSP上电完成
             address_tup.R10 = GetActionType("R10");  //   火警信号
+            address_tup.R11 = GetActionType("R11");  //   紧急停止返回信号
             address_tup.R09 = GetActionType("R09");  //   电柜当前温度值
             address_tup.W01 = GetActionType("W01");  //   启动PSP运行
             address_tup.W02 = GetActionType("W02");  //   停止PSP运行

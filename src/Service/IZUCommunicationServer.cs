@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿//#define RELEASE
+
+using AutoMapper;
 using IZU.Base;
 using IZU.DeviceFactories;
 using IZU.Entities;
@@ -54,7 +56,9 @@ namespace IZU.Service
                 _logger.LogDebug($"websocket publish task started, sending on port {IZUConfig.ServerPort}");
                 while (true)
                 {
-                    //if (_clients.Count != 0)
+#if RELEASE
+                    if (_clients.Count != 0)
+#endif
                     await WsPublishDevicesAsync();
                     await Task.Delay(task_ws_delay);
                 }
@@ -252,12 +256,10 @@ namespace IZU.Service
 
                 // 提取数据
                 BroadcastData data = new();
-                BroadcastData2 data2 = new();
                 foreach (var it in msg)
                 {
                     if (it.DeviceType.Equals(DeviceTypes.IZU))
                     {
-                        #region 第2种
                         var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
                         var temp = new IzuStatus { name = it.Name };
                         foreach (var item in old)
@@ -283,26 +285,75 @@ namespace IZU.Service
                             if (item.ActionType == "R19") temp.r19 = item.Value;
                             if (item.ActionType == "R20") temp.r20 = item.Value;
                         }
-                        data2.izu.Add(temp);
+                        data.izu.Add(temp);
+
+                        #region 调试
+                        var R01 = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value;
+                        var R02 = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
+                        var R03 = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
+                        var R04 = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
+                        var R05 = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
+                        var R06 = it.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
+                        var R07 = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
+                        var R08 = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
+                        var R09 = it.Variables.FirstOrDefault(p => p.ActionType == "R09")?.Value;
+                        var R10 = it.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value;
+                        var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
+                        var R12 = it.Variables.FirstOrDefault(p => p.ActionType == "R12")?.Value;
+                        var R13 = it.Variables.FirstOrDefault(p => p.ActionType == "R13")?.Value;
+                        var R14 = it.Variables.FirstOrDefault(p => p.ActionType == "R14")?.Value;
+                        var R15 = it.Variables.FirstOrDefault(p => p.ActionType == "R15")?.Value;
+                        var R16 = it.Variables.FirstOrDefault(p => p.ActionType == "R16")?.Value;
+                        var R17 = it.Variables.FirstOrDefault(p => p.ActionType == "R17")?.Value;
+                        var R18 = it.Variables.FirstOrDefault(p => p.ActionType == "R18")?.Value;
+                        var R19 = it.Variables.FirstOrDefault(p => p.ActionType == "R19")?.Value;
+                        var R20 = it.Variables.FirstOrDefault(p => p.ActionType == "R20")?.Value;
+                        R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
+                        R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
+                        R03 = R03 == null ? null : ((bool)R03).ToString() == "True" ? "__" : "F";
+                        R04 = R04 == null ? null : ((bool)R04).ToString() == "True" ? "__" : "F";
+                        R05 = R05 == null ? null : ((bool)R05).ToString() == "True" ? "__" : "F";
+                        R06 = R06 == null ? null : ((bool)R06).ToString() == "True" ? "__" : "F";
+                        R07 = R07 == null ? null : ((bool)R07).ToString() == "True" ? "__" : "F";
+                        R08 = R08 == null ? null : ((bool)R08).ToString() == "True" ? "__" : "F";
+                        R09 = R09 == null ? null : ((bool)R09).ToString() == "True" ? "__" : "F";
+                        R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
+                        R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
+                        R12 = R12 == null ? null : ((bool)R12).ToString() == "True" ? "__" : "F";
+                        R13 = R13 == null ? null : ((bool)R13).ToString() == "True" ? "__" : "F";
+                        R14 = R14 == null ? null : ((bool)R14).ToString() == "True" ? "__" : "F";
+                        R15 = R15 == null ? null : ((bool)R15).ToString() == "True" ? "__" : "F";
+                        R16 = R16 == null ? null : ((bool)R16).ToString() == "True" ? "__" : "F";
+                        R17 = R17 == null ? null : ((bool)R17).ToString() == "True" ? "__" : "F";
+                        R18 = R18 == null ? null : ((bool)R18).ToString() == "True" ? "__" : "F";
+                        R19 = R19 == null ? null : ((bool)R19).ToString() == "True" ? "__" : "F";
+                        R20 = R20 == null ? null : ((bool)R20).ToString() == "True" ? "__" : "F";
+                        Console.WriteLine("【  " +
+                          "R01:" + R01 + " " +
+                          "R02:" + R02 + " " +
+                          "R03:" + R03 + " " +
+                          "R04:" + R04 + " " +
+                          "R05:" + R05 + " " +
+                          "R06:" + R06 + " " +
+                          "R07:" + R07 + " " +
+                          "R08:" + R08 + " " +
+                          "R09:" + R09 + " " +
+                          "R10:" + R10 + " " +
+                          "R11:" + R11 + " " +
+                          "R12:" + R12 + " " +
+                          "R13:" + R13 + " " +
+                          "R14:" + R14 + " " +
+                          "R15:" + R15 + " " +
+                          "R16:" + R16 + " " +
+                          "R17:" + R17 + " " +
+                          "R18:" + R18 + " " +
+                          "R19:" + R19 + " " +
+                          "R20:" + R20 + " " +
+                          " 】");
                         #endregion
-
-                        // 名称
-                        string? name = it.Name;
-
-                        // 系统开机状态（1开机；0关机；-1读null）
-                        var online = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value?.ToString()?.ToLower() == true.ToString() ? 1 : 0;
-
-                        // 启动状态（true触发启动；false不触发启动？）
-                        var runningStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-
-                        // 故障状态
-                        var fault = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
-
-                        data.izu.Add(new BroadcastIzuInfo(name, online, runningStatus, fault));
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.HID))
                     {
-                        #region 第2种
                         var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
                         var temp = new HidStatus { name = it.Name };
                         foreach (var item in old)
@@ -318,20 +369,11 @@ namespace IZU.Service
                             if (item.ActionType == "R08") temp.r08 = item.Value;
                             if (item.ActionType == "R09") temp.r09 = item.Value;
                             if (item.ActionType == "R10") temp.r10 = item.Value;
+                            if (item.ActionType == "R11") temp.r11 = item.Value;
                         }
-                        data2.hid.Add(temp);
-                        #endregion
+                        data.hid.Add(temp);
 
-
-                        string? name = it.Name;
-                        var powerOn = it.Variables.FirstOrDefault(p => p.ActionType == "R00")?.Value;
-
-                        // 故障状态
-                        var fault = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-
-                        //data.hid.Add(new BroadcastHidInfo(name, online, fault));
-
-                        // AllData
+                        #region 设备调试
                         var R00 = it.Variables.FirstOrDefault(p => p.ActionType == "R00")?.Value;
                         var R01 = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value;
                         var R02 = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
@@ -342,7 +384,8 @@ namespace IZU.Service
                         var R07 = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
                         var R08 = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
                         var R09 = it.Variables.FirstOrDefault(p => p.ActionType == "R09")?.Value;
-
+                        var R10 = it.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value;
+                        var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
                         R00 = R00 == null ? null : ((bool)R00).ToString() == "True" ? "__" : "F";
                         R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
                         R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
@@ -352,7 +395,8 @@ namespace IZU.Service
                         R06 = R06 == null ? null : ((bool)R06).ToString() == "True" ? "__" : "F";
                         R07 = R07 == null ? null : ((bool)R07).ToString() == "True" ? "__" : "F";
                         R08 = R08 == null ? null : ((bool)R08).ToString() == "True" ? "__" : "F";
-
+                        R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
+                        R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
                         //Console.WriteLine("【  " +
                         //  "R00:" + R00 + " " +
                         //  "R01:" + R01 + " " +
@@ -364,11 +408,13 @@ namespace IZU.Service
                         //  "R07:" + R07 + " " +
                         //  "R08:" + R08 + " " +
                         //  "R09:" + R09 + " " +
+                        //  "R10:" + R10 + " " +
+                        //  "R10:" + R11 + " " +
                         //  " 】");
+                        #endregion
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
                     {
-                        #region 第2种
                         var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
                         var temp = new AutodoorStatus { name = it.Name };
                         foreach (var item in old)
@@ -388,43 +434,31 @@ namespace IZU.Service
                             if (item.ActionType == "R12") temp.r12 = item.Value;
                             if (item.ActionType == "R13") temp.r13 = item.Value;
                         }
-                        data2.autodoor.Add(temp);
-                        #endregion
-
-                        // 名称
-                        string? name = it.Name;
-                        // 上电状态
-                        var powerOn = it.Variables.FirstOrDefault(p => p.ActionType == "R00")?.Value;
-                        // 初始化完成状态
-                        var initialized = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
-                        // 自动运行状态
-                        var runningStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
-                        // 故障状态
-                        var fault = it.Variables.FirstOrDefault(p => p.ActionType == "R09")?.Value;
-                        // 紧急停止返回信号
-                        var emergStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R13")?.Value;
-
-                        // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
+                        // 门状态（0关到位；1正在关；2正在开；3开到位；null其他状态）
                         var opening = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
                         var opened = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
-                        var openStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
+                        var openState = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
                         var closing = it.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
                         var closed = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
-                        var closeStatus = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
-                        object? doorStatus = null;
-                        if (opening == null || opened == null || openStatus == null || closing == null || closed == null || closeStatus == null)
-                        {
-                            doorStatus = null;
-                        }
+                        var closeState = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
+                        if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
+                            temp.doorState = null;
                         else
                         {
-                            if ((bool)closed & (bool)closeStatus) doorStatus = 0;
-                            else if ((bool)closing) doorStatus = 1;
-                            else if ((bool)opening) doorStatus = 2;
-                            else if ((bool)opened & (bool)openStatus) doorStatus = 3;
+                            if ((bool)closing == false && (bool)closed && (bool)closeState && (bool)opening == false && (bool)opened == false && (bool)openState == false)
+                                temp.doorState = 0;
+                            else if ((bool)closing && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened == false && (bool)openState == false)
+                                temp.doorState = 1;
+                            else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening && (bool)opened == false && (bool)openState == false)
+                                temp.doorState = 2;
+                            else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened && (bool)openState)
+                                temp.doorState = 3;
+                            else
+                                temp.doorState = null;
                         }
+                        data.autodoor.Add(temp);
 
-                        // AllData
+                        #region 设备调试
                         var R00 = it.Variables.FirstOrDefault(p => p.ActionType == "R00")?.Value;
                         var R01 = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value;
                         var R02 = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
@@ -439,42 +473,6 @@ namespace IZU.Service
                         var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
                         var R12 = it.Variables.FirstOrDefault(p => p.ActionType == "R12")?.Value;
                         var R13 = it.Variables.FirstOrDefault(p => p.ActionType == "R13")?.Value;
-
-                        //R00（全部）不为空
-                        if (R00 != null)
-                        {
-                            string rr = string.Empty;
-                            if (doorStatus != null)
-                            {
-                                switch ((int)doorStatus)
-                                {
-                                    case 0:
-                                        rr = "关到位";
-                                        break;
-                                    case 1:
-                                        rr = "正在关";
-                                        break;
-                                    case 2:
-                                        rr = "正在开";
-                                        break;
-                                    case 3:
-                                        rr = "开到位";
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                            //Console.WriteLine("【  " +
-                            //  "上电:" + R00 + " " +
-                            //  "初始化状态:" + R11 + " " +
-                            //  "系统自动运行:" + R02 + " " +
-                            //  "故障:" + R09 + " " +
-                            //  "门状态:" + rr + " " +
-                            //  "复位状态:" + R12 + " " +
-                            //  "急停状态:" + R13 + " " +
-                            //  " 】");
-                        }
-
                         R00 = R00 == null ? null : ((bool)R00).ToString() == "True" ? "__" : "F";
                         R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
                         R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
@@ -489,7 +487,6 @@ namespace IZU.Service
                         R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
                         R12 = R12 == null ? null : ((bool)R12).ToString() == "True" ? "__" : "F";
                         R13 = R13 == null ? null : ((bool)R13).ToString() == "True" ? "__" : "F";
-
                         //Console.WriteLine("【  " +
                         //  "R00:" + R00 + " " +
                         //  "R01:" + R01 + " " +
@@ -504,22 +501,42 @@ namespace IZU.Service
                         //  "R10:" + R10 + " " +
                         //  "R11:" + R11 + " " +
                         //  "R12:" + R12 + " " +
-                        //  "R13:" + R13 + " 】");
-
-
-                        //Console.WriteLine("\n------------------------------------------------------");
-                        //Console.WriteLine("【  " + opening + " " + opened + " " + openStatus + " " + closing + " " + closed + " " + closeStatus + " 】");
-                        //Console.WriteLine("------------------------------------------------------\n");
-
-                        //Console.WriteLine("\n------------------------------------------------------");
-                        //Console.WriteLine("【  " + start + " " + initial + " " + fault + " 】");
-                        //Console.WriteLine("------------------------------------------------------\n");
-
-                        data.autodoor.Add(new BroadcastAutodoorInfo(name, powerOn, initialized, runningStatus, fault, emergStatus, doorStatus));
+                        //  "R13:" + R13 + " " +
+                        //  " 】");
+                        string rr = string.Empty;
+                        if (temp.doorState != null)
+                        {
+                            switch ((int)temp.doorState)
+                            {
+                                case 0:
+                                    rr = "关到位";
+                                    break;
+                                case 1:
+                                    rr = "正在关";
+                                    break;
+                                case 2:
+                                    rr = "正在开";
+                                    break;
+                                case 3:
+                                    rr = "开到位";
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        //Console.WriteLine("【  " +
+                        //  "上电:" + R00 + " " +
+                        //  "初始化状态:" + R11 + " " +
+                        //  "系统自动运行:" + R02 + " " +
+                        //  "故障:" + R09 + " " +
+                        //  "门状态:" + rr + " " +
+                        //  "复位状态:" + R12 + " " +
+                        //  "急停状态:" + R13 + " " +
+                        //  " 】");
+                        #endregion
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.FIREDOOR))
                     {
-                        #region 第2种
                         var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
                         var temp = new FiredoorStatus { name = it.Name };
                         foreach (var item in old)
@@ -539,20 +556,10 @@ namespace IZU.Service
                             if (item.ActionType == "R12") temp.r12 = item.Value;
                             if (item.ActionType == "R13") temp.r13 = item.Value;
                         }
-                        data2.firedoor.Add(temp);
-                        #endregion
-
-                        // 名称
-                        string? name = it.Name;
-
-                        // 系统开机状态（1开机；0关机；-1读null）
-                        var online = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value?.ToString()?.ToLower() == true.ToString() ? 1 : 0;
-
-                        data.firedoor.Add(new BroadcastFiredoorInfo(name, online));
+                        data.firedoor.Add(temp);
                     }
                 }
                 var test = JsonConvert.SerializeObject(data);
-                var test2 = JsonConvert.SerializeObject(data2);
 
                 var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(JsonConvert.SerializeObject(data)));
                 foreach (var client in _clients.Values)
@@ -636,7 +643,7 @@ namespace IZU.Service
                 return $"unknown device {deviceName}";
             else
             {
-                switch(deviceOperation)
+                switch (deviceOperation)
                 {
                     default:
                     case DeviceOperations.None:
