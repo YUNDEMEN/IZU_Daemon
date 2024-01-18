@@ -34,12 +34,14 @@ namespace IZU.Service
             _logger = logger;
             _s7NetService = s7netService;
             task_ws_delay = IZUConfig.PublishMillionSeconds;
+        }
+        public void Start()
+        {
             InitialNanoReplyServer();
             InitialNanoPairServer();
             InitialUdpSocket();
             InitialWebsocket();
         }
-
         /// <summary>
         /// WEBSOCKET SERVER
         /// PORT 8031
@@ -67,7 +69,7 @@ namespace IZU.Service
         {
             _cancelSourceUDP = new CancellationTokenSource();
             _udpClient = new();
-            _udpClient.Connect(IZUConfig.ServerIP, 8131);
+            _udpClient.Connect(IZUConfig.OSO_Server_ip, 8131);
 
             task_socket_udp = Task.Factory.StartNew(async () =>
             {

@@ -16,15 +16,15 @@ namespace IZU.Service
         public ServiceRuntime ServiceRuntime { get; }
         private readonly ILogger<IZUService> _logger;
         private readonly Timer _timer;
-        private readonly ICommunication _broadcastServer;
+        private readonly ICommunication _communicationServer;
 
         public IS7NetService S7netService { get; }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IS7NetService s7netService, ICommunication broadcastServer)
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IS7NetService s7netService, ICommunication communicationServer)
         {
             IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;
             S7netService = s7netService;
-            _broadcastServer = broadcastServer;
+            _communicationServer = communicationServer;
             _timer = new Timer(Callback);
             ServiceRuntime = new ServiceRuntime();
             logger.LogInformation("IZU service initialized");
@@ -37,8 +37,8 @@ namespace IZU.Service
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
             await ReadConfigFromDBAsync();
-
             _logger.LogInformation("---------------IZU service started---------------");
+            _communicationServer.Start();
         }
 
         public async Task ReadConfigFromDBAsync()
@@ -70,7 +70,13 @@ namespace IZU.Service
 
                     if (izu_id == 0)
                     {
-                        response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new { name = IZUConfig.Server, ip = IZUConfig.Server }));
+                        response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
+                        {
+                            name = IZUConfig.Server,
+                            ip = IZUConfig.Server,
+                            ws_interval=100,
+                            backend_url=IZUConfig.BackendIZUBaseUrl
+                        }));
                         if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                         {
                             string result = await response.Content.ReadAsStringAsync();
@@ -119,7 +125,7 @@ namespace IZU.Service
                     }
 
                     IZUConfig.ID = izu_id;
-                    _broadcastServer.Refresh();
+                    _communicationServer.Refresh();
                 }
                 catch (HttpRequestException http_ex)
                 {

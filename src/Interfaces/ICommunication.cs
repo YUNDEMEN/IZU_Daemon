@@ -7,7 +7,8 @@ namespace IZU.Interfaces
         /// <summary>
         /// 刷新websocket发布数据频率
         /// </summary>
-        void Refresh();
+        void Refresh(); 
+        void Start();
         Task Acceptor(HttpContext context, Func<Task> next);
     }
 }
