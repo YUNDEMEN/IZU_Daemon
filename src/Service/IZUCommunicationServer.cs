@@ -367,6 +367,7 @@ namespace IZU.Service
                             if (item.ActionType == "R08") temp.r08 = item.Value;
                             if (item.ActionType == "R09") temp.r09 = item.Value;
                             if (item.ActionType == "R10") temp.r10 = item.Value;
+                            if (item.ActionType == "R11") temp.r11 = item.Value;
                         }
                         data.hid.Add(temp);
 
@@ -381,6 +382,8 @@ namespace IZU.Service
                         var R07 = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
                         var R08 = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
                         var R09 = it.Variables.FirstOrDefault(p => p.ActionType == "R09")?.Value;
+                        var R10 = it.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value;
+                        var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
                         R00 = R00 == null ? null : ((bool)R00).ToString() == "True" ? "__" : "F";
                         R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
                         R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
@@ -390,6 +393,8 @@ namespace IZU.Service
                         R06 = R06 == null ? null : ((bool)R06).ToString() == "True" ? "__" : "F";
                         R07 = R07 == null ? null : ((bool)R07).ToString() == "True" ? "__" : "F";
                         R08 = R08 == null ? null : ((bool)R08).ToString() == "True" ? "__" : "F";
+                        R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
+                        R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
                         //Console.WriteLine("【  " +
                         //  "R00:" + R00 + " " +
                         //  "R01:" + R01 + " " +
@@ -401,6 +406,8 @@ namespace IZU.Service
                         //  "R07:" + R07 + " " +
                         //  "R08:" + R08 + " " +
                         //  "R09:" + R09 + " " +
+                        //  "R10:" + R10 + " " +
+                        //  "R10:" + R11 + " " +
                         //  " 】");
                         #endregion
                     }

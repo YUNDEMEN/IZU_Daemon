@@ -94,11 +94,11 @@ namespace IZU.Entities
     {
         public string name;
         public object? r00 = null; public object? r01 = null; public object? r02 = null; public object? r03 = null; public object? r04 = null; public object? r05 = null; public object? r06 = null; public object? r07 = null; public object? r08 = null; public object? r09 = null;
-        public object? r10 = null;
+        public object? r10 = null; public object? r11 = null;
     }
     public record AutodoorStatus
     {
-        public string name;public object? doorState;
+        public string name; public object? doorState;
         public object? r00 = null; public object? r01 = null; public object? r02 = null; public object? r03 = null; public object? r04 = null; public object? r05 = null; public object? r06 = null; public object? r07 = null; public object? r08 = null; public object? r09 = null;
         public object? r10 = null; public object? r11 = null; public object? r12 = null; public object? r13 = null;
     }
