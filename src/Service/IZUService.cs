@@ -61,11 +61,11 @@ namespace IZU.Service
                         var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                         if (resultObject!.ok && resultObject.data!=null)
                         {
-                            JObject izuObj = resultObject.data as JObject;
+                            JObject izuObj = (JObject)resultObject.data;
                             IZUConfig.PublishMillionSeconds = (int)izuObj["wspub_interval"]!;
-                            izu_id = (int)izuObj["id"];
+                            izu_id = (int)izuObj["id"]!;
                             _logger.LogInformation($"get izu info successfully");
-                            if ($"{izuObj["name"]}" != $"{izuObj["ip"]}")
+                            if ($"{izuObj["status"]}" == "disabled")
                                 return;
                         }
                     }
