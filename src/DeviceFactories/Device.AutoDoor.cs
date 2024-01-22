@@ -85,6 +85,10 @@ namespace IZU.DeviceFactories
 
         public async Task<string> OpenAsync()
         {
+            string? state = await GetBool(address_tup.R02);
+            if (string.IsNullOrEmpty(state) || state == false.ToString())
+                return "It is not running automatically now!";
+
             // 防止重复操作
             string? r05 = await GetBool(address_tup.R05);
             string? r07 = await GetBool(address_tup.R07);
@@ -116,6 +120,10 @@ namespace IZU.DeviceFactories
 
         public async Task<string> CloseAsync()
         {
+            string? state = await GetBool(address_tup.R02);
+            if (string.IsNullOrEmpty(state) || state == false.ToString())
+                return "It is not running automatically now!";
+
             // 防止重复操作
             string? r06 = await GetBool(address_tup.R06);
             string? r08 = await GetBool(address_tup.R08);
