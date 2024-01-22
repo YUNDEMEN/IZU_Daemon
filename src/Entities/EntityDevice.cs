@@ -35,7 +35,7 @@ namespace IZU.Entities
         {
             _logger = loggerFactory.CreateLogger<DeviceEntity>();
             FromFile = file;
-            Name = name.ToLower();
+            Name = name.ToUpper();
             if (variables == null) variables = new List<VariableEntity>();
             Variables = variables;
             var item = Variables.FirstOrDefault(t => !string.IsNullOrEmpty(t.ServerIP));

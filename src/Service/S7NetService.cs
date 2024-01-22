@@ -22,7 +22,7 @@ namespace IZU.Service
             foreach (var item in groups)
             {
                 if (string.IsNullOrEmpty(item.Key)) continue;
-                if (!_cDic.TryAdd(item.Key.ToLower(), new DeviceEntity(_loggerFactory, IZUConfig.DeviceTableFrom, item.Key, item.ToList())))
+                if (!_cDic.TryAdd(item.Key.ToUpper(), new DeviceEntity(_loggerFactory, IZUConfig.DeviceTableFrom, item.Key, item.ToList())))
                     _logger.LogWarning("add device failed, device name: {0}   file: {1}", item.Key, IZUConfig.DeviceTableFrom);
             }
         }
@@ -148,13 +148,13 @@ namespace IZU.Service
 
         public DeviceEntity? GetDevice(string deviceName)
         {
-            _ = _cDic.TryGetValue(deviceName.ToLower(), out var device);
+            _ = _cDic.TryGetValue(deviceName.ToUpper(), out var device);
             return device;
         }
 
         public List<VariableEntity> GetDeviceVariables(string deviceName)
         {
-            DeviceEntity? device = GetDevice(deviceName.ToLower());
+            DeviceEntity? device = GetDevice(deviceName.ToUpper());
             if (device == null) return new List<VariableEntity>();
             return device.Variables;
         }
