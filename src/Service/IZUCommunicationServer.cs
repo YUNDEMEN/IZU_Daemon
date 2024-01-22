@@ -269,7 +269,8 @@ namespace IZU.Service
                     }
                     else
                     {
-                        root[it.DeviceType.ToString().ToLower()] = new JArray();
+                        currentArray = new JArray();
+                        root[it.DeviceType.ToString().ToLower()] = currentArray;
                     }
                     currentObject = new();
                     currentObject["name"] = it.Name;
