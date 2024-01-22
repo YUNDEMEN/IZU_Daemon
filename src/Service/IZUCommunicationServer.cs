@@ -89,40 +89,19 @@ namespace IZU.Service
                         {
                             // 名称
                             string? name = it.Name;
+                            object? status = CheckAuodoorStatus(it);
 
-                            // 门状态（0关到位；1正在关；2正在开；3开到位；-1读null或全部是false）
-                            var statusOpeningEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R05");
-                            var statusOpening = statusOpeningEnt?.Value;
-                            var statusOpenedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R07");
-                            var statusOpened = statusOpenedEnt?.Value;
-                            var statusCloseingEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R06");
-                            var statusClosing = statusCloseingEnt?.Value;
-                            var statusClosedEnt = it.Variables.FirstOrDefault(p => p.ActionType == "R08");
-                            var statusClosed = statusClosedEnt?.Value;
-                            object? status = null;
-                            if (statusOpening == null || statusOpened == null || statusClosing == null || statusClosed == null)
-                            {
-                                status = null;
-                            }
-                            else
-                            {
-                                if (statusClosed.ToString().ToLower().Equals(true.ToString())) status = 0;
-                                else if (statusClosing.ToString().ToLower().Equals(true.ToString())) status = 1;
-                                else if (statusOpening.ToString().ToLower().Equals(true.ToString())) status = 2;
-                                else if (statusOpened.ToString().ToLower().Equals(true.ToString())) status = 3;
-                                else status = null;
-                            }
-                            if (DateTime.Now.Second < 20)
-                                status = 0;
-                            else if (DateTime.Now.Second >= 20 && DateTime.Now.Second < 23)
-                                status = 2;
-                            else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
-                                status = 3;
-                            else if (DateTime.Now.Second > 33 && DateTime.Now.Second <= 36)
-                                status = 1;
-                            else if (DateTime.Now.Second > 36)
-                                status = 0;
-                            data.Add($"{name}:{status ?? 0}");
+                            //if (DateTime.Now.Second < 20)
+                            //    status = 0;
+                            //else if (DateTime.Now.Second >= 20 && DateTime.Now.Second < 23)
+                            //    status = 2;
+                            //else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
+                            //    status = 3;
+                            //else if (DateTime.Now.Second > 33 && DateTime.Now.Second <= 36)
+                            //    status = 1;
+                            //else if (DateTime.Now.Second > 36)
+                            //    status = 0;
+                            //data.Add($"{name}:{status ?? 0}");
                         }
 
                     }
@@ -237,6 +216,31 @@ namespace IZU.Service
             _logger.LogDebug($"websocket client disconnected, session id {sessionid}");
         }
 
+        object? CheckAuodoorStatus(DeviceEntity deviceEntity)
+        {
+            var opening = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
+            var opened = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
+            var openState = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
+            var closing = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
+            var closed = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
+            var closeState = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
+            if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
+                return  null;
+            else
+            {
+                if ((bool)closing == false && (bool)closed && (bool)closeState && (bool)opening == false && (bool)opened == false && (bool)openState == false)
+                    return 0;
+                else if ((bool)closing && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened == false && (bool)openState == false)
+                    return 1;
+                else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening && (bool)opened == false && (bool)openState == false)
+                    return 2;
+                else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened && (bool)openState)
+                    return 3;
+                else
+                    return null;
+            }
+        }
+
         public async Task WsPublishDevicesAsync()
         {
             try
@@ -287,6 +291,7 @@ namespace IZU.Service
                         }
                         data.izu.Add(temp);
 
+#if DEBUG
                         #region 调试
                         var R01 = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value;
                         var R02 = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
@@ -351,6 +356,7 @@ namespace IZU.Service
                           "R20:" + R20 + " " +
                           " 】");
                         #endregion
+#endif
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.HID))
                     {
@@ -434,28 +440,8 @@ namespace IZU.Service
                             if (item.ActionType == "R12") temp.r12 = item.Value;
                             if (item.ActionType == "R13") temp.r13 = item.Value;
                         }
-                        // 门状态（0关到位；1正在关；2正在开；3开到位；null其他状态）
-                        var opening = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
-                        var opened = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
-                        var openState = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-                        var closing = it.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
-                        var closed = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
-                        var closeState = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
-                        if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
-                            temp.doorState = null;
-                        else
-                        {
-                            if ((bool)closing == false && (bool)closed && (bool)closeState && (bool)opening == false && (bool)opened == false && (bool)openState == false)
-                                temp.doorState = 0;
-                            else if ((bool)closing && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened == false && (bool)openState == false)
-                                temp.doorState = 1;
-                            else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening && (bool)opened == false && (bool)openState == false)
-                                temp.doorState = 2;
-                            else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened && (bool)openState)
-                                temp.doorState = 3;
-                            else
-                                temp.doorState = null;
-                        }
+                        // 门状态（0关到位；1正在关；2正在开；3开到位；null其他状态）                       
+                        temp.doorState = CheckAuodoorStatus(it);
                         data.autodoor.Add(temp);
 
                         #region 设备调试

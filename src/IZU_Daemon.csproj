@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <RootNamespace>$(MSBuildProjectName.Replace("_Daemon", ""))</RootNamespace>
     <AssemblyName>$(MSBuildProjectName.Replace("_Daemon", "-Service"))</AssemblyName>
   </PropertyGroup>
