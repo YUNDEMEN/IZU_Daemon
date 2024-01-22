@@ -86,8 +86,25 @@ namespace IZU.Entities
     public class IzuStatus
     {
         public string name;
-        public object? r01 = null; public object? r02 = null; public object? r03 = null; public object? r04 = null; public object? r05 = null; public object? r06 = null; public object? r07 = null; public object? r08 = null; public object? r09 = null;
-        public object? r10 = null; public object? r11 = null; public object? r12 = null; public object? r13 = null; public object? r14 = null; public object? r15 = null; public object? r16 = null; public object? r17 = null; public object? r18 = null; public object? r19 = null;
+        public object? r01 = null; 
+        public object? r02 = null; 
+        public object? r03 = null; 
+        public object? r04 = null; 
+        public object? r05 = null; 
+        public object? r06 = null; 
+        public object? r07 = null; 
+        public object? r08 = null; 
+        public object? r09 = null;
+        public object? r10 = null;
+        public object? r11 = null; 
+        public object? r12 = null; 
+        public object? r13 = null; 
+        public object? r14 = null; 
+        public object? r15 = null; 
+        public object? r16 = null;
+        public object? r17 = null; 
+        public object? r18 = null; 
+        public object? r19 = null;
         public object? r20 = null;
     }
     public class HidStatus

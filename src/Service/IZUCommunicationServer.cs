@@ -7,6 +7,7 @@ using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.AspNetCore.Hosting.Server;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NNanomsg.Protocols;
 using System;
 using System.Collections.Concurrent;
@@ -257,313 +258,30 @@ namespace IZU.Service
                 //	return;
                 //}
                 var msg = _s7NetService.GetAllDevices();
-
-                // 提取数据
-                BroadcastData data = new();
+                JObject root = new();
+                JArray currentArray = new();
+                JObject currentObject = new();
                 foreach (var it in msg)
                 {
-                    if (it.DeviceType.Equals(DeviceTypes.IZU))
+                    if (root.ContainsKey(it.DeviceType.ToString().ToLower()))
                     {
-                        var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
-                        var temp = new IzuStatus { name = it.Name };
-                        foreach (var item in old)
-                        {
-                            if (item.ActionType == "R01") temp.r01 = item.Value;
-                            if (item.ActionType == "R02") temp.r02 = item.Value;
-                            if (item.ActionType == "R03") temp.r03 = item.Value;
-                            if (item.ActionType == "R04") temp.r04 = item.Value;
-                            if (item.ActionType == "R05") temp.r05 = item.Value;
-                            if (item.ActionType == "R06") temp.r06 = item.Value;
-                            if (item.ActionType == "R07") temp.r07 = item.Value;
-                            if (item.ActionType == "R08") temp.r08 = item.Value;
-                            if (item.ActionType == "R09") temp.r09 = item.Value;
-                            if (item.ActionType == "R10") temp.r10 = item.Value;
-                            if (item.ActionType == "R11") temp.r11 = item.Value;
-                            if (item.ActionType == "R12") temp.r12 = item.Value;
-                            if (item.ActionType == "R13") temp.r13 = item.Value;
-                            if (item.ActionType == "R14") temp.r14 = item.Value;
-                            if (item.ActionType == "R15") temp.r15 = item.Value;
-                            if (item.ActionType == "R16") temp.r16 = item.Value;
-                            if (item.ActionType == "R17") temp.r17 = item.Value;
-                            if (item.ActionType == "R18") temp.r18 = item.Value;
-                            if (item.ActionType == "R19") temp.r19 = item.Value;
-                            if (item.ActionType == "R20") temp.r20 = item.Value;
-                        }
-                        data.izu.Add(temp);
-
-#if DEBUG
-                        #region 调试
-                        var R01 = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value;
-                        var R02 = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
-                        var R03 = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
-                        var R04 = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-                        var R05 = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
-                        var R06 = it.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
-                        var R07 = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
-                        var R08 = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
-                        var R09 = it.Variables.FirstOrDefault(p => p.ActionType == "R09")?.Value;
-                        var R10 = it.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value;
-                        var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
-                        var R12 = it.Variables.FirstOrDefault(p => p.ActionType == "R12")?.Value;
-                        var R13 = it.Variables.FirstOrDefault(p => p.ActionType == "R13")?.Value;
-                        var R14 = it.Variables.FirstOrDefault(p => p.ActionType == "R14")?.Value;
-                        var R15 = it.Variables.FirstOrDefault(p => p.ActionType == "R15")?.Value;
-                        var R16 = it.Variables.FirstOrDefault(p => p.ActionType == "R16")?.Value;
-                        var R17 = it.Variables.FirstOrDefault(p => p.ActionType == "R17")?.Value;
-                        var R18 = it.Variables.FirstOrDefault(p => p.ActionType == "R18")?.Value;
-                        var R19 = it.Variables.FirstOrDefault(p => p.ActionType == "R19")?.Value;
-                        var R20 = it.Variables.FirstOrDefault(p => p.ActionType == "R20")?.Value;
-                        R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
-                        R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
-                        R03 = R03 == null ? null : ((bool)R03).ToString() == "True" ? "__" : "F";
-                        R04 = R04 == null ? null : ((bool)R04).ToString() == "True" ? "__" : "F";
-                        R05 = R05 == null ? null : ((bool)R05).ToString() == "True" ? "__" : "F";
-                        R06 = R06 == null ? null : ((bool)R06).ToString() == "True" ? "__" : "F";
-                        R07 = R07 == null ? null : ((bool)R07).ToString() == "True" ? "__" : "F";
-                        R08 = R08 == null ? null : ((bool)R08).ToString() == "True" ? "__" : "F";
-                        R09 = R09 == null ? null : ((bool)R09).ToString() == "True" ? "__" : "F";
-                        R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
-                        R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
-                        R12 = R12 == null ? null : ((bool)R12).ToString() == "True" ? "__" : "F";
-                        R13 = R13 == null ? null : ((bool)R13).ToString() == "True" ? "__" : "F";
-                        R14 = R14 == null ? null : ((bool)R14).ToString() == "True" ? "__" : "F";
-                        R15 = R15 == null ? null : ((bool)R15).ToString() == "True" ? "__" : "F";
-                        R16 = R16 == null ? null : ((bool)R16).ToString() == "True" ? "__" : "F";
-                        R17 = R17 == null ? null : ((bool)R17).ToString() == "True" ? "__" : "F";
-                        R18 = R18 == null ? null : ((bool)R18).ToString() == "True" ? "__" : "F";
-                        R19 = R19 == null ? null : ((bool)R19).ToString() == "True" ? "__" : "F";
-                        R20 = R20 == null ? null : ((bool)R20).ToString() == "True" ? "__" : "F";
-                        //Console.WriteLine("【  " +
-                        //  "R01:" + R01 + " " +
-                        //  "R02:" + R02 + " " +
-                        //  "R03:" + R03 + " " +
-                        //  "R04:" + R04 + " " +
-                        //  "R05:" + R05 + " " +
-                        //  "R06:" + R06 + " " +
-                        //  "R07:" + R07 + " " +
-                        //  "R08:" + R08 + " " +
-                        //  "R09:" + R09 + " " +
-                        //  "R10:" + R10 + " " +
-                        //  "R11:" + R11 + " " +
-                        //  "R12:" + R12 + " " +
-                        //  "R13:" + R13 + " " +
-                        //  "R14:" + R14 + " " +
-                        //  "R15:" + R15 + " " +
-                        //  "R16:" + R16 + " " +
-                        //  "R17:" + R17 + " " +
-                        //  "R18:" + R18 + " " +
-                        //  "R19:" + R19 + " " +
-                        //  "R20:" + R20 + " " +
-                        //  " 】");
-                        #endregion
-#endif
+                        currentArray = (JArray)root[it.DeviceType.ToString().ToLower()]!;
                     }
-                    else if (it.DeviceType.Equals(DeviceTypes.HID))
+                    else
                     {
-                        var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
-                        var temp = new HidStatus { name = it.Name };
-                        foreach (var item in old)
-                        {
-                            if (item.ActionType == "R00") temp.r00 = item.Value;
-                            if (item.ActionType == "R01") temp.r01 = item.Value;
-                            if (item.ActionType == "R02") temp.r02 = item.Value;
-                            if (item.ActionType == "R03") temp.r03 = item.Value;
-                            if (item.ActionType == "R04") temp.r04 = item.Value;
-                            if (item.ActionType == "R05") temp.r05 = item.Value;
-                            if (item.ActionType == "R06") temp.r06 = item.Value;
-                            if (item.ActionType == "R07") temp.r07 = item.Value;
-                            if (item.ActionType == "R08") temp.r08 = item.Value;
-                            if (item.ActionType == "R09") temp.r09 = item.Value;
-                            if (item.ActionType == "R10") temp.r10 = item.Value;
-                            if (item.ActionType == "R11") temp.r11 = item.Value;
-                        }
-                        data.hid.Add(temp);
-
-                        #region 设备调试
-                        var R00 = it.Variables.FirstOrDefault(p => p.ActionType == "R00")?.Value;
-                        var R01 = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value;
-                        var R02 = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
-                        var R03 = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
-                        var R04 = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-                        var R05 = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
-                        var R06 = it.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
-                        var R07 = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
-                        var R08 = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
-                        var R09 = it.Variables.FirstOrDefault(p => p.ActionType == "R09")?.Value;
-                        var R10 = it.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value;
-                        var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
-                        R00 = R00 == null ? null : ((bool)R00).ToString() == "True" ? "__" : "F";
-                        R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
-                        R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
-                        R03 = R03 == null ? null : ((bool)R03).ToString() == "True" ? "__" : "F";
-                        R04 = R04 == null ? null : ((bool)R04).ToString() == "True" ? "__" : "F";
-                        R05 = R05 == null ? null : ((bool)R05).ToString() == "True" ? "__" : "F";
-                        R06 = R06 == null ? null : ((bool)R06).ToString() == "True" ? "__" : "F";
-                        R07 = R07 == null ? null : ((bool)R07).ToString() == "True" ? "__" : "F";
-                        R08 = R08 == null ? null : ((bool)R08).ToString() == "True" ? "__" : "F";
-                        R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
-                        R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
-                        //Console.WriteLine("【  " +
-                        //  "R00:" + R00 + " " +
-                        //  "R01:" + R01 + " " +
-                        //  "R02:" + R02 + " " +
-                        //  "R03:" + R03 + " " +
-                        //  "R04:" + R04 + " " +
-                        //  "R05:" + R05 + " " +
-                        //  "R06:" + R06 + " " +
-                        //  "R07:" + R07 + " " +
-                        //  "R08:" + R08 + " " +
-                        //  "R09:" + R09 + " " +
-                        //  "R10:" + R10 + " " +
-                        //  "R10:" + R11 + " " +
-                        //  " 】");
-                        #endregion
+                        root[it.DeviceType.ToString().ToLower()] = new JArray();
                     }
-                    else if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
+                    currentObject = new();
+                    currentObject["name"] = it.Name;
+                    var list = from x in it.Variables where x.ActionType.StartsWith('R') select new { k = x.ActionType.ToLower(), v = x.Value };
+                    foreach (var item in list)
                     {
-                        var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
-                        var temp = new AutodoorStatus { name = it.Name };
-                        foreach (var item in old)
-                        {
-                            if (item.ActionType == "R00") temp.r00 = item.Value;
-                            if (item.ActionType == "R01") temp.r01 = item.Value;
-                            if (item.ActionType == "R02") temp.r02 = item.Value;
-                            if (item.ActionType == "R03") temp.r03 = item.Value;
-                            if (item.ActionType == "R04") temp.r04 = item.Value;
-                            if (item.ActionType == "R05") temp.r05 = item.Value;
-                            if (item.ActionType == "R06") temp.r06 = item.Value;
-                            if (item.ActionType == "R07") temp.r07 = item.Value;
-                            if (item.ActionType == "R08") temp.r08 = item.Value;
-                            if (item.ActionType == "R09") temp.r09 = item.Value;
-                            if (item.ActionType == "R10") temp.r10 = item.Value;
-                            if (item.ActionType == "R11") temp.r11 = item.Value;
-                            if (item.ActionType == "R12") temp.r12 = item.Value;
-                            if (item.ActionType == "R13") temp.r13 = item.Value;
-                        }
-                        // 门状态（0关到位；1正在关；2正在开；3开到位；null其他状态）                       
-                        temp.doorState = CheckAuodoorStatus(it);
-                        data.autodoor.Add(temp);
-
-                        #region 设备调试
-                        var R00 = it.Variables.FirstOrDefault(p => p.ActionType == "R00")?.Value;
-                        var R01 = it.Variables.FirstOrDefault(p => p.ActionType == "R01")?.Value;
-                        var R02 = it.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value;
-                        var R03 = it.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
-                        var R04 = it.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-                        var R05 = it.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
-                        var R06 = it.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
-                        var R07 = it.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
-                        var R08 = it.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
-                        var R09 = it.Variables.FirstOrDefault(p => p.ActionType == "R09")?.Value;
-                        var R10 = it.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value;
-                        var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
-                        var R12 = it.Variables.FirstOrDefault(p => p.ActionType == "R12")?.Value;
-                        var R13 = it.Variables.FirstOrDefault(p => p.ActionType == "R13")?.Value;
-                        R00 = R00 == null ? null : ((bool)R00).ToString() == "True" ? "__" : "F";
-                        R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
-                        R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
-                        R03 = R03 == null ? null : ((bool)R03).ToString() == "True" ? "__" : "F";
-                        R04 = R04 == null ? null : ((bool)R04).ToString() == "True" ? "__" : "F";
-                        R05 = R05 == null ? null : ((bool)R05).ToString() == "True" ? "__" : "F";
-                        R06 = R06 == null ? null : ((bool)R06).ToString() == "True" ? "__" : "F";
-                        R07 = R07 == null ? null : ((bool)R07).ToString() == "True" ? "__" : "F";
-                        R08 = R08 == null ? null : ((bool)R08).ToString() == "True" ? "__" : "F";
-                        R09 = R09 == null ? null : ((bool)R09).ToString() == "True" ? "__" : "F";
-                        R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
-                        R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
-                        R12 = R12 == null ? null : ((bool)R12).ToString() == "True" ? "__" : "F";
-                        R13 = R13 == null ? null : ((bool)R13).ToString() == "True" ? "__" : "F";
-                        //Console.WriteLine("【  " +
-                        //  "R00:" + R00 + " " +
-                        //  "R01:" + R01 + " " +
-                        //  "R02:" + R02 + " " +
-                        //  "[R03:" + R03 + " " +
-                        //  "R04:" + R04 + " " +
-                        //  "R05:" + R05 + " " +
-                        //  "R06:" + R06 + " " +
-                        //  "R07:" + R07 + " " +
-                        //  "R08:" + R08 + " " +
-                        //  "]R09:" + R09 + " " +
-                        //  "R10:" + R10 + " " +
-                        //  "R11:" + R11 + " " +
-                        //  "R12:" + R12 + " " +
-                        //  "R13:" + R13 + " " +
-                        //  " 】");
-                        //Console.WriteLine("【  " +
-                        //"R00:" + R00 + " " +
-                        //"待机:" + R01 + " " +
-                        //"自动运行:" + R02 + " " +
-                        //"[R03关:" + R03 + " " +
-                        //"R04开:" + R04 + " " +
-                        //"R05K:" + R05 + " " +
-                        //"R06G:" + R06 + " " +
-                        //"R07开:" + R07 + " " +
-                        //"R08关:" + R08 + " " +
-                        //"]故障:" + R09 + " " +
-                        //"原点中:" + R10 + " " +
-                        //"原点完成:" + R11 + " " +
-                        //"复位返回:" + R12 + " " +
-                        //"急停返回:" + R13 + " " +
-                        //" 】");
-                        string rr = string.Empty;
-                        if (temp.doorState != null)
-                        {
-                            switch ((int)temp.doorState)
-                            {
-                                case 0:
-                                    rr = "关到位";
-                                    break;
-                                case 1:
-                                    rr = "正在关";
-                                    break;
-                                case 2:
-                                    rr = "正在开";
-                                    break;
-                                case 3:
-                                    rr = "开到位";
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        //Console.WriteLine("【  " +
-                        //  "上电:" + R00 + " " +
-                        //  "初始化状态:" + R11 + " " +
-                        //  "系统自动运行:" + R02 + " " +
-                        //  "故障:" + R09 + " " +
-                        //  "门状态:" + rr + " " +
-                        //  "复位状态:" + R12 + " " +
-                        //  "急停状态:" + R13 + " " +
-                        //  " 】");
-                        #endregion
+                        currentObject[item.k] = new JValue(item.v);
                     }
-                    else if (it.DeviceType.Equals(DeviceTypes.FIREDOOR))
-                    {
-                        var old = it.Variables.Where(p => p.ActionType.StartsWith("R"));
-                        var temp = new FiredoorStatus { name = it.Name };
-                        foreach (var item in old)
-                        {
-                            if (item.ActionType == "R00") temp.r00 = item.Value;
-                            if (item.ActionType == "R01") temp.r01 = item.Value;
-                            if (item.ActionType == "R02") temp.r02 = item.Value;
-                            if (item.ActionType == "R03") temp.r03 = item.Value;
-                            if (item.ActionType == "R04") temp.r04 = item.Value;
-                            if (item.ActionType == "R05") temp.r05 = item.Value;
-                            if (item.ActionType == "R06") temp.r06 = item.Value;
-                            if (item.ActionType == "R07") temp.r07 = item.Value;
-                            if (item.ActionType == "R08") temp.r08 = item.Value;
-                            if (item.ActionType == "R09") temp.r09 = item.Value;
-                            if (item.ActionType == "R10") temp.r10 = item.Value;
-                            if (item.ActionType == "R11") temp.r11 = item.Value;
-                            if (item.ActionType == "R12") temp.r12 = item.Value;
-                            if (item.ActionType == "R13") temp.r13 = item.Value;
-                        }
-                        data.firedoor.Add(temp);
-                    }
+                    currentArray.Add(currentObject);
                 }
-                var test = JsonConvert.SerializeObject(data);
 
-                var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(JsonConvert.SerializeObject(data)));
+                var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(root.ToString(Formatting.None)));
                 foreach (var client in _clients.Values)
                 {
                     if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
@@ -589,7 +307,7 @@ namespace IZU.Service
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"broadcast server error: {ex.Message}");
+                _logger.LogWarning($"websocket server publish error: {ex.Message}");
             }
         }
 
