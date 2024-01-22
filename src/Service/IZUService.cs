@@ -65,6 +65,8 @@ namespace IZU.Service
                             IZUConfig.PublishMillionSeconds = (int)izuObj["wspub_interval"]!;
                             izu_id = (int)izuObj["id"];
                             _logger.LogInformation($"get izu info successfully");
+                            if ($"{izuObj["name"]}" != $"{izuObj["ip"]}")
+                                return;
                         }
                     }
 
