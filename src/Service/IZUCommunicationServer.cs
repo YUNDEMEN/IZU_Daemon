@@ -24,7 +24,7 @@ namespace IZU.Service
         private const int BufferSize = 4096;
         private int task_ws_delay = 1000;
         private IS7NetService _s7NetService { get; }
-        private UDPSocket _udpClient;
+        private UDPSocket _udpServer;
         private ReplySocket replySocket;
         private PairSocket nanoPairSocketServer;
         private Task task_nano_pair_server;
@@ -73,8 +73,8 @@ namespace IZU.Service
         void InitialUdpSocket()
         {
             _cancelSourceUDP = new CancellationTokenSource();
-            _udpClient = new();
-            _udpClient.Connect(IZUConfig.OSO_Server_ip, 8131);
+            _udpServer = new();
+            _udpServer.Run(IZUConfig.OSO_Server_ip, 8131);
 
             task_socket_udp = Task.Factory.StartNew(async () =>
             {
@@ -109,7 +109,7 @@ namespace IZU.Service
                     // 消息格式： izu::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
                     string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
 
-                    _udpClient.Send(data_format);
+                    _udpServer.Send(data_format);
                     await Task.Delay(50);
                 }
             }, _cancelSourceUDP.Token);
