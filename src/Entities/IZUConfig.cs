@@ -2,16 +2,16 @@
 
 namespace IZU.Entities
 {
-	public class IZUConfig
-	{
-		/// <summary>
-		/// appsettings.json 配置节名称
-		/// </summary>
-		public const string KEY = "IZU";
-		/// <summary>
-		/// NLog 配置文件
-		/// </summary>
-		public const string NlogConfig = "nlog.config";
+    public class IZUConfig
+    {
+        /// <summary>
+        /// appsettings.json 配置节名称
+        /// </summary>
+        public const string KEY = "IZU";
+        /// <summary>
+        /// NLog 配置文件
+        /// </summary>
+        public const string NlogConfig = "nlog.config";
         public static int ID { get; set; } = 0;
         /// <summary>
         /// 服务的本地IP地址
@@ -33,6 +33,8 @@ namespace IZU.Entities
 
         public static string MapVersion { get; set; } = string.Empty;
 
+        public static string MulticastIP { get; set; } = string.Empty;
+
         public static string Read()
         {
             string appsettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
@@ -52,15 +54,18 @@ namespace IZU.Entities
                 {
                     return "map_version node not found!";
                 }
-
-                IZUConfig.BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
-                IZUConfig.DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
-                IZUConfig.MapVersion = configJson!["map_version"]!.ToString();
-
+                if (configJson["multicast_ip"] == null)
+                {
+                    return "multicast_ip node not found!";
+                }
+                MulticastIP = configJson["multicast_ip"]!.ToString();
+                BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
+                DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
+                MapVersion = configJson!["map_version"]!.ToString();
             }
             catch (Exception ex)
             {
-                return ex.Message +"\r\n"+ ex.StackTrace;
+                return ex.Message + "\r\n" + ex.StackTrace;
             }
             return string.Empty;
         }

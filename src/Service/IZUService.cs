@@ -31,6 +31,15 @@ namespace IZU.Service
         }
         public async Task StartAsync()
         {
+            Task.Factory.StartNew(() => {
+                int i = 0;
+                while (true)
+                {
+                    bool rec = i % 2 == 0;
+                    _logger.LogInformation($"{(rec?"connected":"disconnected")}");
+                    i++;
+                }
+            });
             //var _loggers = IZULogging.Factory.CreateLogger<Device>();
             _logger.LogInformation("---------------IZU service starting---------------");
             IZUConfig.Read();

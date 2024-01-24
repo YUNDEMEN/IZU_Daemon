@@ -25,15 +25,15 @@ namespace IZU.Service
         private const int BufferSize = 4096;
         private int task_ws_delay = 1000;
         private IS7NetService _s7NetService { get; }
-        private UDPSocket _udpServer;
+        private WonderMulticast _multicastServer;
         private ReplySocket replySocket;
         private PairSocket nanoPairSocketServer;
         private Task task_nano_pair_server;
         private Task task_socket_udp;
-        private CancellationTokenSource _cancelSourceUDP;
+        private CancellationTokenSource _cancelSourceMulticast;
         private Task task_nano_server;
         readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUCommunicationServer(IServer server, ILogger<IZUCommunicationServer> logger, IS7NetService s7netService)
+        public IZUCommunicationServer(ILogger<IZUCommunicationServer> logger, IS7NetService s7netService)
         {
             _logger = logger;
             _s7NetService = s7netService;
@@ -43,7 +43,7 @@ namespace IZU.Service
         {
             InitialNanoReplyServer();
             InitialNanoPairServer();
-            InitialUdpSocket();
+            InitialMulticastClient();
             InitialWebsocket();
         }
         /// <summary>
@@ -71,21 +71,21 @@ namespace IZU.Service
         /// PORT 8131
         /// REMOTE CLIENT
         /// </summary>
-        void InitialUdpSocket()
+        void InitialMulticastClient()
         {
             int? f_oldState = 0;
             int? curr_state = 0;
             long open_time = 0;
             long opened_time = 0;
             string operation = string.Empty;
-            _cancelSourceUDP = new CancellationTokenSource();
-            _udpServer = new();
-            _udpServer.Run(8131);
+            _cancelSourceMulticast = new CancellationTokenSource();
+            _multicastServer = new WonderMulticast(IZUConfig.MulticastIP);
+            _multicastServer.RunAsClient(8131);
 
             task_socket_udp = Task.Factory.StartNew(async () =>
             {
                 _logger.LogDebug("socket UDP client task started, sending on port 8131");
-                while (!_cancelSourceUDP.IsCancellationRequested)
+                while (!_cancelSourceMulticast.IsCancellationRequested)
                 {
                     var msg = _s7NetService.GetAllDevices();
                     // 提取数据
@@ -105,19 +105,18 @@ namespace IZU.Service
                             switch (operation)
                             {
                                 case "0->2":
-                                    open_time = TimestampService.Pinning();
+                                    open_time = TimestampService.Pinning("open");
                                     Console.WriteLine("{0} 开门中({1})", it.Name, operation);
                                     break;
                                 case "2->3":
-                                    Console.WriteLine("{0} 开到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference());
+                                    Console.WriteLine("{0} 开到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference("open"));
                                     break;
                                 case "3->1":
-                                    TimestampService.Pinning();
+                                    TimestampService.Pinning("close");
                                     Console.WriteLine("{0} 关门中({1})", it.Name, operation);
                                     break;
                                 case "1->0":
-                                    Console.WriteLine("{0} 关到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference());
-                                    open_time = 0;
+                                    Console.WriteLine("{0} 关到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference("close"));
                                     break;
                             }
 
@@ -138,10 +137,10 @@ namespace IZU.Service
                     // 消息格式： izu::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
                     string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
 
-                    await _udpServer.SendToAsync(data_format);
+                    await _multicastServer.SendToAsync(data_format);
                     await Task.Delay(50);
                 }
-            }, _cancelSourceUDP.Token);
+            }, _cancelSourceMulticast.Token);
         }
         /// <summary>
         /// NANO REPLY SERVER
@@ -271,6 +270,9 @@ namespace IZU.Service
             }
         }
 
+        JObject root = new();
+        JArray currentArray = new();
+        JObject currentObject = new();
         public async Task WsPublishDevicesAsync()
         {
             try
@@ -287,9 +289,6 @@ namespace IZU.Service
                 //	return;
                 //}
                 var msg = _s7NetService.GetAllDevices();
-                JObject root = new();
-                JArray currentArray = new();
-                JObject currentObject = new();
                 foreach (var it in msg)
                 {
                     if (root.ContainsKey(it.DeviceType.ToString().ToLower()))
