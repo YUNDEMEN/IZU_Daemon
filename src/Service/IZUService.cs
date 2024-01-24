@@ -1,10 +1,7 @@
 ﻿using IZU.Base;
-using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json.Nodes;
 using TinyCsvParser;

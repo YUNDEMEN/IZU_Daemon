@@ -5,10 +5,6 @@ namespace IZU.Entities
     public class IZUConfig
     {
         /// <summary>
-        /// appsettings.json 配置节名称
-        /// </summary>
-        public const string KEY = "IZU";
-        /// <summary>
         /// NLog 配置文件
         /// </summary>
         public const string NlogConfig = "nlog.config";

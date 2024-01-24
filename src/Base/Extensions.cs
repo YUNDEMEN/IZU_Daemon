@@ -7,9 +7,8 @@ namespace IZU.Base
 {
     public static class Extensions
     {
-        public static IServiceCollection AddIZU(this IServiceCollection service,IConfiguration config)
+        public static IServiceCollection AddIZU(this IServiceCollection service)
         {
-            service.Configure<IZUConfig>(config);
             service.AddSingleton<IIZUService, IZUService>();
             service.AddSingleton<IS7NetService, S7NetService>();
             service.AddSingleton<ICommunication, IZUCommunicationServer>();

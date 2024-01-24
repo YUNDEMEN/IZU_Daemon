@@ -1,9 +1,6 @@
 using IZU.Base;
-using IZU.DeviceFactories;
 using IZU.Entities;
-using IZU.Interfaces;
 using IZU.Service;
-using Newtonsoft.Json.Linq;
 using NLog.Extensions.Logging;
 using System.Text;
 
@@ -106,7 +103,7 @@ builder.Services.AddCors(options =>
 });
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Services.AddTelnetService();
-builder.Services.AddIZU(builder.Configuration.GetSection(IZUConfig.KEY));
+builder.Services.AddIZU();
 
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()
