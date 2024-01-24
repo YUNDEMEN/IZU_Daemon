@@ -13,6 +13,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace IZU.Service
 {
@@ -72,9 +73,14 @@ namespace IZU.Service
         /// </summary>
         void InitialUdpSocket()
         {
+            int? f_oldState = 0;
+            int? curr_state = 0;
+            long open_time = 0;
+            long opened_time = 0;
+            string operation = string.Empty;
             _cancelSourceUDP = new CancellationTokenSource();
             _udpServer = new();
-            _udpServer.Run(IZUConfig.OSO_Server_ip, 8131);
+            _udpServer.Run(8131);
 
             task_socket_udp = Task.Factory.StartNew(async () =>
             {
@@ -88,9 +94,32 @@ namespace IZU.Service
                     {
                         if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
                         {
-                            // 名称
-                            string? name = it.Name;
-                            object? status = CheckAuodoorStatus(it);
+                            f_oldState = curr_state;
+                            curr_state = CheckAuodoorStatus(it);
+                            // 状态流转： (0关到位 1正在关 2正在开 3开到位)
+                            // 0->2 开门
+                            // 2->3 开到位
+                            // 3->1 关门
+                            // 1->0 关到位
+                            operation = $"{f_oldState}->{curr_state}";
+                            switch (operation)
+                            {
+                                case "0->2":
+                                    open_time = TimestampService.Pinning();
+                                    Console.WriteLine("{0} 开门中({1})", it.Name, operation);
+                                    break;
+                                case "2->3":
+                                    Console.WriteLine("{0} 开到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference());
+                                    break;
+                                case "3->1":
+                                    TimestampService.Pinning();
+                                    Console.WriteLine("{0} 关门中({1})", it.Name, operation);
+                                    break;
+                                case "1->0":
+                                    Console.WriteLine("{0} 关到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference());
+                                    open_time = 0;
+                                    break;
+                            }
 
                             //if (DateTime.Now.Second < 20)
                             //    status = 0;
@@ -102,14 +131,14 @@ namespace IZU.Service
                             //    status = 1;
                             //else if (DateTime.Now.Second > 36)
                             //    status = 0;
-                            //data.Add($"{name}:{status ?? 0}");
+                            data.Add($"{it.Name}:{curr_state ?? 0}");
                         }
 
                     }
                     // 消息格式： izu::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
                     string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
 
-                    _udpServer.Send(data_format);
+                    await _udpServer.SendToAsync(data_format);
                     await Task.Delay(50);
                 }
             }, _cancelSourceUDP.Token);
@@ -217,7 +246,7 @@ namespace IZU.Service
             _logger.LogDebug($"websocket client disconnected, session id {sessionid}");
         }
 
-        object? CheckAuodoorStatus(DeviceEntity deviceEntity)
+        int? CheckAuodoorStatus(DeviceEntity deviceEntity)
         {
             var opening = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
             var opened = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
@@ -272,8 +301,10 @@ namespace IZU.Service
                         currentArray = new JArray();
                         root[it.DeviceType.ToString().ToLower()] = currentArray;
                     }
-                    currentObject = new();
-                    currentObject["name"] = it.Name;
+                    currentObject = new()
+                    {
+                        ["name"] = it.Name
+                    };
                     var list = from x in it.Variables where x.ActionType.StartsWith('R') select new { k = x.ActionType.ToLower(), v = x.Value };
                     foreach (var item in list)
                     {

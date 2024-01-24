@@ -3,6 +3,8 @@ using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
+using Newtonsoft.Json.Linq;
+using System;
 
 namespace IZU.Base
 {
@@ -51,7 +53,11 @@ namespace IZU.Base
             OnConnected(this, new EventArgs());
             Receive();
         }
-
+        public async Task SendToAsync(string text)
+        {
+            byte[] data = Encoding.ASCII.GetBytes(text);
+            await _socket.SendToAsync(data, SocketFlags.Broadcast, _endPoint);
+        }
         public void Send(string text)
         {
             byte[] data = Encoding.ASCII.GetBytes(text);
@@ -75,5 +81,5 @@ namespace IZU.Base
             }, state);
         }
     }
-
 }
+

@@ -32,7 +32,6 @@ namespace IZU.Entities
 
 
         public static string MapVersion { get; set; } = string.Empty;
-        public static string OSO_Server_ip { get; set; } = string.Empty;
 
         public static string Read()
         {
@@ -53,15 +52,10 @@ namespace IZU.Entities
                 {
                     return "map_version node not found!";
                 }
-                if (configJson["oso_server"] == null)
-                {
-                    return "oso_server node not found!";
-                }
 
                 IZUConfig.BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
                 IZUConfig.DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
                 IZUConfig.MapVersion = configJson!["map_version"]!.ToString();
-                IZUConfig.OSO_Server_ip = configJson!["oso_server"]!.ToString();
 
             }
             catch (Exception ex)
