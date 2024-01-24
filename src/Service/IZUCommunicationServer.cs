@@ -255,7 +255,7 @@ namespace IZU.Service
             var closed = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
             var closeState = deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
             if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
-                return  null;
+                return null;
             else
             {
                 if ((bool)closing == false && (bool)closed && (bool)closeState && (bool)opening == false && (bool)opened == false && (bool)openState == false)
@@ -355,6 +355,7 @@ namespace IZU.Service
                         R19 = R19 == null ? null : ((bool)R19).ToString() == "True" ? "__" : "F";
                         R20 = R20 == null ? null : ((bool)R20).ToString() == "True" ? "__" : "F";
                         //Console.WriteLine("【  " +
+                        //"Name:" + it.Name + " " +
                         //  "R01:" + R01 + " " +
                         //  "R02:" + R02 + " " +
                         //  "R03:" + R03 + " " +
@@ -403,6 +404,7 @@ namespace IZU.Service
                         R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
                         R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
                         //Console.WriteLine("【  " +
+                        //"Name:" + it.Name + " " +
                         //  "R00:" + R00 + " " +
                         //  "R01:" + R01 + " " +
                         //  "R02:" + R02 + " " +
@@ -433,6 +435,7 @@ namespace IZU.Service
                         var R11 = it.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value;
                         var R12 = it.Variables.FirstOrDefault(p => p.ActionType == "R12")?.Value;
                         var R13 = it.Variables.FirstOrDefault(p => p.ActionType == "R13")?.Value;
+                        var R14 = it.Variables.FirstOrDefault(p => p.ActionType == "R14")?.Value;
                         R00 = R00 == null ? null : ((bool)R00).ToString() == "True" ? "__" : "F";
                         R01 = R01 == null ? null : ((bool)R01).ToString() == "True" ? "__" : "F";
                         R02 = R02 == null ? null : ((bool)R02).ToString() == "True" ? "__" : "F";
@@ -447,7 +450,9 @@ namespace IZU.Service
                         R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
                         R12 = R12 == null ? null : ((bool)R12).ToString() == "True" ? "__" : "F";
                         R13 = R13 == null ? null : ((bool)R13).ToString() == "True" ? "__" : "F";
+                        R14 = R14 == null ? null : ((bool)R14).ToString() == "True" ? "__" : "F";
                         //Console.WriteLine("【  " +
+                        //   "Name:" + it.Name + " " +
                         //  "R00:" + R00 + " " +
                         //  "R01:" + R01 + " " +
                         //  "R02:" + R02 + " " +
@@ -462,6 +467,7 @@ namespace IZU.Service
                         //  "R11:" + R11 + " " +
                         //  "R12:" + R12 + " " +
                         //  "R13:" + R13 + " " +
+                        //  "R14:" + R14 + " " +
                         //  " 】");
                         //Console.WriteLine("【  " +
                         //"R00:" + R00 + " " +
