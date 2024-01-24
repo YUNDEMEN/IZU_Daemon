@@ -11,6 +11,8 @@ using System.Text.Json.Serialization;
 namespace job.moxa
 {
     /*
+     * http://localhost/apiGuide
+     * http://192.168.58.129/apiGuide
      *GET  /api/devices                                                       GET all devices
      * 
      *GET  /api/siteEvents/site/{siteId}                                Get {count} recent site events
@@ -94,10 +96,14 @@ namespace job.moxa
              设备断电类型：
                    65542 0x00010006  Warning 電源 x 斷電 Power x is down x: The nth power input(1 or 2)	{ trap_detail: x}
                    65543 0x00010007  Warning 設備無法以SNMP存取 Device SNMP unreachable
+             设备掉线类型
+                   65537	0x00010001	Critical	設備無法存取	Device ICMP unreachable		
 
              设备上电类型：
                    2147549190    0x80010006  Normal(Information)    電源 x 通電 Power x is up x: The nth power input(1 or 2)	{ trap_detail: x}
                    2147549191    0x80010007  Normal(Information)    設備恢復以SNMP存取 Device SNMP reachable
+                   2147549185	0x80010001	Normal (Information)	設備恢復存取	Device ICMP reachable		
+
              用户登录失败类型
                    268435478  测试用
 
@@ -126,7 +132,7 @@ namespace job.moxa
             if (!respEvents.ok) { return; }
             else
             {
-                string[] conditions = ["65542", "65543", "2147549190", "2147549191"];
+                string[] conditions = ["65537", "65542", "65543", "2147549190", "2147549191"];
                 var sortedEvents = from x in respEvents.data
                                    where x["type"] != null && conditions.Contains(x["type"]!.ToString().Trim())
                                    orderby long.Parse(x["event_time"]!.ToString()) descending
@@ -143,11 +149,13 @@ namespace job.moxa
                     string device_id = firstOne["device_id"]!.ToString();
                     switch (firstOne["type"]!.ToString())
                     {
+                        case "65537":
                         case "65542":
                         case "65543":
                             //断电
                             Console.WriteLine("{0} is offline", ip, device_id);
                             break;
+                        case "2147549185":
                         case "2147549190":
                         case "2147549191":
                             //上电

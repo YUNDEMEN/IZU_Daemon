@@ -19,7 +19,7 @@
       <job-data-map>
         <entry>
           <key>host</key>
-          <value>http://localhost/</value>
+          <value>http://192.168.58.129/</value>
         </entry>
         <entry>
           <key>token</key>
@@ -35,7 +35,7 @@
         <job-name>moxa</job-name>
         <job-group>moxa</job-group>
         <misfire-instruction>SmartPolicy</misfire-instruction>
-        <repeat-count>0</repeat-count>
+        <repeat-count>-1</repeat-count>
         <repeat-interval>5000</repeat-interval>
       </simple>
     </trigger>
