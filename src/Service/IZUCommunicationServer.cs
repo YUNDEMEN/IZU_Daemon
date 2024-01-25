@@ -259,8 +259,8 @@ namespace IZU.Service
             {
                 if (// 关到位
 /* R06=false*/(bool)closing == false
-/* R08=false*/&& (bool)closed
-/* R03=false*/&& (bool)closeState
+/* R08=true*/&& (bool)closed
+/* R03=true*/&& (bool)closeState
 /* R05=false*/&& (bool)opening == false
 /* R07=false*/&& (bool)opened == false
 /* R04=false*/&& (bool)openState == false)
