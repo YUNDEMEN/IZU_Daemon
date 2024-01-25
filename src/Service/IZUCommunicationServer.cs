@@ -288,6 +288,7 @@ namespace IZU.Service
                 //		}
                 //	return;
                 //}
+
                 var msg = _s7NetService.GetAllDevices();
                 foreach (var it in msg)
                 {
@@ -353,6 +354,7 @@ namespace IZU.Service
                         R18 = R18 == null ? null : ((bool)R18).ToString() == "True" ? "__" : "F";
                         R19 = R19 == null ? null : ((bool)R19).ToString() == "True" ? "__" : "F";
                         R20 = R20 == null ? null : ((bool)R20).ToString() == "True" ? "__" : "F";
+                        //if(it.Name.Contains("1"))
                         //Console.WriteLine("【  " +
                         //"Name:" + it.Name + " " +
                         //  "R01:" + R01 + " " +
@@ -402,6 +404,7 @@ namespace IZU.Service
                         R08 = R08 == null ? null : ((bool)R08).ToString() == "True" ? "__" : "F";
                         R10 = R10 == null ? null : ((bool)R10).ToString() == "True" ? "__" : "F";
                         R11 = R11 == null ? null : ((bool)R11).ToString() == "True" ? "__" : "F";
+                        //if(it.Name.Contains("1"))
                         //Console.WriteLine("【  " +
                         //"Name:" + it.Name + " " +
                         //  "R00:" + R00 + " " +
@@ -450,40 +453,42 @@ namespace IZU.Service
                         R12 = R12 == null ? null : ((bool)R12).ToString() == "True" ? "__" : "F";
                         R13 = R13 == null ? null : ((bool)R13).ToString() == "True" ? "__" : "F";
                         R14 = R14 == null ? null : ((bool)R14).ToString() == "True" ? "__" : "F";
-                        //Console.WriteLine("【  " +
-                        //   "Name:" + it.Name + " " +
-                        //  "R00:" + R00 + " " +
-                        //  "R01:" + R01 + " " +
-                        //  "R02:" + R02 + " " +
-                        //  "[R03:" + R03 + " " +
-                        //  "R04:" + R04 + " " +
-                        //  "R05:" + R05 + " " +
-                        //  "R06:" + R06 + " " +
-                        //  "R07:" + R07 + " " +
-                        //  "R08:" + R08 + " " +
-                        //  "]R09:" + R09 + " " +
-                        //  "R10:" + R10 + " " +
-                        //  "R11:" + R11 + " " +
-                        //  "R12:" + R12 + " " +
-                        //  "R13:" + R13 + " " +
-                        //  "R14:" + R14 + " " +
-                        //  " 】");
-                        //Console.WriteLine("【  " +
-                        //"R00:" + R00 + " " +
-                        //"待机:" + R01 + " " +
-                        //"自动运行:" + R02 + " " +
-                        //"[R03关:" + R03 + " " +
-                        //"R04开:" + R04 + " " +
-                        //"R05K:" + R05 + " " +
-                        //"R06G:" + R06 + " " +
-                        //"R07开:" + R07 + " " +
-                        //"R08关:" + R08 + " " +
-                        //"]故障:" + R09 + " " +
-                        //"原点中:" + R10 + " " +
-                        //"原点完成:" + R11 + " " +
-                        //"复位返回:" + R12 + " " +
-                        //"急停返回:" + R13 + " " +
-                        //" 】");
+                        //if (it.Name.Contains("1"))
+                        //    Console.WriteLine("【  " +
+                        //       "Name:" + it.Name + " " +
+                        //      "R00:" + R00 + " " +
+                        //      "R01:" + R01 + " " +
+                        //      "R02:" + R02 + " " +
+                        //      "[R03:" + R03 + " " +
+                        //      "R04:" + R04 + " " +
+                        //      "R05:" + R05 + " " +
+                        //      "R06:" + R06 + " " +
+                        //      "R07:" + R07 + " " +
+                        //      "R08:" + R08 + " " +
+                        //      "]R09:" + R09 + " " +
+                        //      "R10:" + R10 + " " +
+                        //      "R11:" + R11 + " " +
+                        //      "R12:" + R12 + " " +
+                        //      "R13:" + R13 + " " +
+                        //      "R14:" + R14 + " " +
+                        //      " 】");
+                        if (it.Name.Contains("1"))
+                            Console.WriteLine("【  " +
+                            "R00:" + R00 + " " +
+                            "待机:" + R01 + " " +
+                            "自动运行:" + R02 + " " +
+                            "[R03关:" + R03 + " " +
+                            "R04开:" + R04 + " " +
+                            "R05K:" + R05 + " " +
+                            "R06G:" + R06 + " " +
+                            "R07开:" + R07 + " " +
+                            "R08关:" + R08 + " " +
+                            "]故障:" + R09 + " " +
+                            "原点中:" + R10 + " " +
+                            "原点完成:" + R11 + " " +
+                            "复位返回:" + R12 + " " +
+                            "急停返回:" + R13 + " " +
+                            " 】");
                     }
                     else if (it.DeviceType.Equals(DeviceTypes.FIREDOOR))
                     {

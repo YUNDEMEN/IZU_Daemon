@@ -1,4 +1,5 @@
-﻿using IZU.Entities;
+﻿using IZU.Base;
+using IZU.Entities;
 using IZU.Interfaces;
 using System.Net.NetworkInformation;
 
@@ -6,7 +7,7 @@ namespace IZU.DeviceFactories
 {
     public class AutoDoor : Device, IAutoDoor
     {
-        public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
+        public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
 
         public AutoDoor() { }
         public AutoDoor(DeviceEntity deviceEntity) : base(deviceEntity)
@@ -23,6 +24,9 @@ namespace IZU.DeviceFactories
             address_tup.R09 = GetActionType("R09");  //        Auto Door 故障报错状态
             address_tup.R10 = GetActionType("R10");  //        初始化回原点中
             address_tup.R11 = GetActionType("R11");  //        初始化回原点完成
+            address_tup.R12 = GetActionType("R12");  //        故障复位返回信号
+            address_tup.R13 = GetActionType("R13");  //        紧急停止返回信号
+            address_tup.R14 = GetActionType("R14");  //        自动/手动模式返回信号
             address_tup.W01 = GetActionType("W01");  //        启动运行
             address_tup.W02 = GetActionType("W02");  //        停止运行
             address_tup.W03 = GetActionType("W03");  //        开门按钮
@@ -37,16 +41,17 @@ namespace IZU.DeviceFactories
 
         public async Task<string> InitialAsync()
         {
-            string? s1 = await GetBool(address_tup.R00);
-            if (string.IsNullOrEmpty(s1))
-                return $"Read signal {address_tup.R00} null!";
-            if (s1 == false.ToString())
-                return "No power!";
+            Ref<bool> @ref = new();
 
-            string? s2 = await GetBool(address_tup.R02);
-            if (string.IsNullOrEmpty(s2))
-                return $"Read signal {address_tup.R02} null!";
-            if (s2 == true.ToString())
+            // 是否上电
+            string state = await GetBool(address_tup.R00, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (!@ref.Value) return "No power!";
+
+            // 自动运行状态下禁止初始化
+            state = await GetBool(address_tup.R02, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@ref.Value)
                 return "Initialization is prohibited in automatic state, please stop running and then initialize!";
 
             string w1 = await WriteBool(address_tup.W01, false);
@@ -69,49 +74,87 @@ namespace IZU.DeviceFactories
 
         public async Task<string> StartAsync()
         {
-            string res = await ConditionWriteAsync(address_tup.R11, address_tup.W01, true, condValue: true);
-            if (!string.IsNullOrEmpty(res))
-                return res;
+            Ref<bool> @ref = new();
+
+            // 禁止重复启动
+            string state = await GetBool(address_tup.R02, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@ref.Value)
+                return "It is running automatically now!";
+
+            // 禁止故障状态下启动
+            state = await GetBool(address_tup.R09, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@ref.Value)
+                return "There is a fault alarm, the start command cannot be executed!";
+
+            // 禁止急停状态下启动
+            state = await GetBool(address_tup.R13, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@ref.Value)
+                return "The equipment is in emergency stop state, the start command cannot be executed!";
+
+            // 禁止手动状态下启动
+            state = await GetBool(address_tup.R14, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@ref.Value)
+                return "It is in manual mode now, the start command cannot be executed!";
+
+            string ret = await ConditionWriteAsync(address_tup.R11, address_tup.W01, true, condValue: true);
+            if (!string.IsNullOrEmpty(ret))
+                return ret;
             return await ConditionWriteAsync(address_tup.R02, address_tup.W01, false, condValue: true);
         }
 
         public async Task<string> StopAsync()
         {
-            string res = await WriteBool(address_tup.W02, true);
-            if (!string.IsNullOrEmpty(res))
-                return res;
+            string ret = await WriteBool(address_tup.W02, true);
+            if (!string.IsNullOrEmpty(ret))
+                return ret;
             return await ConditionWriteAsync(address_tup.R02, address_tup.W02, false, condValue: false);
         }
 
         public async Task<string> OpenAsync()
         {
-            string? state = await GetBool(address_tup.R02);
-            if (string.IsNullOrEmpty(state) || state == false.ToString())
+            Ref<bool> @ref = new();
+
+            // 是否处于自动运行状态
+            string state = await GetBool(address_tup.R02, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (!@ref.Value)
                 return "It is not running automatically now!";
 
             // 防止重复操作
-            string? r05 = await GetBool(address_tup.R05);
-            string? r07 = await GetBool(address_tup.R07);
-            string? r04 = await GetBool(address_tup.R04);
-            if (string.IsNullOrEmpty(r05) || string.IsNullOrEmpty(r07) || string.IsNullOrEmpty(r04))
-                return "Read open door signal null!";
-            if (bool.Parse(r05) || bool.Parse(r07) || bool.Parse(r04))
+            Ref<bool> @r05 = new();
+            Ref<bool> @r07 = new();
+            Ref<bool> @r04 = new();
+            state = await GetBool(address_tup.R05, @r05);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R07, @r07);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R04, @r04);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@r05.Value || @r07.Value || @r04.Value)
                 return "door is opening!";
 
-            //禁止关门未完成时执行开门
-            string? r06 = await GetBool(address_tup.R06);
-            string? r08 = await GetBool(address_tup.R08);
-            string? r03 = await GetBool(address_tup.R03);
-            if (string.IsNullOrEmpty(r06) || string.IsNullOrEmpty(r08) || string.IsNullOrEmpty(r03))
-                return "Read close door signal null!";
-            if (bool.Parse(r06) == false && bool.Parse(r08) && bool.Parse(r03))
+            // 禁止关门未完成时执行开门
+            Ref<bool> @r06 = new();
+            Ref<bool> @r08 = new();
+            Ref<bool> @r03 = new();
+            state = await GetBool(address_tup.R06, @r06);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R08, @r08);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R03, @r03);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (!@r06.Value && @r08.Value && @r03.Value)
             {
                 // 将关门写false，双重保险
                 await WriteBool(address_tup.W08, false);
 
-                string res = await WriteBool(address_tup.W07, true);
-                if (!string.IsNullOrEmpty(res))
-                    return res;
+                string ret = await WriteBool(address_tup.W07, true);
+                if (!string.IsNullOrEmpty(ret))
+                    return ret;
                 return await ConditionWriteAsync(address_tup.R05, address_tup.W07, false);
             }
             else
@@ -120,33 +163,43 @@ namespace IZU.DeviceFactories
 
         public async Task<string> CloseAsync()
         {
-            string? state = await GetBool(address_tup.R02);
-            if (string.IsNullOrEmpty(state) || state == false.ToString())
-                return "It is not running automatically now!";
+            // 是否处于自动运行状态
+            Ref<bool> @ref = new();
+            string state = await GetBool(address_tup.R02, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (!@ref.Value) return "It is not running automatically now!";
 
             // 防止重复操作
-            string? r06 = await GetBool(address_tup.R06);
-            string? r08 = await GetBool(address_tup.R08);
-            string? r03 = await GetBool(address_tup.R03);
-            if (string.IsNullOrEmpty(r06) || string.IsNullOrEmpty(r08) || string.IsNullOrEmpty(r03))
-                return "Read close door signal null!";
-            if (bool.Parse(r06) || bool.Parse(r08) || bool.Parse(r03))
+            Ref<bool> @r06 = new();
+            Ref<bool> @r08 = new();
+            Ref<bool> @r03 = new();
+            state = await GetBool(address_tup.R06, @r06);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R08, @r08);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R03, @r03);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@r06.Value || @r08.Value || @r03.Value)
                 return "door is closing!";
 
-            //禁止开门未完成时执行关门
-            string? r05 = await GetBool(address_tup.R05);
-            string? r07 = await GetBool(address_tup.R07);
-            string? r04 = await GetBool(address_tup.R04);
-            if (string.IsNullOrEmpty(r05) || string.IsNullOrEmpty(r07) || string.IsNullOrEmpty(r04))
-                return "Read open door signal null!";
-            if (bool.Parse(r05) == false && bool.Parse(r07) && bool.Parse(r04))
+            // 禁止开门未完成时执行关门
+            Ref<bool> @r05 = new();
+            Ref<bool> @r07 = new();
+            Ref<bool> @r04 = new();
+            state = await GetBool(address_tup.R05, @r05);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R07, @r07);
+            if (!string.IsNullOrEmpty(state)) return state;
+            state = await GetBool(address_tup.R04, @r04);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (!@r05.Value && @r07.Value && @r04.Value)
             {
                 // 将开门写false，双重保险
                 await WriteBool(address_tup.W07, false);
 
-                string res = await WriteBool(address_tup.W08, true);
-                if (!string.IsNullOrEmpty(res))
-                    return res;
+                string ret = await WriteBool(address_tup.W08, true);
+                if (!string.IsNullOrEmpty(ret))
+                    return ret;
                 return await ConditionWriteAsync(address_tup.R06, address_tup.W08, false);
             }
             else
@@ -165,11 +218,13 @@ namespace IZU.DeviceFactories
 
         public async Task<string> SwitchAsync(bool o)
         {
-            var ret = await GetBool(address_tup.R02);
-            if (string.IsNullOrEmpty(ret))
-                return $"Read running state {address_tup.R02} signal null!";
-            if (ret == true.ToString())
+            // 自动运行状态下禁止切换至手动
+            Ref<bool> @ref = new();
+            string state = await GetBool(address_tup.R02, @ref);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@ref.Value)
                 return "It is currently in automatic mode. Please stop running and then switch to manual mode!";
+
             return await WriteBool(address_tup.W10, o);
         }
 
