@@ -39,16 +39,17 @@ namespace IZU.DeviceFactories
             return await _deviceEntity.Server.WriteBool(address, value);
         }
 
-        public async Task<string?> GetBool(string address)
+        public async Task<string> GetBool(string address, Ref<bool> addressObj)
         {
             if (_deviceEntity == null)
                 return "device not exist!";
             if (_deviceEntity.Server == null)
                 return "device server not exist!";
-            bool? t = await _deviceEntity.Server.GetBool(address);
-            if (t == null)
-                return null;
-            return (await _deviceEntity.Server.GetBool(address)).ToString();
+            bool? res = await _deviceEntity.Server.GetBool(address);
+            if (res == null)
+                return $"get value from device {address} failed!";
+            addressObj.Value = (bool)res;
+            return string.Empty;
         }
 
         /// <summary>

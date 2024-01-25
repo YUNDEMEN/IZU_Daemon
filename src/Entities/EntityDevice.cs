@@ -46,7 +46,7 @@ namespace IZU.Entities
             DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
 
             //如果设备的变量都被禁用了，则直接不启用 plc 连接服务
-            if(variables.All(t=>!t.Disabled))
+            if (variables.All(t => !t.Disabled))
             {
                 ActivatePlcService();
             }
