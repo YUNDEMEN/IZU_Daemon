@@ -1,9 +1,5 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
-using Microsoft.Extensions.Logging;
-using System.Data;
-using System.ServiceProcess;
-using System.Xml.Linq;
 
 namespace IZU.Entities
 {
