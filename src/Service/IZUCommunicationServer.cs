@@ -257,14 +257,38 @@ namespace IZU.Service
                 return null;
             else
             {
-                if ((bool)closing == false && (bool)closed && (bool)closeState && (bool)opening == false && (bool)opened == false && (bool)openState == false)
+                if (// 关到位
+/* R06=false*/(bool)closing == false
+/* R08=false*/&& (bool)closed
+/* R03=false*/&& (bool)closeState
+/* R05=false*/&& (bool)opening == false
+/* R07=false*/&& (bool)opened == false
+/* R04=false*/&& (bool)openState == false)
                     return 0;
-                else if ((bool)closing && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened == false && (bool)openState == false)
-                    return 1;
-                else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening && (bool)opened == false && (bool)openState == false)
-                    return 2;
-                else if ((bool)closing == false && (bool)closed == false && (bool)closeState == false && (bool)opening == false && (bool)opened && (bool)openState)
-                    return 3;
+                else if (
+/* R06=true*/ (bool)closing 
+/* R08=false*/&& (bool)closed == false 
+/* R03=false*/&& (bool)closeState == false 
+/* R05=false*/&& (bool)opening == false 
+/* R07=false*/&& (bool)opened == false
+/* R04=false*/&& (bool)openState == false)
+                    return 1;// 正在关 R06=true && R08=true && R03=true && R05=false && R07=false && R04=false
+                else if (
+/* R06=false*/(bool)closing == false 
+/* R08=false*/&& (bool)closed == false 
+/* R03=false*/&& (bool)closeState == false 
+/* R05=true*/&& (bool)opening 
+/* R07=false*/&& (bool)opened == false
+/* R04=false*/&& (bool)openState == false)
+                    return 2;// 正在开
+                else if (
+/* R06=false*/(bool)closing == false 
+/* R08=false*/&& (bool)closed == false 
+/* R03=false*/&& (bool)closeState == false
+/* R05=false*/&& (bool)opening == false
+/* R07=true*/&& (bool)opened
+/* R04=true*/&& (bool)openState)
+                    return 3;// 开到位
                 else
                     return null;
             }
