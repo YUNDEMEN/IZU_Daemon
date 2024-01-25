@@ -265,30 +265,41 @@ namespace IZU.Service
 /* R07=false*/&& (bool)opened == false
 /* R04=false*/&& (bool)openState == false)
                     return 0;
-                else if (
+
+
+
+                else if (// 正在关
 /* R06=true*/ (bool)closing 
 /* R08=false*/&& (bool)closed == false 
 /* R03=false*/&& (bool)closeState == false 
 /* R05=false*/&& (bool)opening == false 
 /* R07=false*/&& (bool)opened == false
 /* R04=false*/&& (bool)openState == false)
-                    return 1;// 正在关 R06=true && R08=true && R03=true && R05=false && R07=false && R04=false
-                else if (
+                    return 1;
+
+
+
+                else if (// 正在开
 /* R06=false*/(bool)closing == false 
 /* R08=false*/&& (bool)closed == false 
 /* R03=false*/&& (bool)closeState == false 
 /* R05=true*/&& (bool)opening 
 /* R07=false*/&& (bool)opened == false
 /* R04=false*/&& (bool)openState == false)
-                    return 2;// 正在开
-                else if (
+                    return 2;
+
+
+
+                else if (// 开到位
 /* R06=false*/(bool)closing == false 
 /* R08=false*/&& (bool)closed == false 
 /* R03=false*/&& (bool)closeState == false
 /* R05=false*/&& (bool)opening == false
 /* R07=true*/&& (bool)opened
 /* R04=true*/&& (bool)openState)
-                    return 3;// 开到位
+                    return 3;
+
+
                 else
                     return null;
             }
