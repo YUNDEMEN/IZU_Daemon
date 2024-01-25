@@ -96,10 +96,10 @@ namespace IZU.Base
             {
                 return _serviceStatus switch
                 {
-                    TaskServiceStatus.NotStarted => "not startd",
+                    TaskServiceStatus.NotStarted => "not started",
                     TaskServiceStatus.Connecting => "disconnected",
                     TaskServiceStatus.Connected => "normal",
-                    _ => "not startd"
+                    _ => "not started"
                 };
             }
         }
