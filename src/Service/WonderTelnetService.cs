@@ -159,6 +159,7 @@ namespace IZU.Service
         private readonly TelnetServer? _telnetServer;
         public TelnetServer Server { get { return _telnetServer!; } }
         public static ITelnetService? TelnetService { get; set; }
+       
         public WonderTelnetService(ILogger<WonderTelnetService> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
@@ -218,17 +219,7 @@ namespace IZU.Service
         private void OnClientConnected(TelnetClient c)
         {
             //_logger.LogInformation("client connected. {0}", c);
-            _telnetServer!.SendMessage(c, @"
-____________________________________________________________________________________________________________
-  ____    __    ____  ______   .__   __.  _______   _______ .______                 __  .__   __.   ______    
-  \   \  /  \  /   / /  __  \  |  \ |  | |       \ |   ____||   _  \               |  | |  \ |  |  /      |   
-   \   \/    \/   / |  |  |  | |   \|  | |  .--.  ||  |__   |  |_)  |              |  | |   \|  | |  ,----'   
-    \            /  |  |  |  | |  . `  | |  |  |  ||   __|  |      /               |  | |  . `  | |  |        
-     \    /\    /   |  `--'  | |  |\   | |  '--'  ||  |____ |  |\  \----.    __    |  | |  |\   | |  `----.   
-      \__/  \__/     \______/  |__| \__| |_______/ |_______|| _| `._____|   (__)   |__| |__| \__|  \______|
-____________________________________________________________________________________________________________
-
-Welcome to the IZU remote management system, please login!" + TelnetServer.END_LINE + TelnetServer.REPLY + "Username: ");
+            _telnetServer!.SendMessage(c, $"{TelnetServer.Logo}Welcome to the IZU remote management system, please login!" + TelnetServer.END_LINE + TelnetServer.REPLY + "Username: ");
         }
 
         private void OnClientDisconnected(TelnetClient c)
@@ -314,6 +305,17 @@ Welcome to the IZU remote management system, please login!" + TelnetServer.END_L
     public delegate void MessageReceivedEventHandler(TelnetClient c, string message);
     public class TelnetServer : SocketBase
     {
+        public const string Logo = @"
+____________________________________________________________________________________________________________
+  ____    __    ____  ______   .__   __.  _______   _______ .______                 __  .__   __.   ______    
+  \   \  /  \  /   / /  __  \  |  \ |  | |       \ |   ____||   _  \               |  | |  \ |  |  /      |   
+   \   \/    \/   / |  |  |  | |   \|  | |  .--.  ||  |__   |  |_)  |              |  | |   \|  | |  ,----'   
+    \            /  |  |  |  | |  . `  | |  |  |  ||   __|  |      /               |  | |  . `  | |  |        
+     \    /\    /   |  `--'  | |  |\   | |  '--'  ||  |____ |  |\  \----.    __    |  | |  |\   | |  `----.   
+      \__/  \__/     \______/  |__| \__| |_______/ |_______|| _| `._____|   (__)   |__| |__| \__|  \______|
+____________________________________________________________________________________________________________
+
+";
         public event ConnectionEventHandler? ClientConnected = null;
         public event ConnectionEventHandler? ClientDisconnected = null;
         public event ConnectionBlockedEventHandler? ConnectionBlocked = null;
@@ -325,7 +327,7 @@ Welcome to the IZU remote management system, please login!" + TelnetServer.END_L
 
         public void ClearClientScreen(TelnetClient c)
         {
-            SendMessage(c, $"\u001B[1J\u001B[H{TelnetServer.CURSOR}");
+            SendMessage(c, $"\u001B[1J\u001B[H{Logo}{TelnetServer.CURSOR}");
         }
 
         public void ClientForceOffline(TelnetClient client)
