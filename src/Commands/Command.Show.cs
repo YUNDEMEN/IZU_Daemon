@@ -17,7 +17,7 @@ namespace IZU.Commands
 
             var deviceNameArg = new Argument<string>("n", () => string.Empty, "设备名称");
             var devicesOption = new Option<bool>(new string[] { "--all", "-all" }, () => false, "所有设备");
-            var devicesCommand = new Command("device", "查看当前日志规则") { deviceNameArg, devicesOption };
+            var devicesCommand = new Command("device", "查看设备信息") { deviceNameArg, devicesOption };
             Add(devicesCommand);
             devicesCommand.SetHandler(ShowDevices, deviceNameArg, devicesOption);
         }
@@ -69,7 +69,7 @@ namespace IZU.Commands
                     foreach (var variableEntity in deviceEntity.Variables)
                     {
                         if (!variableEntity.Disabled)
-                            commandService.WriteLine(string.Format("{0}={1}", variableEntity.ActionType,$"{variableEntity.Value}").PadRight(w) + ":" +
+                            commandService.WriteLine(string.Format("{0} = {1}", variableEntity.ActionType,$"{variableEntity.Value}").PadRight(w) + ":" +
                                 variableEntity.Address + "(" + variableEntity.FunctionType + ") -"+ variableEntity.VariableType);
                         else
                             commandService.WriteLine($"{variableEntity.ActionType}= ".PadRight(w) + ":" +
