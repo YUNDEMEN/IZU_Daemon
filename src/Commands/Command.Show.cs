@@ -38,11 +38,11 @@ namespace IZU.Commands
             }
             if (info)
             {
-                commandService.WriteLine($"izu id: ".PadLeft(22) + $"{Entities.IZUConfig.ID}");
-                commandService.WriteLine($"server endpoint: ".PadLeft(22) + $"{Entities.IZUConfig.Server}");
-                commandService.WriteLine($"izu backend: ".PadLeft(22) + $"{Entities.IZUConfig.BackendIZUBaseUrl}");
-                commandService.WriteLine($"publish interval: ".PadLeft(22) + $"{Entities.IZUConfig.PublishMillionSeconds} ms (websocket)");
-                commandService.WriteLine($"variables: ".PadLeft(22) + $"{Entities.IZUConfig.DeviceTableFrom}");
+                commandService.WriteLine($"izu id".PadRight(w) + $":{Entities.IZUConfig.ID}");
+                commandService.WriteLine($"server endpoint".PadRight(w) + $":{Entities.IZUConfig.Server}");
+                commandService.WriteLine($"izu backend".PadRight(w) + $": {Entities.IZUConfig.BackendIZUBaseUrl}");
+                commandService.WriteLine($"publish interval".PadRight(w) + $":{Entities.IZUConfig.PublishMillionSeconds} ms (websocket)");
+                commandService.WriteLine($"variables".PadRight(w) + $":{Entities.IZUConfig.DeviceTableFrom}");
             }
         }
 

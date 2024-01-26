@@ -5,8 +5,12 @@ telnet 命令（默认端口666）：
 1. 查看所有命令： izu -help  、 izu -? 
  
 修改日志等级：log -r ruleName -min 2 -max 3
-显示当前配置：show -i
-      重载配置：show -r
+当前配置：show -i
+重载配置：show -r
+
+查看设备：show device
+所有设备：show device -all
+设备详细：show device deviceName
 
 ###---------2024-01-08 ----------------------------------------
 
