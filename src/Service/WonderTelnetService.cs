@@ -218,8 +218,8 @@ namespace IZU.Service
         }
         private void OnClientConnected(TelnetClient c)
         {
-            //_logger.LogInformation("client connected. {0}", c);
-            _telnetServer!.SendMessage(c, $"{TelnetServer.Logo}Welcome to the IZU remote management system, please login!" + TelnetServer.END_LINE + TelnetServer.REPLY + "Username: ");
+            _telnetServer!.SendMessage(c, $"" +
+                $"{TelnetServer.Logo}Welcome to the IZU remote management system, please login!" + TelnetServer.END_LINE + TelnetServer.REPLY + "Username: ");
         }
 
         private void OnClientDisconnected(TelnetClient c)

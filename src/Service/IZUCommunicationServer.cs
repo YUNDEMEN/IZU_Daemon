@@ -25,17 +25,22 @@ namespace IZU.Service
         private const int BufferSize = 4096;
         private int task_ws_delay = 1000;
         private IS7NetService _s7NetService { get; }
-        private WonderMulticast _multicastServer;
+        private WonderMulticast _multicastSender;
         private ReplySocket replySocket;
         private PairSocket nanoPairSocketServer;
-        private Task task_nano_pair_server;
-        private Task task_socket_udp;
-        private Task task_nano_server;
+        private Task task_nano_data_server;
+        private Task task_multicast_server;
+        private Task task_nano_command_server;
 
-        private CancellationTokenSource _cancelNanoReplyServer;
-        private CancellationTokenSource _cancelNanoPairServer;
+        private CancellationTokenSource _cancelNanoCommandServer;
+        private CancellationTokenSource _cancelNanoDataServer;
         private CancellationTokenSource _cancelWebsocketServer;
         private CancellationTokenSource _cancelMulticastServer;
+
+        private NNanomsg.NanomsgEndpoint NanomsgEndpoint_CommandServer;
+        private NNanomsg.NanomsgEndpoint NanomsgEndpoint_DataServer;
+
+        private bool _initialized = false;
 
         readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
         public IZUCommunicationServer(ILogger<IZUCommunicationServer> logger, IS7NetService s7netService)
@@ -44,12 +49,38 @@ namespace IZU.Service
             _s7NetService = s7netService;
             task_ws_delay = IZUConfig.PublishMillionSeconds;
         }
+
+        /// <summary>
+        /// 经过测试，NANOMSG 不能重启
+        /// </summary>
+        public void Stop()
+        {
+            if (replySocket != null)
+            {
+                replySocket.Shutdown(NanomsgEndpoint_CommandServer);
+                replySocket.Dispose();
+            }
+            if (nanoPairSocketServer != null)
+            {
+                nanoPairSocketServer.Shutdown(NanomsgEndpoint_DataServer);
+                nanoPairSocketServer.Dispose();
+            }
+            _cancelNanoCommandServer.Cancel();
+            _cancelNanoDataServer.Cancel();
+            _cancelWebsocketServer.Cancel();
+            _cancelMulticastServer.Cancel();
+        }
+
         public void Start()
         {
-            InitialNanoReplyServer();
-            InitialNanoPairServer();
+            if (!_initialized)
+                return;
+
+            InitialComnandServer();
+            InitialNanoDataServer();
             InitialMulticastClient();
             InitialWebsocket();
+            _initialized = true;
         }
         /// <summary>
         /// WEBSOCKET SERVER
@@ -85,10 +116,10 @@ namespace IZU.Service
             long opened_time = 0;
             string operation = string.Empty;
             _cancelMulticastServer = new CancellationTokenSource();
-            _multicastServer = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastServer.RunAsClient(8131);
+            _multicastSender = new WonderMulticast(IZUConfig.MulticastIP);
+            _multicastSender.RunAsClient(8131);
 
-            task_socket_udp = Task.Factory.StartNew(async () =>
+            task_multicast_server = Task.Factory.StartNew(async () =>
             {
                 _logger.LogDebug("socket UDP client task started, sending on port 8131");
                 while (!_cancelMulticastServer.IsCancellationRequested)
@@ -143,7 +174,7 @@ namespace IZU.Service
                     // 消息格式： izu::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
                     string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
 
-                    await _multicastServer.SendToAsync(data_format);
+                    await _multicastSender.SendToAsync(data_format);
                     await Task.Delay(50);
                 }
             }, _cancelMulticastServer.Token);
@@ -151,48 +182,48 @@ namespace IZU.Service
         /// <summary>
         /// NANO REPLY SERVER
         /// PORT 8231
-        /// REMOTE SERVER
+        /// REMOTE COMMAND SERVER
         /// </summary>
-        void InitialNanoReplyServer()
+        void InitialComnandServer()
         {
-            _cancelNanoReplyServer = new CancellationTokenSource();
+            _cancelNanoCommandServer = new CancellationTokenSource();
             replySocket = new ReplySocket();
-            replySocket.Bind($"tcp://{IZUConfig.ServerIP}:8231");
-            task_nano_server = Task.Factory.StartNew(async () =>
+            NanomsgEndpoint_CommandServer = replySocket.Bind($"tcp://{IZUConfig.ServerIP}:8231");
+            task_nano_command_server = Task.Factory.StartNew(async () =>
             {
                 _logger.LogDebug("nano repley server task started, listening on port 8231");
-                while (!_cancelNanoReplyServer.IsCancellationRequested)
+                while (!_cancelNanoCommandServer.IsCancellationRequested)
                 {
                     byte[] buffer = replySocket.Receive();
                     string operation = System.Text.Encoding.UTF8.GetString(buffer);
                     operation = await OperationFromOso(operation);
                     replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation));
                 }
-            }, _cancelNanoReplyServer.Token);
+            }, _cancelNanoCommandServer.Token);
         }
 
         /// <summary>
         /// NANO PAIR SERVER
         /// PORT 18031
-        /// LOCAL SYSTEM
+        /// TRANSFER DATA TO LOCAL SYSTEM
         /// </summary>
-        void InitialNanoPairServer()
+        void InitialNanoDataServer()
         {
-            _cancelNanoPairServer = new CancellationTokenSource();
+            _cancelNanoDataServer = new CancellationTokenSource();
             List<DeviceEntity> cur = new List<DeviceEntity>();
             nanoPairSocketServer = new PairSocket();
-            nanoPairSocketServer.Bind($"tcp://{IZUConfig.ServerIP}:18031");
-            task_nano_pair_server = Task.Factory.StartNew(async () =>
+            NanomsgEndpoint_DataServer = nanoPairSocketServer.Bind($"tcp://{IZUConfig.ServerIP}:18031");
+            task_nano_data_server = Task.Factory.StartNew(async () =>
             {
                 _logger.LogDebug("nano pair server task started, listening on port 18031");
-                while (!_cancelNanoPairServer.IsCancellationRequested)
+                while (!_cancelNanoDataServer.IsCancellationRequested)
                 {
                     nanoPairSocketServer.Receive();
                     cur = _s7NetService.GetAllDevices();
                     nanoPairSocketServer.Send(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(cur)));
                     await Task.Delay(10);
                 }
-            }, _cancelNanoPairServer.Token);
+            }, _cancelNanoDataServer.Token);
         }
 
 

@@ -67,7 +67,7 @@ namespace IZU.Controllers
         {
             try
             {
-                _s7netService.Stop();
+                _izuService.Stop();
                 await _izuService.StartAsync();
 
                 return WonderResponse.Create("已重载配置和变量表");

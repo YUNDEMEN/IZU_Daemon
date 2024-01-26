@@ -9,6 +9,7 @@ namespace IZU.Interfaces
         /// </summary>
         void Refresh(); 
         void Start();
+        void Stop();
         Task Acceptor(HttpContext context, Func<Task> next);
     }
 }
