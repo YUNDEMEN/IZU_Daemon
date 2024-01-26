@@ -218,7 +218,17 @@ namespace IZU.Service
         private void OnClientConnected(TelnetClient c)
         {
             //_logger.LogInformation("client connected. {0}", c);
-            _telnetServer.SendMessage(c, "Welcom to Wonder.inc command server, please login first!" + TelnetServer.END_LINE + TelnetServer.REPLY + "Username: ");
+            _telnetServer!.SendMessage(c, @"
+____________________________________________________________________________________________________________
+  ____    __    ____  ______   .__   __.  _______   _______ .______                 __  .__   __.   ______    
+  \   \  /  \  /   / /  __  \  |  \ |  | |       \ |   ____||   _  \               |  | |  \ |  |  /      |   
+   \   \/    \/   / |  |  |  | |   \|  | |  .--.  ||  |__   |  |_)  |              |  | |   \|  | |  ,----'   
+    \            /  |  |  |  | |  . `  | |  |  |  ||   __|  |      /               |  | |  . `  | |  |        
+     \    /\    /   |  `--'  | |  |\   | |  '--'  ||  |____ |  |\  \----.    __    |  | |  |\   | |  `----.   
+      \__/  \__/     \______/  |__| \__| |_______/ |_______|| _| `._____|   (__)   |__| |__| \__|  \______|
+____________________________________________________________________________________________________________
+
+Welcome to the IZU remote management system, please login!" + TelnetServer.END_LINE + TelnetServer.REPLY + "Username: ");
         }
 
         private void OnClientDisconnected(TelnetClient c)
