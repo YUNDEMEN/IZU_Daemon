@@ -26,16 +26,19 @@ namespace IZU.Service
         private int task_ws_delay = 1000;
         private IS7NetService _s7NetService { get; }
         private WonderMulticast _multicastSender;
+        private WonderMulticast _multicastFullSender;
         private ReplySocket replySocket;
         private PairSocket nanoPairSocketServer;
         private Task task_nano_data_server;
         private Task task_multicast_server;
+        private Task task_multicast_full_server;
         private Task task_nano_command_server;
 
         private CancellationTokenSource _cancelNanoCommandServer;
         private CancellationTokenSource _cancelNanoDataServer;
         private CancellationTokenSource _cancelWebsocketServer;
         private CancellationTokenSource _cancelMulticastServer;
+        private CancellationTokenSource _cancelMulticastFullServer;
 
         private NNanomsg.NanomsgEndpoint NanomsgEndpoint_CommandServer;
         private NNanomsg.NanomsgEndpoint NanomsgEndpoint_DataServer;
@@ -69,6 +72,7 @@ namespace IZU.Service
             _cancelNanoDataServer.Cancel();
             _cancelWebsocketServer.Cancel();
             _cancelMulticastServer.Cancel();
+            _cancelMulticastServer.Cancel();
         }
 
         public void Start()
@@ -79,6 +83,7 @@ namespace IZU.Service
             InitialComnandServer();
             InitialNanoDataServer();
             InitialMulticastClient();
+            InitialMulticastClientFull();
             InitialWebsocket();
             _initialized = true;
         }
@@ -92,13 +97,39 @@ namespace IZU.Service
             _cancelWebsocketServer = new CancellationTokenSource();
             Task.Factory.StartNew(async () =>
             {
+                JObject root = new();
                 _logger.LogDebug($"websocket publish task started, sending on port {IZUConfig.ServerPort}");
                 while (!_cancelWebsocketServer.IsCancellationRequested)
                 {
 #if RELEASE
                     if (_clients.Count != 0)
 #endif
-                    await WsPublishDevicesAsync();
+                    root = WsPublishDevices();
+
+                    var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(root.ToString(Formatting.None)));
+                    foreach (var client in _clients.Values)
+                    {
+                        if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
+
+                        await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
+                            .ContinueWith(async (t, state) =>
+                            {
+                                if (t.Exception != null && state is InnerServerClient client)
+                                {
+                                    try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
+                                    try { client.Socket.Abort(); } catch { }
+                                    try { client.Socket.Dispose(); } catch { }
+                                    client.Status = 1;//marked as wasted
+                                }
+                            }, client).ConfigureAwait(false);
+                    }
+                    foreach (var client in _clients.Values)
+                    {
+                        if (client.Status == 0 || !string.IsNullOrEmpty(client.target))
+                            continue;
+                        _clients.TryRemove(client.SessionId, out var removedClient);
+                    }
+
                     await Task.Delay(task_ws_delay);
                 }
             }, _cancelWebsocketServer.Token);
@@ -200,6 +231,36 @@ namespace IZU.Service
                     replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation));
                 }
             }, _cancelNanoCommandServer.Token);
+        }
+
+
+        /// <summary>
+        /// SOCKET MULTICAST CLIENT
+        /// PORT 8331
+        /// REMOTE CLIENT
+        /// </summary>
+        void InitialMulticastClientFull()
+        {
+            int? f_oldState = 0;
+            int? curr_state = 0;
+            long open_time = 0;
+            long opened_time = 0;
+            string operation = string.Empty;
+            _cancelMulticastFullServer = new CancellationTokenSource();
+            _multicastFullSender = new WonderMulticast(IZUConfig.MulticastIP);
+            _multicastFullSender.RunAsClient(8331);
+
+            task_multicast_full_server = Task.Factory.StartNew(async () =>
+            {
+                JObject root = new();
+                _logger.LogDebug("socket UDP client task started, sending on port 8331");
+                while (!_cancelMulticastFullServer.IsCancellationRequested)
+                {
+                    root=WsPublishDevices();
+                    await _multicastFullSender.SendToAsync(root.ToString(Formatting.None));
+                    await Task.Delay(50);
+                }
+            }, _cancelMulticastFullServer.Token);
         }
 
         /// <summary>
@@ -344,11 +405,11 @@ namespace IZU.Service
             }
         }
 
-        JObject root = new();
-        JArray currentArray = new();
-        JObject currentObject = new();
-        public async Task WsPublishDevicesAsync()
+        public JObject WsPublishDevices()
         {
+            JObject root = new();
+            JArray currentArray = new();
+            JObject currentObject = new();
             try
             {
                 //if (msgtxt.StartsWith("__IZU__(ForceOffline)"))
@@ -570,35 +631,12 @@ namespace IZU.Service
                     #endregion
 #endif
                 }
-
-                var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(root.ToString(Formatting.None)));
-                foreach (var client in _clients.Values)
-                {
-                    if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
-
-                    await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
-                        .ContinueWith(async (t, state) =>
-                        {
-                            if (t.Exception != null && state is InnerServerClient client)
-                            {
-                                try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
-                                try { client.Socket.Abort(); } catch { }
-                                try { client.Socket.Dispose(); } catch { }
-                                client.Status = 1;//marked as wasted
-                            }
-                        }, client).ConfigureAwait(false);
-                }
-                foreach (var client in _clients.Values)
-                {
-                    if (client.Status == 0 || !string.IsNullOrEmpty(client.target))
-                        continue;
-                    _clients.TryRemove(client.SessionId, out var removedClient);
-                }
             }
             catch (Exception ex)
             {
                 _logger.LogWarning($"websocket server publish error: {ex.Message}");
             }
+            return root;
         }
 
 
