@@ -73,7 +73,7 @@ namespace IZU.Service
 
         public void Start()
         {
-            if (!_initialized)
+            if (_initialized)
                 return;
 
             InitialComnandServer();
