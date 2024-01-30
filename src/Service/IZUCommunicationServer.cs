@@ -1,19 +1,15 @@
 ﻿//#define RELEASE
 
-using AutoMapper;
 using IZU.Base;
 using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.AspNetCore.Hosting.Server;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NNanomsg.Protocols;
-using System;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace IZU.Service
 {
@@ -61,18 +57,16 @@ namespace IZU.Service
             if (replySocket != null)
             {
                 replySocket.Shutdown(NanomsgEndpoint_CommandServer);
-                replySocket.Dispose();
             }
             if (nanoPairSocketServer != null)
             {
                 nanoPairSocketServer.Shutdown(NanomsgEndpoint_DataServer);
-                nanoPairSocketServer.Dispose();
             }
             _cancelNanoCommandServer.Cancel();
             _cancelNanoDataServer.Cancel();
             _cancelWebsocketServer.Cancel();
             _cancelMulticastServer.Cancel();
-            _cancelMulticastServer.Cancel();
+            _cancelMulticastFullServer.Cancel();
         }
 
         public void Start()
@@ -232,8 +226,6 @@ namespace IZU.Service
                 }
             }, _cancelNanoCommandServer.Token);
         }
-
-
         /// <summary>
         /// SOCKET MULTICAST CLIENT
         /// PORT 8331
