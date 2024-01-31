@@ -70,6 +70,8 @@ namespace IZU.Base
         public void RunAsClient(int port)
         {
             _port = port;
+            //_localIPEndpoint = new IPEndPoint(IPAddress.Parse(local_ip), 0);
+            //_socket.Bind(_localIPEndpoint);
             _socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, ttl);
         }
 
