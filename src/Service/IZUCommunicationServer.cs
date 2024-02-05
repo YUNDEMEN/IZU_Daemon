@@ -244,12 +244,12 @@ namespace IZU.Service
 
             task_multicast_full_server = Task.Factory.StartNew(async () =>
             {
-                JObject root = new();
+                JArray root = new();
                 _logger.LogDebug("socket UDP client task started, sending on port 8331");
                 while (!_cancelMulticastFullServer.IsCancellationRequested)
                 {
-                    root=WsPublishDevices();
-                    await _multicastFullSender.SendToAsync(root.ToString(Formatting.None));
+                    root = WsPublishDevices2();
+                    await _multicastFullSender.SendToAsync("PUB_DEVICE_STATUS" + root.ToString(Formatting.None));
                     await Task.Delay(50);
                 }
             }, _cancelMulticastFullServer.Token);
@@ -361,10 +361,10 @@ namespace IZU.Service
 
 
                 else if (// 正在关
-/* R06=true*/ (bool)closing 
-/* R08=false*/&& (bool)closed == false 
-/* R03=false*/&& (bool)closeState == false 
-/* R05=false*/&& (bool)opening == false 
+/* R06=true*/ (bool)closing
+/* R08=false*/&& (bool)closed == false
+/* R03=false*/&& (bool)closeState == false
+/* R05=false*/&& (bool)opening == false
 /* R07=false*/&& (bool)opened == false
 /* R04=false*/&& (bool)openState == false)
                     return 1;
@@ -372,10 +372,10 @@ namespace IZU.Service
 
 
                 else if (// 正在开
-/* R06=false*/(bool)closing == false 
-/* R08=false*/&& (bool)closed == false 
-/* R03=false*/&& (bool)closeState == false 
-/* R05=true*/&& (bool)opening 
+/* R06=false*/(bool)closing == false
+/* R08=false*/&& (bool)closed == false
+/* R03=false*/&& (bool)closeState == false
+/* R05=true*/&& (bool)opening
 /* R07=false*/&& (bool)opened == false
 /* R04=false*/&& (bool)openState == false)
                     return 2;
@@ -383,8 +383,8 @@ namespace IZU.Service
 
 
                 else if (// 开到位
-/* R06=false*/(bool)closing == false 
-/* R08=false*/&& (bool)closed == false 
+/* R06=false*/(bool)closing == false
+/* R08=false*/&& (bool)closed == false
 /* R03=false*/&& (bool)closeState == false
 /* R05=false*/&& (bool)opening == false
 /* R07=true*/&& (bool)opened
@@ -631,6 +631,40 @@ namespace IZU.Service
             return root;
         }
 
+        public JArray WsPublishDevices2()
+        {
+            JArray root = new();
+            JArray currentArray = new();
+            try
+            {
+                var msg = _s7NetService.GetAllDevices();
+                string izuNo = msg.FirstOrDefault(p => p.DeviceType == DeviceTypes.IZU)!.Name;
+                foreach (var it in msg)
+                {
+                    JObject currentObject = new();
+
+                    currentObject = new() { ["name"] = it.Name };
+                    currentObject["type"] = it.DeviceType.ToString();
+                    currentObject["izuNo"] = izuNo;
+                    if (it.DeviceType == DeviceTypes.AUTODOOR)
+                        currentObject["doorState"] = CheckAuodoorStatus(it) == null ? null : CheckAuodoorStatus(it)!.ToString();
+                    var list2 = from x in it.Variables where x.ActionType.StartsWith('R') select new { k = x.ActionType.ToLower(), v = x.Value };
+                    foreach (var item in list2)
+                    {
+                        currentObject[item.k] = new JValue(item.v);
+                    }
+
+                   // root[it.Name.ToString().ToLower()] = currentObject;
+                    root.Add(currentObject);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"websocket server publish error: {ex.Message}");
+            }
+            string ss = JsonConvert.SerializeObject(root);
+            return root;
+        }
 
         enum DeviceOperations
         {
