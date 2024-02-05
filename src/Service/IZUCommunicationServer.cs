@@ -19,7 +19,10 @@ namespace IZU.Service
         private Guid cfg = Guid.Parse("3cfeec89-feea-4be9-9e8f-f59d4feb8347");
         private readonly ILogger<IZUCommunicationServer> _logger;
         private const int BufferSize = 4096;
-        private int task_ws_delay = 1000;
+        private int task_ws_delay = 100;
+        private int task_multicast_delay = 100;
+        private int task_multicast_full_delay = 500;
+        private int task_nano_data_delay = 10;
         private IS7NetService _s7NetService { get; }
         private WonderMulticast _multicastSender;
         private WonderMulticast _multicastFullSender;
@@ -46,7 +49,7 @@ namespace IZU.Service
         {
             _logger = logger;
             _s7NetService = s7netService;
-            task_ws_delay = IZUConfig.PublishMillionSeconds;
+            Refresh();
         }
 
         public void Stop()
@@ -71,7 +74,7 @@ namespace IZU.Service
             //if (_initialized)
             //    return;
 
-            InitialComnandServer();
+            InitialCommandServer();
             InitialNanoDataServer();
             InitialMulticastClient();
             InitialMulticastClientFull();
@@ -139,11 +142,11 @@ namespace IZU.Service
             string operation = string.Empty;
             _cancelMulticastServer = new CancellationTokenSource();
             _multicastSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastSender.RunAsClient(8131);
+            _multicastSender.RunAsClient(IZUConfig.PortMulticastServer);
 
             task_multicast_server = Task.Factory.StartNew(async () =>
             {
-                _logger.LogDebug("socket UDP client task started, sending on port 8131");
+                _logger.LogDebug($"socket multicast client task started, sending on port {IZUConfig.PortMulticastServer}");
                 while (!_cancelMulticastServer.IsCancellationRequested)
                 {
                     var msg = _s7NetService.GetAllDevices();
@@ -197,7 +200,7 @@ namespace IZU.Service
                     string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
 
                     await _multicastSender.SendToAsync(data_format);
-                    await Task.Delay(50);
+                    await Task.Delay(task_multicast_delay);
                 }
             }, _cancelMulticastServer.Token);
         }
@@ -206,14 +209,14 @@ namespace IZU.Service
         /// PORT 8231
         /// REMOTE COMMAND SERVER
         /// </summary>
-        void InitialComnandServer()
+        void InitialCommandServer()
         {
             _cancelNanoCommandServer = new CancellationTokenSource();
             replySocket = new ReplySocket();
-            NanomsgEndpoint_CommandServer = replySocket.Bind($"tcp://{IZUConfig.ServerIP}:8231");
+            NanomsgEndpoint_CommandServer = replySocket.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
             task_nano_command_server = Task.Factory.StartNew(async () =>
             {
-                _logger.LogDebug("nano repley server task started, listening on port 8231");
+                _logger.LogDebug($"nano repley server task started, listening on port {IZUConfig.PortNanoCommandServer}");
                 while (!_cancelNanoCommandServer.IsCancellationRequested)
                 {
                     byte[] buffer = replySocket.Receive();
@@ -237,17 +240,17 @@ namespace IZU.Service
             string operation = string.Empty;
             _cancelMulticastFullServer = new CancellationTokenSource();
             _multicastFullSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastFullSender.RunAsClient(8331);
+            _multicastFullSender.RunAsClient(IZUConfig.PortMulticastFullDataServer);
 
             task_multicast_full_server = Task.Factory.StartNew(async () =>
             {
                 JArray root = new();
-                _logger.LogDebug("socket UDP client task started, sending on port 8331");
+                _logger.LogDebug($"socket UDP client task started, sending on port {IZUConfig.PortMulticastFullDataServer}");
                 while (!_cancelMulticastFullServer.IsCancellationRequested)
                 {
                     root = WsPublishDevices2();
                     await _multicastFullSender.SendToAsync("PUB_DEVICE_STATUS" + root.ToString(Formatting.None));
-                    await Task.Delay(50);
+                    await Task.Delay(task_multicast_full_delay);
                 }
             }, _cancelMulticastFullServer.Token);
         }
@@ -262,27 +265,30 @@ namespace IZU.Service
             _cancelNanoDataServer = new CancellationTokenSource();
             List<DeviceEntity> cur = new List<DeviceEntity>();
             nanoPairSocketServer = new PairSocket();
-            NanomsgEndpoint_DataServer = nanoPairSocketServer.Bind($"tcp://{IZUConfig.ServerIP}:18031");
+            NanomsgEndpoint_DataServer = nanoPairSocketServer.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoDataServer}");
             task_nano_data_server = Task.Factory.StartNew(async () =>
             {
-                _logger.LogDebug("nano pair server task started, listening on port 18031");
+                _logger.LogDebug($"nano pair server task started, listening on port {IZUConfig.PortNanoDataServer}");
                 while (!_cancelNanoDataServer.IsCancellationRequested)
                 {
                     nanoPairSocketServer.Receive();
                     cur = _s7NetService.GetAllDevices();
                     nanoPairSocketServer.Send(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(cur)));
-                    await Task.Delay(10);
+                    await Task.Delay(task_nano_data_delay);
                 }
             }, _cancelNanoDataServer.Token);
         }
 
 
         /// <summary>
-        /// 刷新websocket发布数据频率
+        /// 刷新发布数据频率
         /// </summary>
         public void Refresh()
         {
             task_ws_delay = IZUConfig.PublishMillionSeconds;
+            task_multicast_delay = IZUConfig.IntervalMulticastServer;
+            task_multicast_full_delay = IZUConfig.IntervalMulticastFullDataServer;
+            task_nano_data_delay = IZUConfig.IntervalNanoDataServer;
         }
 
         class InnerServerClient

@@ -24,6 +24,9 @@ IIS中部署不支持单独文件（single file）
 dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained false
 windows服务部署可以使用此方式发布
 
+指定发布文件夹
+dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained false --output ./build
+
 ###---------2023-12-19 ----------------------------------------
 更改windows service部署方式
 安装命令：sc create izu-daemon binPath=绝对路径\IZU-Service.exe

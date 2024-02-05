@@ -65,5 +65,39 @@ namespace IZU.Entities
             }
             return string.Empty;
         }
+
+
+        /// <summary>
+        /// 多播端口（报文）
+        /// 用于oso接受设备状态
+        /// </summary>
+        public static int PortMulticastServer = 8131;
+        /// <summary>
+        /// 多播频率（ms）
+        /// </summary>
+        public static int IntervalMulticastServer = 100;
+        /// <summary>
+        /// 接受OSO控制设备指令端口
+        /// </summary>
+        public static int PortNanoCommandServer = 8231;
+        /// <summary>
+        /// 多播端口（json数据）
+        /// 用于前端展示设备状态（izu-oso-backend-frontend）
+        /// </summary>
+        public static int PortMulticastFullDataServer = 8331;
+        /// <summary>
+        /// 多播（json数据）发送设备数据频率（ms）
+        /// </summary>
+        public static int IntervalMulticastFullDataServer = 500;
+        /// <summary>
+        /// 单点发送设备数据
+        /// 用于本地上位机客户端程序
+        /// </summary>
+        public static int PortNanoDataServer = 18031;
+        /// <summary>
+        /// 单点发送设备数据频率（ms）
+        /// </summary>
+        public static int IntervalNanoDataServer = 10;
+
     }
 }
