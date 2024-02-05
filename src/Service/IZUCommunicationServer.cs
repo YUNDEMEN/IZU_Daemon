@@ -139,7 +139,7 @@ namespace IZU.Service
             string operation = string.Empty;
             _cancelMulticastServer = new CancellationTokenSource();
             _multicastSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastSender.RunAsClient(IZUConfig.ServerIP, 8131);
+            _multicastSender.RunAsClient(8131);
 
             task_multicast_server = Task.Factory.StartNew(async () =>
             {
@@ -237,7 +237,7 @@ namespace IZU.Service
             string operation = string.Empty;
             _cancelMulticastFullServer = new CancellationTokenSource();
             _multicastFullSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastFullSender.RunAsClient(IZUConfig.ServerIP, 8331);
+            _multicastFullSender.RunAsClient(8331);
 
             task_multicast_full_server = Task.Factory.StartNew(async () =>
             {
