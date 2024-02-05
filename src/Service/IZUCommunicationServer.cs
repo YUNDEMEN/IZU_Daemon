@@ -49,9 +49,6 @@ namespace IZU.Service
             task_ws_delay = IZUConfig.PublishMillionSeconds;
         }
 
-        /// <summary>
-        /// 经过测试，NANOMSG 不能重启
-        /// </summary>
         public void Stop()
         {
             if (replySocket != null)
@@ -71,8 +68,8 @@ namespace IZU.Service
 
         public void Start()
         {
-            if (_initialized)
-                return;
+            //if (_initialized)
+            //    return;
 
             InitialComnandServer();
             InitialNanoDataServer();
@@ -142,7 +139,7 @@ namespace IZU.Service
             string operation = string.Empty;
             _cancelMulticastServer = new CancellationTokenSource();
             _multicastSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastSender.RunAsClient(8131);
+            _multicastSender.RunAsClient(IZUConfig.ServerIP, 8131);
 
             task_multicast_server = Task.Factory.StartNew(async () =>
             {
@@ -240,7 +237,7 @@ namespace IZU.Service
             string operation = string.Empty;
             _cancelMulticastFullServer = new CancellationTokenSource();
             _multicastFullSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastFullSender.RunAsClient(8331);
+            _multicastFullSender.RunAsClient(IZUConfig.ServerIP, 8331);
 
             task_multicast_full_server = Task.Factory.StartNew(async () =>
             {

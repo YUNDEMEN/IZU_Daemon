@@ -260,6 +260,7 @@ namespace IZU.Service
 
         public void Stop()
         {
+            _communicationServer.Stop();
             S7netService.Stop();
             _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
