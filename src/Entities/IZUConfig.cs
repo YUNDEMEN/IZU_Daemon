@@ -31,6 +31,39 @@ namespace IZU.Entities
 
         public static string MulticastIP { get; set; } = string.Empty;
 
+
+        /// <summary>
+        /// 多播端口（报文）
+        /// 用于oso接受设备状态
+        /// </summary>
+        public static int PortMulticastServer;
+        /// <summary>
+        /// 多播频率（ms）
+        /// </summary>
+        public static int IntervalMulticastServer;
+        /// <summary>
+        /// 接受OSO控制设备指令端口
+        /// </summary>
+        public static int PortNanoCommandServer;
+        /// <summary>
+        /// 多播端口（json数据）
+        /// 用于前端展示设备状态（izu-oso-backend-frontend）
+        /// </summary>
+        public static int PortMulticastFullDataServer;
+        /// <summary>
+        /// 多播（json数据）发送设备数据频率（ms）
+        /// </summary>
+        public static int IntervalMulticastFullDataServer;
+        /// <summary>
+        /// 单点发送设备数据
+        /// 用于本地上位机客户端程序
+        /// </summary>
+        public static int PortNanoDataServer;
+        /// <summary>
+        /// 单点发送设备数据频率（ms）
+        /// </summary>
+        public static int IntervalNanoDataServer;
+
         public static string Read()
         {
             string appsettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
@@ -43,21 +76,38 @@ namespace IZU.Entities
             {
                 JObject configJson = JObject.Parse(json);
                 if (configJson["izu_backend"] == null)
-                {
                     return "izu_backend node not found!";
-                }
                 if (configJson["map_version"] == null)
-                {
                     return "map_version node not found!";
-                }
                 if (configJson["multicast_ip"] == null)
-                {
                     return "multicast_ip node not found!";
-                }
+                if (configJson["PortMulticastServer"] == null)
+                    return "PortMulticastServer node not found!";
+                if (configJson["IntervalMulticastServer"] == null)
+                    return "IntervalMulticastServer node not found!";
+                if (configJson["PortNanoCommandServer"] == null)
+                    return "PortNanoCommandServer node not found!";
+                if (configJson["PortMulticastFullDataServer"] == null)
+                    return "PortMulticastFullDataServer node not found!";
+                if (configJson["IntervalMulticastFullDataServer"] == null)
+                    return "IntervalMulticastFullDataServer node not found!";
+                if (configJson["PortNanoDataServer"] == null)
+                    return "PortNanoDataServer node not found!";
+                if (configJson["IntervalNanoDataServer"] == null)
+                    return "IntervalNanoDataServer node not found!";
+
                 MulticastIP = configJson["multicast_ip"]!.ToString();
                 BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
                 DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
                 MapVersion = configJson!["map_version"]!.ToString();
+                MapVersion = configJson!["map_version"]!.ToString();
+                PortMulticastServer = Int32.Parse(configJson!["PortMulticastServer"]!.ToString());
+                IntervalMulticastServer = Int32.Parse(configJson!["IntervalMulticastServer"]!.ToString());
+                PortNanoCommandServer = Int32.Parse(configJson!["PortNanoCommandServer"]!.ToString());
+                PortMulticastFullDataServer = Int32.Parse(configJson!["PortMulticastFullDataServer"]!.ToString());
+                IntervalMulticastFullDataServer = Int32.Parse(configJson!["IntervalMulticastFullDataServer"]!.ToString());
+                PortNanoDataServer = Int32.Parse(configJson!["PortNanoDataServer"]!.ToString());
+                IntervalNanoDataServer = Int32.Parse(configJson!["IntervalNanoDataServer"]!.ToString());
             }
             catch (Exception ex)
             {
@@ -65,39 +115,5 @@ namespace IZU.Entities
             }
             return string.Empty;
         }
-
-
-        /// <summary>
-        /// 多播端口（报文）
-        /// 用于oso接受设备状态
-        /// </summary>
-        public static int PortMulticastServer = 8131;
-        /// <summary>
-        /// 多播频率（ms）
-        /// </summary>
-        public static int IntervalMulticastServer = 100;
-        /// <summary>
-        /// 接受OSO控制设备指令端口
-        /// </summary>
-        public static int PortNanoCommandServer = 8231;
-        /// <summary>
-        /// 多播端口（json数据）
-        /// 用于前端展示设备状态（izu-oso-backend-frontend）
-        /// </summary>
-        public static int PortMulticastFullDataServer = 8331;
-        /// <summary>
-        /// 多播（json数据）发送设备数据频率（ms）
-        /// </summary>
-        public static int IntervalMulticastFullDataServer = 500;
-        /// <summary>
-        /// 单点发送设备数据
-        /// 用于本地上位机客户端程序
-        /// </summary>
-        public static int PortNanoDataServer = 18031;
-        /// <summary>
-        /// 单点发送设备数据频率（ms）
-        /// </summary>
-        public static int IntervalNanoDataServer = 10;
-
     }
 }
