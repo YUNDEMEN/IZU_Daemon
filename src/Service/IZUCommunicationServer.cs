@@ -54,16 +54,17 @@ namespace IZU.Service
 
         public void Stop()
         {
-            if (replySocket != null)
-            {
-                replySocket.Shutdown(NanomsgEndpoint_CommandServer);
-            }
-            if (nanoPairSocketServer != null)
-            {
-                nanoPairSocketServer.Shutdown(NanomsgEndpoint_DataServer);
-            }
-            _cancelNanoCommandServer.Cancel();
-            _cancelNanoDataServer.Cancel();
+            //if (replySocket != null)
+            //{
+            //    replySocket.Shutdown(NanomsgEndpoint_CommandServer);
+            //}
+            //if (nanoPairSocketServer != null)
+            //{
+            //    nanoPairSocketServer.Shutdown(NanomsgEndpoint_DataServer);
+            //}
+            //_cancelNanoCommandServer.Cancel();
+            //_cancelNanoDataServer.Cancel();
+
             _cancelWebsocketServer.Cancel();
             _cancelMulticastServer.Cancel();
             _cancelMulticastFullServer.Cancel();
@@ -71,14 +72,13 @@ namespace IZU.Service
 
         public void Start()
         {
-            //if (_initialized)
-            //    return;
-
-            InitialCommandServer();
-            InitialNanoDataServer();
             InitialMulticastClient();
             InitialMulticastClientFull();
             InitialWebsocket();
+            if (_initialized)
+                return;
+            InitialCommandServer();
+            InitialNanoDataServer();
             _initialized = true;
         }
         /// <summary>
