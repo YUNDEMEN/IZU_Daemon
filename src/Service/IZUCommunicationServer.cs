@@ -96,7 +96,11 @@ namespace IZU.Service
                 while (!_cancelWebsocketServer.IsCancellationRequested)
                 {
 #if RELEASE
-                    if (_clients.Count != 0)
+                    if (_clients.Count == 0)
+                    {
+                        await Task.Delay(task_ws_delay);
+                        continue;
+                    }
 #endif
                     root = WsPublishDevices();
 
