@@ -32,9 +32,10 @@ namespace IZU.Service
             _logger.LogInformation("---------------IZU service starting---------------");
             await GetMapVersion(); 
             IZUConfig.Read();
+            await ReadConfigFromDBAsync();
+
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
-            await ReadConfigFromDBAsync();
             _logger.LogInformation("---------------IZU service started---------------");
             _communicationServer.Start();
         }

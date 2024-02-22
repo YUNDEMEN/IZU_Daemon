@@ -30,7 +30,6 @@ namespace IZU.Entities
         /// </summary>
         public static string DeviceTableFrom { get; set; } = "db";
 
-
         public static string MapVersion { get; set; } = string.Empty;
 
         public static string MulticastIP { get; set; } = string.Empty;
