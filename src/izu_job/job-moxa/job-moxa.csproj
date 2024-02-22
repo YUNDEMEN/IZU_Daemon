@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo &quot;--&gt;&quot; $(SolutionDir)src_job\izu-quartz\$(OutDir)&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)src_job\izu-quartz\$(OutDir)\&quot; /y" />
+    <Exec Command="echo &quot;--&gt;&quot; $(SolutionDir)src_job\izu-quartz\$(OutDir)&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)src\izu_job\izu-quartz\$(OutDir)\&quot; /y" />
   </Target>
 
 </Project>
