@@ -139,7 +139,7 @@ namespace IZU.Service
                             }
                             else 
                             {
-                                response = await httpClient.PostAsync($"izu/editIp", JsonContent.Create(new
+                                response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new
                                 {
                                     id = IZUConfig.izuId,
                                     ip = IZUConfig.Server,
