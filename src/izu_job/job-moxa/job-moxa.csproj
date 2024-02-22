@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>job_moxa</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Quartz">
+      <HintPath>..\..\..\references\quartz-release-net8.0\Quartz.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo &quot;--&gt;&quot; $(SolutionDir)src_job\izu-quartz\$(OutDir)&#xD;&#xA;xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)src_job\izu-quartz\$(OutDir)\&quot; /y" />
+  </Target>
+
+</Project>

@@ -1,0 +1,72 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
+	ProjectSection(SolutionItems) = preProject
+		install-u.bat = install-u.bat
+		install.bat = install.bat
+		readme-IZU_Daemon.txt = readme-IZU_Daemon.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A39079DA-3D89-43A4-907B-C65F67F9256D}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedCode", "src\izu_shared\SharedCode.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUD", "src\izu_daemon\IZUD.csproj", "{481CBD18-3B1B-442F-8BA0-F1235A689D66}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUE", "src\izu_emulation\IZUE.csproj", "{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quartz", "quartz", "{7EE62DBD-9E76-4E63-A909-61B41BA72206}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-quartz", "src\izu_job\izu-quartz\izu-quartz.csproj", "{2845D964-02FD-4B3A-92F6-B532D7EB11E2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "jobs", "jobs", "{C9A435E7-D565-4C32-B307-34C0B32D7801}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "job-moxa", "src\izu_job\job-moxa\job-moxa.csproj", "{62840619-F4CB-47A1-9809-A3C11648786F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62840619-F4CB-47A1-9809-A3C11648786F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62840619-F4CB-47A1-9809-A3C11648786F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62840619-F4CB-47A1-9809-A3C11648786F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62840619-F4CB-47A1-9809-A3C11648786F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
+		{481CBD18-3B1B-442F-8BA0-F1235A689D66} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
+		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
+		{7EE62DBD-9E76-4E63-A909-61B41BA72206} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
+		{2845D964-02FD-4B3A-92F6-B532D7EB11E2} = {7EE62DBD-9E76-4E63-A909-61B41BA72206}
+		{C9A435E7-D565-4C32-B307-34C0B32D7801} = {7EE62DBD-9E76-4E63-A909-61B41BA72206}
+		{62840619-F4CB-47A1-9809-A3C11648786F} = {C9A435E7-D565-4C32-B307-34C0B32D7801}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\izu_shared\IZUShared.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
+		src\izu_shared\IZUShared.projitems*{481cbd18-3b1b-442f-8ba0-f1235a689d66}*SharedItemsImports = 5
+		src\izu_shared\IZUShared.projitems*{fbb199f1-e11a-492b-ace7-c9cb0ace66ef}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal

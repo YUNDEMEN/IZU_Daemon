@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>IZUShared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Base\CsvVariableMapping.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\DatetimeJsonConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\IZUControllerBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\IZULogging.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\LongRunningTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Ref.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Resp.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\ReturnClasses.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\TextRecorder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\TimestampService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\WonderMulticast.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Log.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Show.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TelnetCommandBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controllers\ServiceInfoController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.AutoDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.FireDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.HID.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\DeviceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\EntityDevice.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\EntityVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\Enums.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\IZUConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\ServiceRuntime.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ICommunication.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDevices.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IFireDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IHID.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IIZUService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IPlcServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IS7NetService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\IZUCommunicationServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\WonderTelnetService.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,31 @@
+{
+  "profiles": {
+    "IZU_Daemon": {
+      "commandName": "Project",
+      "commandLineArgs": "--urls http://192.168.127.204:8031",
+      "launchUrl": "izu",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:8031"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "izu",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  },
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:14702",
+      "sslPort": 0
+    }
+  }
+}

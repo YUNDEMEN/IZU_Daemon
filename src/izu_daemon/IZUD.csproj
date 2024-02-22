@@ -1,0 +1,92 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RootNamespace>$(MSBuildProjectName.Replace("_Daemon", ""))</RootNamespace>
+    <AssemblyName>$(MSBuildProjectName.Replace("_Daemon", "-Service"))</AssemblyName>
+    <SatelliteResourceLanguages>disabled</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Base\**" />
+    <Compile Remove="build\**" />
+    <Compile Remove="Commands\**" />
+    <Compile Remove="Controllers\**" />
+    <Compile Remove="DeviceFactories\**" />
+    <Compile Remove="DeviceTable\**" />
+    <Compile Remove="Entities\**" />
+    <Compile Remove="Interfaces\**" />
+    <Compile Remove="Service\**" />
+    <Content Remove="Base\**" />
+    <Content Remove="build\**" />
+    <Content Remove="Commands\**" />
+    <Content Remove="Controllers\**" />
+    <Content Remove="DeviceFactories\**" />
+    <Content Remove="DeviceTable\**" />
+    <Content Remove="Entities\**" />
+    <Content Remove="Interfaces\**" />
+    <Content Remove="Service\**" />
+    <EmbeddedResource Remove="Base\**" />
+    <EmbeddedResource Remove="build\**" />
+    <EmbeddedResource Remove="Commands\**" />
+    <EmbeddedResource Remove="Controllers\**" />
+    <EmbeddedResource Remove="DeviceFactories\**" />
+    <EmbeddedResource Remove="DeviceTable\**" />
+    <EmbeddedResource Remove="Entities\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Service\**" />
+    <None Remove="Base\**" />
+    <None Remove="build\**" />
+    <None Remove="Commands\**" />
+    <None Remove="Controllers\**" />
+    <None Remove="DeviceFactories\**" />
+    <None Remove="DeviceTable\**" />
+    <None Remove="Entities\**" />
+    <None Remove="Interfaces\**" />
+    <None Remove="Service\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Sharp7.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="S7netplus" Version="0.20.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
+    <PackageReference Include="TinyCsvParser" Version="2.7.0" />
+    <PackageReference Include="WD.NLog.Extensions.Logging" Version="3.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NanoMsgCore">
+      <HintPath>..\..\references\SDK\NanoMsgCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="x64\libnanomsg.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="x64\nanomsg.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="x86\libnanomsg.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="x86\nanomsg.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Import Project="..\izu_shared\IZUShared.projitems" Label="Shared" />
+
+
+</Project>
