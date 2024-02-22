@@ -38,7 +38,7 @@ namespace IZU.Commands
             }
             if (info)
             {
-                commandService.WriteLine($"izu id".PadRight(w) + $":{Entities.IZUConfig.ID}");
+                commandService.WriteLine($"izu id".PadRight(w) + $":{Entities.IZUConfig.izuId}");
                 commandService.WriteLine($"server endpoint".PadRight(w) + $":{Entities.IZUConfig.Server}");
                 commandService.WriteLine($"izu backend".PadRight(w) + $": {Entities.IZUConfig.BackendIZUBaseUrl}");
                 commandService.WriteLine($"publish interval".PadRight(w) + $":{Entities.IZUConfig.PublishMillionSeconds} ms (websocket)");

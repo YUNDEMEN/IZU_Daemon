@@ -12,7 +12,6 @@ namespace IZU.Entities
         /// NLog 配置文件
         /// </summary>
         public const string NlogConfig = "nlog.config";
-        public static int ID { get; set; } = 0;
         /// <summary>
         /// 服务的本地IP地址
         /// </summary>

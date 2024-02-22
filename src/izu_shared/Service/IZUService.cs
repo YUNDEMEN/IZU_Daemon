@@ -161,38 +161,33 @@ namespace IZU.Service
                             }
                         }
                     }
-
-                    if (izu_id > 0)
+                    var devices = S7netService.GetAllDevices();
+                    var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
+                    foreach (var item in groups)
                     {
-                        var devices = S7netService.GetAllDevices();
-                        var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
-                        foreach (var item in groups)
+                        var ds = from x in item.ToList()
+                                 select new
+                                 {
+                                     name = x.Name,
+                                     izu_id,
+                                     map_version = IZUConfig.MapVersion
+                                 };
+                        response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
+                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                         {
-                            var ds = from x in item.ToList()
-                                     select new
-                                     {
-                                         name = x.Name,
-                                         izu_id,
-                                         map_version = IZUConfig.MapVersion
-                                     };
-                            response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
-                            if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                            string result = await response.Content.ReadAsStringAsync();
+                            response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                            if (!resultObject!.ok)
                             {
-                                string result = await response.Content.ReadAsStringAsync();
-                                response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                                if (!resultObject!.ok)
-                                {
-                                    _logger.LogWarning($"upload izu {item.Key} info failed: {resultObject.message}");
-                                }
-                                else
-                                {
-                                    _logger.LogDebug($"upload izu {item.Key} info successfully");
-                                }
+                                _logger.LogWarning($"upload izu {item.Key} info failed: {resultObject.message}");
+                            }
+                            else
+                            {
+                                _logger.LogDebug($"upload izu {item.Key} info successfully");
                             }
                         }
                     }
 
-                    IZUConfig.ID = izu_id;
                     _communicationServer.Refresh();
                 }
                 catch (HttpRequestException http_ex)
@@ -227,7 +222,7 @@ namespace IZU.Service
 
         async Task<List<VariableEntity>> GetDeviceTableFromDBAsync()
         {
-            if (IZUConfig.ID == 0) return new List<VariableEntity>();
+            if (IZUConfig.izuId == 0) return new List<VariableEntity>();
             using (HttpClient httpClient = new())
             {
                 List<VariableEntity> variables = new List<VariableEntity>();
@@ -236,7 +231,7 @@ namespace IZU.Service
                     httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    HttpResponseMessage response = await httpClient.GetAsync($"izu/get/device/vars/by?id={IZUConfig.ID}");
+                    HttpResponseMessage response = await httpClient.GetAsync($"izu/get/device/vars/by?id={IZUConfig.izuId}");
                     response.EnsureSuccessStatusCode();
 
                     string result = await response.Content.ReadAsStringAsync();
