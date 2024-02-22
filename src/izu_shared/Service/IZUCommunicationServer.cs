@@ -442,7 +442,7 @@ namespace IZU.Service
                         currentObject[item.k] = new JValue(item.v);
                     }
                     currentArray.Add(currentObject);
-#if DEBUG
+#if DEBUG2
                     #region 设备调试
                     if (it.DeviceType.Equals(DeviceTypes.IZU))
                     {
@@ -643,6 +643,7 @@ namespace IZU.Service
             try
             {
                 var msg = _s7NetService.GetAllDevices();
+                if (msg.Count == 0) return root;
                 string izuNo = msg.FirstOrDefault(p => p.DeviceType == DeviceTypes.IZU)!.Name;
                 foreach (var it in msg)
                 {

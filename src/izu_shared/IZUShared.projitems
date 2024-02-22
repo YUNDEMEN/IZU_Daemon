@@ -26,12 +26,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Show.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TelnetCommandBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controllers\ServiceInfoController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.AutoDoor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.FireDoor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\Device.HID.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\DeviceFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\EntityDevice.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\EntityVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\IZUConfig.cs" />
