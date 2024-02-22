@@ -30,7 +30,7 @@ namespace IZU.Service
         {
             //var _loggers = IZULogging.Factory.CreateLogger<Device>();
             _logger.LogInformation("---------------IZU service starting---------------");
-            await GetMapVersion();
+            await GetMapVersion(); 
             IZUConfig.Read();
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
