@@ -2,6 +2,8 @@
 using IZU.Entities;
 using IZU.Interfaces;
 using Newtonsoft.Json.Linq;
+using S7.Net.Types;
+using System;
 using System.Text;
 using System.Text.Json.Nodes;
 using TinyCsvParser;
@@ -12,7 +14,6 @@ namespace IZU.Service
     {
         public ServiceRuntime ServiceRuntime { get; }
         private readonly ILogger<IZUService> _logger;
-        private readonly Timer _timer;
         private readonly ICommunication _communicationServer;
 
         public IS7NetService S7netService { get; }
@@ -22,7 +23,6 @@ namespace IZU.Service
             _logger = logger;
             S7netService = s7netService;
             _communicationServer = communicationServer;
-            _timer = new Timer(Callback);
             ServiceRuntime = new ServiceRuntime();
             logger.LogInformation("IZU service initialized");
         }
@@ -30,6 +30,7 @@ namespace IZU.Service
         {
             //var _loggers = IZULogging.Factory.CreateLogger<Device>();
             _logger.LogInformation("---------------IZU service starting---------------");
+            await GetMapVersion(); 
             IZUConfig.Read();
             await ReadConfigFromDBAsync();
 
@@ -37,6 +38,44 @@ namespace IZU.Service
             S7netService.Start(device_var_list);
             _logger.LogInformation("---------------IZU service started---------------");
             _communicationServer.Start();
+        }
+
+        private async Task GetMapVersion()
+        {
+            using (HttpClient httpClient = new())
+            {
+                try
+                {
+                    httpClient.Timeout = TimeSpan.FromSeconds(2);
+                    httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    HttpResponseMessage response = await httpClient.GetAsync($"izu/map");
+                    if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                    {
+                        string result = await response.Content.ReadAsStringAsync();
+                        var jsonResult = JsonObject.Parse(result);
+                        var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                        if (resultObject!.ok && resultObject.data != null)
+                        {
+                            IZUConfig.MapVersion= resultObject.data.ToString();
+                            if (!IZUConfig.WriteToAppSetting("map_version", IZUConfig.MapVersion))
+                                _logger.LogWarning($"write mapVersion to json failed.");
+                        }
+                    }
+                }
+                catch (HttpRequestException http_ex)
+                {
+                    _logger.LogWarning($"get mapVersion error: {http_ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"get mapVersion error: {ex.Message}");
+                }
+                finally
+                {
+                    httpClient.Dispose();
+                }
+            }
         }
 
         public async Task ReadConfigFromDBAsync()
@@ -57,7 +96,7 @@ namespace IZU.Service
                         string result = await response.Content.ReadAsStringAsync();
                         var jsonResult = JsonObject.Parse(result);
                         var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                        if (resultObject!.ok && resultObject.data!=null)
+                        if (resultObject!.ok && resultObject.data != null)
                         {
                             JObject izuObj = (JObject)resultObject.data;
                             IZUConfig.PublishMillionSeconds = (int)izuObj["wspub_interval"]!;
@@ -70,26 +109,57 @@ namespace IZU.Service
 
                     if (izu_id == 0)
                     {
-                        response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
+                        if (string.IsNullOrEmpty(IZUConfig.Read()))
                         {
-                            name = IZUConfig.Server,
-                            ip = IZUConfig.Server,
-                            ws_interval=100,
-                            backend_url=IZUConfig.BackendIZUBaseUrl
-                        }));
-                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
-                        {
-                            string result = await response.Content.ReadAsStringAsync();
-                            var jsonResult = JsonObject.Parse(result);
-                            var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                            if (!resultObject!.ok)
+                            if (IZUConfig.izuId == 0)
                             {
-                                _logger.LogWarning($"add izu info failed: {resultObject.message}");
+                                response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
+                                {
+                                    name = IZUConfig.Server,
+                                    ip = IZUConfig.Server,
+                                    ws_interval = 100,
+                                    backend_url = IZUConfig.BackendIZUBaseUrl
+                                }));
+                                if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                                {
+                                    string result = await response.Content.ReadAsStringAsync();
+                                    var jsonResult = JsonObject.Parse(result);
+                                    var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                                    if (!resultObject!.ok)
+                                    {
+                                        _logger.LogWarning($"add izu info failed: {resultObject.message}");
+                                    }
+                                    else
+                                    {
+                                        int.TryParse($"{resultObject.data}", out izu_id);
+                                        _logger.LogDebug($"add izu info successfully");
+                                        IZUConfig.izuId = izu_id;
+                                        if (!IZUConfig.WriteToAppSetting("izuId",izu_id))
+                                            _logger.LogWarning($"add izuId to json failed.");
+                                    }
+                                }
                             }
-                            else
+                            else 
                             {
-                                int.TryParse($"{resultObject.data}", out izu_id);
-                                _logger.LogDebug($"add izu info successfully");
+                                response = await httpClient.PostAsync($"izu/editIp", JsonContent.Create(new
+                                {
+                                    id = IZUConfig.izuId,
+                                    ip = IZUConfig.Server,
+                                    ws_interval = 100
+                                }));
+                                if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                                {
+                                    string result = await response.Content.ReadAsStringAsync();
+                                    response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                                    if (!resultObject!.ok)
+                                    {
+                                        _logger.LogWarning($"edit izu {izu_id} ipPort config info failed: {resultObject.message}");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogDebug($"edit izu {izu_id} ipPort config info successfully");
+                                    }
+                                }
                             }
                         }
                     }
@@ -152,7 +222,7 @@ namespace IZU.Service
             {
                 return await GetDeviceTableFromLocalFileAsync();
             }
-            
+
         }
 
 
@@ -210,7 +280,7 @@ namespace IZU.Service
         async Task<List<VariableEntity>> GetDeviceTableFromLocalFileAsync()
         {
             _logger.LogInformation("start loading device table");
-            
+
             DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DeviceTable"));
             if (!dir.Exists)
             {
@@ -263,7 +333,6 @@ namespace IZU.Service
         {
             _communicationServer.Stop();
             S7netService.Stop();
-            _timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
 

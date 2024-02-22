@@ -1,4 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+
 
 namespace IZU.Entities
 {
@@ -62,6 +66,10 @@ namespace IZU.Entities
         /// 单点发送设备数据频率（ms）
         /// </summary>
         public static int IntervalNanoDataServer;
+        /// <summary>
+        /// izu_daemon的ipPort
+        /// </summary>
+        public static int izuId;
 
         public static string Read()
         {
@@ -94,6 +102,8 @@ namespace IZU.Entities
                     return "PortNanoDataServer node not found!";
                 if (configJson["IntervalNanoDataServer"] == null)
                     return "IntervalNanoDataServer node not found!";
+                if (configJson["izuId"] == null)
+                    return "izuId node not found!";
 
                 MulticastIP = configJson["multicast_ip"]!.ToString();
                 BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
@@ -107,12 +117,51 @@ namespace IZU.Entities
                 IntervalMulticastFullDataServer = Int32.Parse(configJson!["IntervalMulticastFullDataServer"]!.ToString());
                 PortNanoDataServer = Int32.Parse(configJson!["PortNanoDataServer"]!.ToString());
                 IntervalNanoDataServer = Int32.Parse(configJson!["IntervalNanoDataServer"]!.ToString());
+                izuId = Int32.Parse(configJson!["izuId"]!.ToString());
             }
             catch (Exception ex)
             {
                 return ex.Message + "\r\n" + ex.StackTrace;
             }
             return string.Empty;
+        }
+
+        public static bool WriteToAppSetting(string node, int izuId)
+        {
+            string appsettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+            if (!File.Exists(appsettingsPath))
+            {
+                return false;
+            }
+            try
+            {
+                string json = File.ReadAllText(appsettingsPath);
+                JObject configJson = JObject.Parse(json);
+                configJson[node] = izuId;
+                string convertString = Convert.ToString(configJson);
+                File.WriteAllText(appsettingsPath, convertString);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public static bool WriteToAppSetting(string node,string map_version)
+        {
+            string appsettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+            if (!File.Exists(appsettingsPath))
+            {
+                return false;
+            }
+            try
+            {
+                string json = File.ReadAllText(appsettingsPath);
+                JObject configJson = JObject.Parse(json);
+                configJson[node] = map_version;
+                string convertString = Convert.ToString(configJson);
+                File.WriteAllText(appsettingsPath, convertString);
+                return true;
+            }
+            catch { return false; }
         }
     }
 }
