@@ -72,20 +72,6 @@ builder.Logging.AddTelnetLogger(configuration =>
         );
 });
 builder.Host.UseWindowsService();
-builder.Host.ConfigureServices(s =>
-{
-    s.AddCors(options =>
-    {
-        options.AddPolicy(
-        name: "AllowAnyOrigin",
-        builder =>
-        {
-            builder.AllowAnyOrigin();
-            builder.AllowAnyMethod();
-            builder.AllowAnyHeader();
-        });
-    });
-});
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new DatetimeJsonConverter("yyyy-MM-dd HH:mm:ss"));
