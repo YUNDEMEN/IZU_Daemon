@@ -136,8 +136,53 @@ namespace IZU.Service
                                     }
                                 }
                             }
-                            else 
+                            else
                             {
+                                // 判断是否存在该id
+                                response = await httpClient.PostAsync($"izu/existById", JsonContent.Create(new
+                                {
+                                    id = IZUConfig.izuId
+                                }));
+                                if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                                {
+                                    string result = await response.Content.ReadAsStringAsync();
+                                    response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                                    if (!resultObject!.ok)
+                                    {
+                                        _logger.LogWarning($"get bool existById {izu_id} failed: {resultObject.message}");
+                                    }
+                                    else
+                                    {
+                                        _logger.LogDebug($"get bool existById {izu_id} successfully");
+                                        if ((bool)resultObject.data == false)
+                                        {
+                                            response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
+                                            {
+                                                ip = IZUConfig.Server,
+                                                ws_interval = 100
+                                            }));
+                                            if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                                            {
+                                                 result = await response.Content.ReadAsStringAsync();
+                                                var jsonResult = JsonObject.Parse(result);
+                                                 resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                                                if (!resultObject!.ok)
+                                                {
+                                                    _logger.LogWarning($"add izu info failed: {resultObject.message}");
+                                                }
+                                                else
+                                                {
+                                                    int.TryParse($"{resultObject.data}", out izu_id);
+                                                    _logger.LogDebug($"add izu info successfully");
+                                                    IZUConfig.izuId = izu_id;
+                                                    if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
+                                                        _logger.LogWarning($"add izuId to json failed.");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new
                                 {
                                     id = IZUConfig.izuId,
@@ -159,6 +204,12 @@ namespace IZU.Service
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        IZUConfig.izuId = izu_id;
+                        if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
+                            _logger.LogWarning($"add izuId to json failed.");
                     }
                     var devices = S7netService.GetAllDevices();
                     var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
