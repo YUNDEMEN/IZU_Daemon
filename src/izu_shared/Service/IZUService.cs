@@ -31,6 +31,7 @@ namespace IZU.Service
             IZUConfig.Read();
             await GetMapVersion();
             await ReadConfigFromDBAsync();
+            IZUConfig.Read();
 
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
@@ -100,8 +101,8 @@ namespace IZU.Service
                             IZUConfig.PublishMillionSeconds = (int)izuObj["wspub_interval"]!;
                             izu_id = (int)izuObj["id"]!;
                             _logger.LogInformation($"get izu info successfully");
-                            if ($"{izuObj["status"]}" == "disabled")
-                                return;
+                            //if ($"{izuObj["status"]}" == "disabled")
+                            //    return;
                         }
                     }
 
@@ -218,8 +219,6 @@ namespace IZU.Service
 
         }
 
-
-
         async Task<List<VariableEntity>> GetDeviceTableFromDBAsync()
         {
             if (IZUConfig.izuId == 0) return new List<VariableEntity>();
@@ -311,14 +310,6 @@ namespace IZU.Service
             _logger.LogInformation("end loading device table");
             await Task.Delay(10);
             return variables;
-        }
-
-
-
-        void Callback(object? state)
-        {
-            //Console.SetCursorPosition(0, Console.GetCursorPosition().Top);
-            //Console.Write("★★★★★ IZU Service is running! [{0:yyyy-MM-dd HH:mm:ss:fff}] ★★★★★★★", DateTime.Now);
         }
 
 
