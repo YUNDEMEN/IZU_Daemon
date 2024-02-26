@@ -178,7 +178,7 @@ namespace IZU.Service
                                                     if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
                                                         _logger.LogWarning($"add izuId to json failed.");
                                                     else
-                                                        _logger.LogDebug($"add izuId to json successfully");
+                                                        _logger.LogInformation($"add izuId to json successfully");
                                                 }
                                             }
                                         }
@@ -213,7 +213,7 @@ namespace IZU.Service
                         if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
                             _logger.LogWarning($"add izuId to json failed.");
                         else
-                            _logger.LogDebug($"add izuId to json successfully");
+                            _logger.LogInformation($"add izuId to json successfully");
                     }
                     var devices = S7netService.GetAllDevices();
                     var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
