@@ -78,7 +78,7 @@
     </None>
   </ItemGroup>
 
-  <Import Project="..\izu_shared\IZUShared.projitems" Label="Shared" />
+  <Import Project="..\izu_shared\IZU.CodeSharing.projitems" Label="Shared" />
 
 
 </Project>
