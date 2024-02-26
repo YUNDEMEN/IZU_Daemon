@@ -38,17 +38,24 @@ namespace IZU.Commands
             }
             if (info)
             {
-                commandService.WriteLine($"izu id".PadRight(w) + $":{Entities.IZUConfig.izuId}");
+                int w = 26;
                 commandService.WriteLine($"server endpoint".PadRight(w) + $":{Entities.IZUConfig.Server}");
-                commandService.WriteLine($"izu backend".PadRight(w) + $": {Entities.IZUConfig.BackendIZUBaseUrl}");
+                commandService.WriteLine($"izu backend".PadRight(w) + $":{Entities.IZUConfig.BackendIZUBaseUrl}");
+                commandService.WriteLine($"izu id".PadRight(w) + $":{Entities.IZUConfig.izuId}");
+                commandService.WriteLine($"map version".PadRight(w) + $":{Entities.IZUConfig.MapVersion}");
+                commandService.WriteLine($"multicast ip".PadRight(w) + $":{Entities.IZUConfig.MulticastIP}");
+                commandService.WriteLine($"multicast port".PadRight(w) + $":{Entities.IZUConfig.PortMulticastServer}");
+                commandService.WriteLine($"multicast interval".PadRight(w) + $":{Entities.IZUConfig.IntervalMulticastServer} ms");
+                commandService.WriteLine($"multicast(json) port".PadRight(w) + $":{Entities.IZUConfig.PortMulticastFullDataServer}");
+                commandService.WriteLine($"multicast(json) interval".PadRight(w) + $":{Entities.IZUConfig.IntervalMulticastFullDataServer} ms");
                 commandService.WriteLine($"publish interval".PadRight(w) + $":{Entities.IZUConfig.PublishMillionSeconds} ms (websocket)");
                 commandService.WriteLine($"variables".PadRight(w) + $":{Entities.IZUConfig.DeviceTableFrom}");
             }
         }
 
-        const int w = 16;
         void ShowDevices(string name, bool all)
         {
+            int w = 16;
             if (!string.IsNullOrEmpty(name))
             {
                 var deviceEntity = _s7netService.GetDevice(name);

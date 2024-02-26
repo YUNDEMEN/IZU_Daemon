@@ -116,8 +116,7 @@ namespace IZU.Service
                                 {
                                     name = IZUConfig.Server,
                                     ip = IZUConfig.Server,
-                                    ws_interval = 100,
-                                    backend_url = IZUConfig.BackendIZUBaseUrl
+                                    ws_interval = 100
                                 }));
                                 if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                                 {
