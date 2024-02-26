@@ -28,7 +28,7 @@ namespace IZU.Commands
                 try
                 {
                     _s7netService.Stop();
-                    var ex = _izuService.StartAsync().Exception;
+                    _izuService.StartAsync().Wait();
                     commandService.WriteLine($"config reloaded successfully");
                 }
                 catch (Exception ex)
