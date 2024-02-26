@@ -114,7 +114,6 @@ namespace IZU.Service
                             {
                                 response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
                                 {
-                                    name = IZUConfig.Server,
                                     ip = IZUConfig.Server,
                                     ws_interval = 100
                                 }));
