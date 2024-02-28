@@ -304,3 +304,4 @@ ASALocalRun/
 healthchecksdb
 /src/Properties/launchSettings.json
 /src/izu_emulation/build
+/build
