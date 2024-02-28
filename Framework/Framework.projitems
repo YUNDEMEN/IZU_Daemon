@@ -9,6 +9,7 @@
     <Import_RootNamespace>Wonder</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ILongRunningTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LongRunningTask.cs" />
