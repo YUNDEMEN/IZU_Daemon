@@ -17,19 +17,6 @@ namespace IZU.Base
             return service;
         }
 
-        public static void UseIZU(this WebApplication app)
-        {
-            IWebsocketService? izuSock = app.Services.GetService<IWebsocketService>();
-            if (izuSock == null)
-                throw new Exception("should add izu first");
-
-            app.Map("/ws", config =>
-            {
-                config.UseWebSockets();
-                config.Use(async (context, next) => await izuSock.Acceptor(context, next));
-            });
-        }
-
         public static int ToInt32(this string value, int defaultValue = 0)
         {
             if (int.TryParse(value, out int result))

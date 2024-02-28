@@ -28,7 +28,6 @@ namespace IZU.Service
         public async Task StartAsync()
         {
             _serviceRuntime.MarkStarted();
-            _logger.LogInformation("---------------IZU service starting---------------"); 
             IZUConfig.Read();
             await GetMapVersion();
             await ReadConfigFromDBAsync();
@@ -36,7 +35,6 @@ namespace IZU.Service
 
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
-            _logger.LogInformation("---------------IZU service started---------------");
             _communicationServer.Start();
         }
 

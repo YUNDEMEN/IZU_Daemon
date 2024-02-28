@@ -104,6 +104,6 @@ var app = builder.Build();
 app.UseTelnet();
 //app.UseAuthorization();
 app.UseCors("AllowAnyOrigin");
+app.UseWebSockets();
 app.MapControllers();
-await app.UseIZU();
 await app.RunAsync();

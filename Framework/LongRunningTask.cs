@@ -38,7 +38,6 @@
             Name = GetType().Name;
             IsStarted = false;
             cancellationTokenSource = new CancellationTokenSource();
-            logger.LogDebug($"Long Running Task Initialized:  {Name}");
         }
 
         /// <summary>
@@ -78,14 +77,14 @@
             TaskContinuationOptions.NotOnCanceled
             );
 
-            _logger.LogDebug($"Long Running Task Started: {this.GetType().Name} ({theTask.Status}).");
+            _logger.LogInformation($"Long Running Task Started: {this.GetType().Name} ({theTask.Status}).");
         }
 
         public virtual void Stop()
         {
             cancellationTokenSource.Cancel();
             IsStarted = false;
-            _logger.LogDebug($"{this.GetType().Name} Task Canceled({theTask?.Status}).");
+            _logger.LogInformation($"{this.GetType().Name} Task Canceled({theTask?.Status}).");
         }
 
         static string GetRealExceptions(Exception? ex)
