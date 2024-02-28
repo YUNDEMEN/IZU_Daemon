@@ -11,20 +11,15 @@ namespace IZU.Base
         {
             service.AddSingleton<IIZUService, IZUService>();
             service.AddSingleton<IS7NetService, S7NetService>();
-            service.AddSingleton<ICommunication, IZUCommunicationServer>();
+            service.AddSingleton<IWebsocketService, IZUWebSocketService>();
             service.AddSingleton<IServiceRuntime, ServiceRuntime>();
+            service.AddHostedService<MainBackgroundService>();
             return service;
         }
         public static async Task UseIZUAsync(this WebApplication app)
         {
-            IIZUService? izuService = app.Services.GetService<IIZUService>();
-            if (izuService == null)
-                throw new Exception("should add izu first");
-            await izuService.StartAsync();
-            //app.MapGet("/", () => izuService.ServiceRuntime);
-
-            ICommunication? izuSock = app.Services.GetService<ICommunication>();
-            if (izuService == null)
+            IWebsocketService? izuSock = app.Services.GetService<IWebsocketService>();
+            if (izuSock == null)
                 throw new Exception("should add izu first");
 
             app.Map("/ws", config =>

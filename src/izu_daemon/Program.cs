@@ -2,6 +2,7 @@ using IZU.Base;
 using IZU.Entities;
 using IZU.Service;
 using NLog.Extensions.Logging;
+using System.Reflection;
 using System.Text;
 
 #region 检查程序配置是否存在
@@ -90,6 +91,8 @@ builder.Services.AddCors(options =>
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Services.AddTelnetService();
 builder.Services.AddIZU();
+
+Wonder.LongRunningTask.GetTasks().ForEach(t => builder.Services.AddSingleton(t.Service!, t.InheriteFrom));
 
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()

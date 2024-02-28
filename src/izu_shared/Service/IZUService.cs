@@ -10,13 +10,12 @@ namespace IZU.Service
 {
     public class IZUService : IIZUService
     {
-
         public readonly IServiceRuntime _serviceRuntime;
         private readonly ILogger<IZUService> _logger;
-        private readonly ICommunication _communicationServer;
+        private readonly IWebsocketService _communicationServer;
 
         public IS7NetService S7netService { get; }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, ICommunication communicationServer)
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IWebsocketService communicationServer)
         {
             IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;

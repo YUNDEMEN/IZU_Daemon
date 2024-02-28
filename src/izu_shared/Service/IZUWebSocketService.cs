@@ -1,51 +1,24 @@
-﻿//#define RELEASE
-
-using IZU.Base;
-using IZU.DeviceFactories;
+﻿using IZU.Base;
 using IZU.Entities;
 using IZU.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
 
 namespace IZU.Service
 {
-    public class IZUCommunicationServer : ICommunication
+    public class IZUWebSocketService : IWebsocketService
     {
-        private Guid oso = Guid.Parse("6F998BD2-B59F-4510-8E42-B50D18D22432");
-        private Guid cfg = Guid.Parse("3cfeec89-feea-4be9-9e8f-f59d4feb8347");
-        private readonly ILogger<IZUCommunicationServer> _logger;
+        private readonly ILogger<IZUWebSocketService> _logger;
         private const int BufferSize = 4096;
         private int task_ws_delay = 100;
-        private int task_multicast_delay = 100;
-        private int task_multicast_full_delay = 500;
-        private int task_nano_data_delay = 10;
         private IS7NetService _s7NetService { get; }
-        private WonderMulticast _multicastSender;
-        private WonderMulticast _multicastFullSender;
-        private ReplySocket replySocket;
-        private PairSocket nanoPairSocketServer;
-        private Task task_nano_data_server;
-        private Task task_multicast_server;
-        private Task task_multicast_full_server;
-        private Task task_nano_command_server;
-
-        private CancellationTokenSource _cancelNanoCommandServer;
-        private CancellationTokenSource _cancelNanoDataServer;
         private CancellationTokenSource _cancelWebsocketServer;
-        private CancellationTokenSource _cancelMulticastServer;
-        private CancellationTokenSource _cancelMulticastFullServer;
-
-        private NNanomsg.NanomsgEndpoint NanomsgEndpoint_CommandServer;
-        private NNanomsg.NanomsgEndpoint NanomsgEndpoint_DataServer;
-
-        private bool _initialized = false;
-
-        readonly ConcurrentDictionary<Guid, InnerServerClient> _clients = new();
-        public IZUCommunicationServer(ILogger<IZUCommunicationServer> logger, IS7NetService s7netService)
+        readonly ConcurrentDictionary<Guid, WebsocketServerClient> _clients = new();
+        public List<WebsocketServerClient> Clients { get; private set; }
+        public IZUWebSocketService(ILogger<IZUWebSocketService> logger, IS7NetService s7netService)
         {
             _logger = logger;
             _s7NetService = s7netService;
@@ -54,32 +27,12 @@ namespace IZU.Service
 
         public void Stop()
         {
-            //if (replySocket != null)
-            //{
-            //    replySocket.Shutdown(NanomsgEndpoint_CommandServer);
-            //}
-            //if (nanoPairSocketServer != null)
-            //{
-            //    nanoPairSocketServer.Shutdown(NanomsgEndpoint_DataServer);
-            //}
-            //_cancelNanoCommandServer.Cancel();
-            //_cancelNanoDataServer.Cancel();
-
             _cancelWebsocketServer.Cancel();
-            _cancelMulticastServer.Cancel();
-            _cancelMulticastFullServer.Cancel();
         }
 
         public void Start()
         {
-            InitialMulticastClient();
-            InitialMulticastClientFull();
             InitialWebsocket();
-            if (_initialized)
-                return;
-            InitialCommandServer();
-            InitialNanoDataServer();
-            _initialized = true;
         }
         /// <summary>
         /// WEBSOCKET SERVER
@@ -112,7 +65,7 @@ namespace IZU.Service
                         await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
                             .ContinueWith(async (t, state) =>
                             {
-                                if (t.Exception != null && state is InnerServerClient client)
+                                if (t.Exception != null && state is WebsocketServerClient client)
                                 {
                                     try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
                                     try { client.Socket.Abort(); } catch { }
@@ -127,158 +80,10 @@ namespace IZU.Service
                             continue;
                         _clients.TryRemove(client.SessionId, out var removedClient);
                     }
+
                     await Task.Delay(task_ws_delay);
                 }
             }, _cancelWebsocketServer.Token);
-        }
-        /// <summary>
-        /// SOCKET UDP CLIENT
-        /// PORT 8131
-        /// REMOTE CLIENT
-        /// </summary>
-        void InitialMulticastClient()
-        {
-            int? f_oldState = 0;
-            int? curr_state = 0;
-            long open_time = 0;
-            string operation = string.Empty;
-            _cancelMulticastServer = new CancellationTokenSource();
-            _multicastSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastSender.RunAsClient(IZUConfig.PortMulticastServer);
-
-            task_multicast_server = Task.Factory.StartNew(async () =>
-            {
-                _logger.LogDebug($"socket multicast client task started, sending on port {IZUConfig.PortMulticastServer}");
-                while (!_cancelMulticastServer.IsCancellationRequested)
-                {
-                    var msg = _s7NetService.GetAllDevices();
-                    // 提取数据
-                    List<string> data = new();
-                    foreach (var it in msg)
-                    {
-                        if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
-                        {
-                            f_oldState = curr_state;
-                            curr_state = CheckAuodoorStatus(it);
-                            // 状态流转： (0关到位 1正在关 2正在开 3开到位)
-                            // 0->2 开门
-                            // 2->3 开到位
-                            // 3->1 关门
-                            // 1->0 关到位
-                            operation = $"{f_oldState}->{curr_state}";
-                            switch (operation)
-                            {
-                                case "0->2":
-                                    open_time = TimestampService.Pinning("open");
-                                    Console.WriteLine("{0} 开门中({1})", it.Name, operation);
-                                    break;
-                                case "2->3":
-                                    Console.WriteLine("{0} 开到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference("open"));
-                                    break;
-                                case "3->1":
-                                    TimestampService.Pinning("close");
-                                    Console.WriteLine("{0} 关门中({1})", it.Name, operation);
-                                    break;
-                                case "1->0":
-                                    Console.WriteLine("{0} 关到位({1}), 耗时{2}ms", it.Name, operation, TimestampService.Difference("close"));
-                                    break;
-                            }
-
-                            //if (DateTime.Now.Second < 20)
-                            //    status = 0;
-                            //else if (DateTime.Now.Second >= 20 && DateTime.Now.Second < 23)
-                            //    status = 2;
-                            //else if (DateTime.Now.Second >= 23 && DateTime.Now.Second <= 33)
-                            //    status = 3;
-                            //else if (DateTime.Now.Second > 33 && DateTime.Now.Second <= 36)
-                            //    status = 1;
-                            //else if (DateTime.Now.Second > 36)
-                            //    status = 0;
-                            data.Add($"{it.Name}:{curr_state ?? 0}");
-                        }
-
-                    }
-                    // 消息格式： izu::[3({name1}:0;{name2}:0),4({name1}:0;{name2}:0)]
-                    string data_format = $"izu::[{(int)DeviceTypes.AUTODOOR}({string.Join(";", data)})]";
-
-                    await _multicastSender.SendToAsync(data_format);
-                    await Task.Delay(task_multicast_delay);
-                }
-            }, _cancelMulticastServer.Token);
-        }
-        /// <summary>
-        /// NANO REPLY SERVER
-        /// PORT 8231
-        /// REMOTE COMMAND SERVER
-        /// </summary>
-        void InitialCommandServer()
-        {
-            _cancelNanoCommandServer = new CancellationTokenSource();
-            replySocket = new ReplySocket();
-            NanomsgEndpoint_CommandServer = replySocket.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
-            task_nano_command_server = Task.Factory.StartNew(async () =>
-            {
-                _logger.LogDebug($"nano repley server task started, listening on port {IZUConfig.PortNanoCommandServer}");
-                while (!_cancelNanoCommandServer.IsCancellationRequested)
-                {
-                    byte[] buffer = replySocket.Receive();
-                    string operation = System.Text.Encoding.UTF8.GetString(buffer);
-                    operation = await OperationFromOso(operation);
-                    replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation));
-                }
-            }, _cancelNanoCommandServer.Token);
-        }
-        /// <summary>
-        /// SOCKET MULTICAST CLIENT
-        /// PORT 8331
-        /// REMOTE CLIENT
-        /// </summary>
-        void InitialMulticastClientFull()
-        {
-            int? f_oldState = 0;
-            int? curr_state = 0;
-            long open_time = 0;
-            long opened_time = 0;
-            string operation = string.Empty;
-            _cancelMulticastFullServer = new CancellationTokenSource();
-            _multicastFullSender = new WonderMulticast(IZUConfig.MulticastIP);
-            _multicastFullSender.RunAsClient(IZUConfig.PortMulticastFullDataServer);
-
-            task_multicast_full_server = Task.Factory.StartNew(async () =>
-            {
-                JArray root = new();
-                _logger.LogDebug($"socket UDP client task started, sending on port {IZUConfig.PortMulticastFullDataServer}");
-                while (!_cancelMulticastFullServer.IsCancellationRequested)
-                {
-                    root = WsPublishDevices2();
-                    await _multicastFullSender.SendToAsync("PUB_DEVICE_STATUS" + root.ToString(Formatting.None));
-                    await Task.Delay(task_multicast_full_delay);
-                }
-            }, _cancelMulticastFullServer.Token);
-        }
-
-        /// <summary>
-        /// NANO PAIR SERVER
-        /// PORT 18031
-        /// TRANSFER DATA TO LOCAL SYSTEM
-        /// </summary>
-        void InitialNanoDataServer()
-        {
-            _cancelNanoDataServer = new CancellationTokenSource();
-            List<DeviceEntity> cur = new List<DeviceEntity>();
-            nanoPairSocketServer = new PairSocket();
-            NanomsgEndpoint_DataServer = nanoPairSocketServer.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoDataServer}");
-            task_nano_data_server = Task.Factory.StartNew(async () =>
-            {
-                _logger.LogDebug($"nano pair server task started, listening on port {IZUConfig.PortNanoDataServer}");
-                while (!_cancelNanoDataServer.IsCancellationRequested)
-                {
-                    nanoPairSocketServer.Receive();
-                    cur = _s7NetService.GetAllDevices();
-                    nanoPairSocketServer.Send(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(cur)));
-                    await Task.Delay(task_nano_data_delay);
-                }
-            }, _cancelNanoDataServer.Token);
         }
 
 
@@ -288,25 +93,12 @@ namespace IZU.Service
         public void Refresh()
         {
             task_ws_delay = IZUConfig.PublishMillionSeconds;
-            task_multicast_delay = IZUConfig.IntervalMulticastServer;
-            task_multicast_full_delay = IZUConfig.IntervalMulticastFullDataServer;
-            task_nano_data_delay = IZUConfig.IntervalNanoDataServer;
+            //task_multicast_delay = IZUConfig.IntervalMulticastServer;
+            //task_multicast_full_delay = IZUConfig.IntervalMulticastFullDataServer;
+            //task_nano_data_delay = IZUConfig.IntervalNanoDataServer;
         }
 
-        class InnerServerClient
-        {
-            public WebSocket Socket { get; }
-            public Guid SessionId { get; }
-            public int Status { get; set; } = 0;
-            public string target { get; set; } = string.Empty;
-
-            public InnerServerClient(WebSocket socket, Guid sessionId, string t = "")
-            {
-                Socket = socket;
-                SessionId = sessionId;
-                target = t;
-            }
-        }
+       
         public async Task Acceptor(HttpContext context, Func<Task> next)
         {
             if (!context.WebSockets.IsWebSocketRequest) return;
@@ -321,7 +113,7 @@ namespace IZU.Service
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
 
-            _clients.GetOrAdd(sessionid, cliid => new InnerServerClient(socket, sessionid));
+            _clients.GetOrAdd(sessionid, cliid => new WebsocketServerClient(socket, sessionid));
             _logger.LogDebug($"websocket client connected, session id {sessionid}");
 
             var buffer = new byte[BufferSize];
@@ -634,108 +426,6 @@ namespace IZU.Service
                 _logger.LogWarning($"websocket server publish error: {ex.Message}");
             }
             return root;
-        }
-
-        public JArray WsPublishDevices2()
-        {
-            JArray root = new();
-            JArray currentArray = new();
-            try
-            {
-                var msg = _s7NetService.GetAllDevices();
-                if (msg.Count == 0) return root;
-                string izuNo = msg.FirstOrDefault(p => p.DeviceType == DeviceTypes.IZU)!.Name;
-                foreach (var it in msg)
-                {
-                    JObject currentObject = new();
-
-                    currentObject = new() { ["name"] = it.Name };
-                    currentObject["type"] = it.DeviceType.ToString();
-                    currentObject["izuNo"] = izuNo;
-                    if (it.DeviceType == DeviceTypes.AUTODOOR)
-                        currentObject["doorState"] = CheckAuodoorStatus(it) == null ? null : CheckAuodoorStatus(it)!.ToString();
-                    var list2 = from x in it.Variables where x.ActionType.StartsWith('R') select new { k = x.ActionType.ToLower(), v = x.Value };
-                    foreach (var item in list2)
-                    {
-                        currentObject[item.k] = new JValue(item.v);
-                    }
-
-                    // root[it.Name.ToString().ToLower()] = currentObject;
-                    root.Add(currentObject);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning($"websocket server publish error: {ex.Message}");
-            }
-            string ss = JsonConvert.SerializeObject(root);
-            return root;
-        }
-
-        enum DeviceOperations
-        {
-            None,
-            Open,
-            Close
-        }
-        /// <summary>
-        /// 开门指令
-        /// </summary>
-        /// <param name="data">接受指令( 格式：{deviceType}:{deviceName}:{commandName}:{commandArg} )</param>
-        /// <returns></returns>
-        public async Task<string> OperationFromOso(string data)
-        {
-            string[] cmdArray = data.Split(':');
-            if (cmdArray.Length > 4)
-                return "command not available";
-
-            int type = cmdArray[0].ToInt32();
-            if (type == 0)
-                return "device type not available";
-
-            DeviceTypes deviceType = (DeviceTypes)type;
-            string deviceName = cmdArray[1];
-            var device = _s7NetService.GetDevice(deviceName);
-            if (device == null)
-                return $"device {deviceName} is not existed";
-
-            int oper = cmdArray[2].ToInt32();
-            if (oper == 0)
-                return "device operation not available";
-            DeviceOperations deviceOperation = (DeviceOperations)oper;
-
-            IOperatable? deviceObject = null;
-            switch (deviceType)
-            {
-                case DeviceTypes.NONE:
-                    break;
-                case DeviceTypes.IZU:
-                    break;
-                case DeviceTypes.HID:
-                    break;
-                case DeviceTypes.AUTODOOR:
-                    deviceObject = new AutoDoor(device);
-                    break;
-                case DeviceTypes.FIREDOOR:
-                    break;
-            }
-            if (deviceObject == null)
-                return $"unknown device {deviceName}";
-            else
-            {
-                switch (deviceOperation)
-                {
-                    default:
-                    case DeviceOperations.None:
-                        return "unkown device operation";
-                    case DeviceOperations.Open:
-                        return await deviceObject!.OpenAsync();
-                    case DeviceOperations.Close:
-                        return await deviceObject!.CloseAsync();
-
-                }
-            }
-
         }
     }
 }

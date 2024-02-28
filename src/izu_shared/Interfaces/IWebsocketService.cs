@@ -1,8 +1,6 @@
-﻿using IZU.Entities;
-
-namespace IZU.Interfaces
+﻿namespace IZU.Interfaces
 {
-    public interface ICommunication
+    public interface IWebsocketService
     {
         /// <summary>
         /// 刷新websocket发布数据频率

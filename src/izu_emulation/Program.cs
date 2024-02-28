@@ -91,6 +91,8 @@ builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Services.AddTelnetService();
 builder.Services.AddIZU();
 
+Wonder.LongRunningTask.GetTasks().ForEach(t => builder.Services.AddSingleton(t.Service!, t.InheriteFrom));
+
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()
 //.OnChange((profile,t) =>

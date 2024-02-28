@@ -85,4 +85,10 @@
         Connecting,
         Connected
     }
+    public enum DeviceOperations
+    {
+        None,
+        Open,
+        Close
+    }
 }

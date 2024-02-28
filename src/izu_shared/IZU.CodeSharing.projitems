@@ -6,7 +6,7 @@
     <SharedGUID>080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>IZU.CodeSharing</Import_RootNamespace>
+    <Import_RootNamespace>IZU</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Base\CsvVariableMapping.cs" />
@@ -14,13 +14,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Base\Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\IZUControllerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\IZULogging.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Base\LongRunningTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\Ref.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\Resp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\ReturnClasses.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\TextRecorder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\TimestampService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\WebsocketServerClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\WonderMulticast.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Log.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Show.cs" />
@@ -32,7 +32,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\IZUConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\ServiceRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ICommunication.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDevices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IFireDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IHID.cs" />
@@ -40,9 +39,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IPlcServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IS7NetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IServiceRuntime.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Service\IZUCommunicationServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\IZUWebSocketService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\WonderTelnetService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\AnotherDataServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\CommandServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastTask2.cs" />
   </ItemGroup>
 </Project>
