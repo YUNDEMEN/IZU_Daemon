@@ -37,12 +37,6 @@ namespace IZU.Controllers
             });
         }
 
-        [HttpGet]
-        public WonderResponse Get()
-        {
-            return WonderResponse.Create(_izuService.ServiceRuntime.Set(DateTime.Now));
-        }
-
         [HttpGet("devices")]
         public WonderResponse GetDevices()
         {

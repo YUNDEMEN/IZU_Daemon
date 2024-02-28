@@ -12,6 +12,7 @@ namespace IZU.Base
             service.AddSingleton<IIZUService, IZUService>();
             service.AddSingleton<IS7NetService, S7NetService>();
             service.AddSingleton<ICommunication, IZUCommunicationServer>();
+            service.AddSingleton<IServiceRuntime, ServiceRuntime>();
             return service;
         }
         public static async Task UseIZUAsync(this WebApplication app)
@@ -20,7 +21,7 @@ namespace IZU.Base
             if (izuService == null)
                 throw new Exception("should add izu first");
             await izuService.StartAsync();
-            app.MapGet("/", () => izuService.ServiceRuntime);
+            //app.MapGet("/", () => izuService.ServiceRuntime);
 
             ICommunication? izuSock = app.Services.GetService<ICommunication>();
             if (izuService == null)

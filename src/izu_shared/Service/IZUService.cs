@@ -10,24 +10,26 @@ namespace IZU.Service
 {
     public class IZUService : IIZUService
     {
-        public ServiceRuntime ServiceRuntime { get; }
+
+        public readonly IServiceRuntime _serviceRuntime;
         private readonly ILogger<IZUService> _logger;
         private readonly ICommunication _communicationServer;
 
         public IS7NetService S7netService { get; }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IS7NetService s7netService, ICommunication communicationServer)
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, ICommunication communicationServer)
         {
             IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;
             S7netService = s7netService;
             _communicationServer = communicationServer;
-            ServiceRuntime = new ServiceRuntime();
+            _serviceRuntime = serviceRuntime;
             logger.LogInformation("IZU service initialized");
         }
+
         public async Task StartAsync()
         {
-            //var _loggers = IZULogging.Factory.CreateLogger<Device>();
-            _logger.LogInformation("---------------IZU service starting---------------");
+            _serviceRuntime.MarkStarted();
+            _logger.LogInformation("---------------IZU service starting---------------"); 
             IZUConfig.Read();
             await GetMapVersion();
             await ReadConfigFromDBAsync();
@@ -54,11 +56,15 @@ namespace IZU.Service
                         string result = await response.Content.ReadAsStringAsync();
                         var jsonResult = JsonObject.Parse(result);
                         var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                        if (resultObject!.ok && resultObject.data != null)
+                        if (resultObject!=null && resultObject.ok && resultObject.data != null)
                         {
-                            IZUConfig.MapVersion= resultObject.data.ToString();
+                            IZUConfig.MapVersion = $"{resultObject.data}";
                             if (!IZUConfig.WriteToAppSetting("map_version", IZUConfig.MapVersion))
+                            {
                                 _logger.LogWarning($"write mapVersion to json failed.");
+                            }
+                            else
+                                _logger.LogInformation($"current mapVersion is {IZUConfig.MapVersion}");
                         }
                     }
                 }
@@ -129,7 +135,7 @@ namespace IZU.Service
                                     else
                                     {
                                         int.TryParse($"{resultObject.data}", out izu_id);
-                                        _logger.LogDebug($"add izu info successfully");
+                                        _logger.LogInformation($"add izu info successfully");
                                         IZUConfig.izuId = izu_id;
                                         if (!IZUConfig.WriteToAppSetting("izuId",izu_id))
                                             _logger.LogWarning($"add izuId to json failed.");
@@ -153,7 +159,7 @@ namespace IZU.Service
                                     }
                                     else
                                     {
-                                        _logger.LogDebug($"get bool existById {izu_id} successfully");
+                                        _logger.LogInformation($"get bool existById {izu_id} successfully");
                                         if ((bool)resultObject.data == false)
                                         {
                                             response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
@@ -201,7 +207,7 @@ namespace IZU.Service
                                     }
                                     else
                                     {
-                                        _logger.LogDebug($"edit izu {izu_id} ipPort config info successfully");
+                                        _logger.LogInformation($"edit izu {izu_id} ipPort config info successfully");
                                     }
                                 }
                             }
@@ -237,7 +243,7 @@ namespace IZU.Service
                             }
                             else
                             {
-                                _logger.LogDebug($"upload izu {item.Key} info successfully");
+                                _logger.LogInformation($"upload izu {item.Key} info successfully");
                             }
                         }
                     }
@@ -351,7 +357,7 @@ namespace IZU.Service
                         }
                         variables.Add(item.Result);
                     }
-                    _logger.LogDebug("device table loaded {0}, variable count {1}", deviceFile, variables.Count);
+                    _logger.LogInformation("device table loaded {0}, variable count {1}", deviceFile, variables.Count);
                 }
                 catch (Exception ex)
                 {

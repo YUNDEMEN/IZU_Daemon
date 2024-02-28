@@ -1,12 +1,9 @@
-﻿using IZU.Entities;
-
-namespace IZU.Interfaces
+﻿namespace IZU.Interfaces
 {
     public interface IIZUService
 	{
 		IS7NetService S7netService { get; }
-		ServiceRuntime ServiceRuntime { get; }
-		Task StartAsync();
+        Task StartAsync();
         void Stop();
 		Task ReadConfigFromDBAsync();
     }
