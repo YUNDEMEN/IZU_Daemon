@@ -16,7 +16,8 @@ namespace IZU.Base
             service.AddHostedService<MainBackgroundService>();
             return service;
         }
-        public static async Task UseIZUAsync(this WebApplication app)
+
+        public static void UseIZU(this WebApplication app)
         {
             IWebsocketService? izuSock = app.Services.GetService<IWebsocketService>();
             if (izuSock == null)

@@ -105,5 +105,5 @@ app.UseTelnet();
 //app.UseAuthorization();
 app.UseCors("AllowAnyOrigin");
 app.MapControllers();
-await app.UseIZUAsync();
+await app.UseIZU();
 await app.RunAsync();
