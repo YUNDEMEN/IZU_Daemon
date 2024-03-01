@@ -302,8 +302,7 @@ ASALocalRun/
 .localhistory/
 # BeatPulse healthcheck temp database 
 healthchecksdb
-/src/Properties/launchSettings.json
 /src/izu_emulation/build
 /build
-/src/izu_daemon/Properties/launchSettings.json
-/src/izu_emulation/Properties/launchSettings.json
+/src/izu_daemon/Properties
+/src/izu_emulation/Properties
