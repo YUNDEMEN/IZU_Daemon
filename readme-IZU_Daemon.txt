@@ -1,3 +1,19 @@
+###---------2024-03-01 ----------------------------------------
+
+更新telnet 命令（默认端口666）：
+0. 连接telnet service：telnet 127.0.0.1 666
+1. 查看所有命令： izu -help  、 izu -? 
+ 
+修改日志等级：log -r ruleName -min 2 -max 3
+当前配置：show config
+重载配置：show config -r
+
+查看设备：show device
+设备详细：show device deviceName
+
+查看任务：show task
+设备详细：show task id
+
 ###---------2024-01-16 ----------------------------------------
 
 telnet 命令（默认端口666）：
