@@ -32,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\IZUConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\ServiceRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDevices.cs" />
