@@ -3,6 +3,7 @@ using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
+using Wonder.Infrastructure;
 using Wonder.Service.Framework;
 
 namespace IZU.Tasks

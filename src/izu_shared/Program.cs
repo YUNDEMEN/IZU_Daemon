@@ -1,7 +1,7 @@
 using IZU.Base;
-using IZU.Entities;
 using NLog.Extensions.Logging;
 using System.Text;
+using Wonder.Infrastructure;
 using Wonder.Service;
 using Wonder.Service.Framework;
 

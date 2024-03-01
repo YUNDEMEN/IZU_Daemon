@@ -1,5 +1,4 @@
-﻿using IZU.Entities;
-using IZU.Service;
+﻿using IZU.Base;
 
 namespace IZU.Interfaces
 {

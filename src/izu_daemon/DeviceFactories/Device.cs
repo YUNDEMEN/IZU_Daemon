@@ -1,12 +1,6 @@
 ﻿using IZU.Base;
-using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
-using Newtonsoft.Json.Linq;
-using System.Security.Cryptography;
-using System.Threading;
-using System.Timers;
-using static TinyCsvParser.Tokenizer.RFC4180.Reader;
+using Wonder.Infrastructure;
 
 namespace IZU.DeviceFactories
 {
@@ -23,7 +17,7 @@ namespace IZU.DeviceFactories
         ILogger<Device> _logger;
         protected virtual string GetActionType(string actionType)
         {
-            _logger = IZULogging.Factory.CreateLogger<Device>();
+            _logger = LogManager.Factory.CreateLogger<Device>();
             var v = _deviceEntity.Variables.FirstOrDefault(t => t.ActionType == actionType);
             if (v == null || string.IsNullOrEmpty(v.Address))
                 throw new Exception($"{actionType} action is not marked in {_deviceEntity.Name}");

@@ -3,6 +3,7 @@ using IZU.Entities;
 using IZU.Interfaces;
 using Newtonsoft.Json.Linq;
 using System.CommandLine.Binding;
+using Wonder.Infrastructure;
 
 namespace IZU.DeviceFactories
 {

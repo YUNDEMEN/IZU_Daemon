@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.ServiceProcess;
 
-namespace IZU.Entities
+namespace IZU.Base
 {
     public class KeyValueObject
     {

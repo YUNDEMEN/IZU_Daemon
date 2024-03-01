@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using TinyCsvParser;
+using Wonder.Infrastructure;
 using Wonder.Service.Framework;
 
 namespace IZU.Service
@@ -17,9 +18,8 @@ namespace IZU.Service
         private readonly IIZUWebSocketService _communicationServer;
 
         public IS7NetService S7netService { get; }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IIZUWebSocketService communicationServer)
+        public IZUService(ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IIZUWebSocketService communicationServer)
         {
-            IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;
             S7netService = s7netService;
             _communicationServer = communicationServer;

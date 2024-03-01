@@ -10,13 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Base\CsvVariableMapping.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Base\DatetimeJsonConverter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Base\Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\IZUControllerBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Base\IZULogging.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Base\Ref.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Base\Resp.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Base\ReturnClasses.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\TextRecorder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\TimestampService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\Utils.cs" />
@@ -27,10 +21,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TelnetCommandBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controllers\ServiceInfoController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controllers\WebSocketController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DeviceFactories\DeviceFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\EntityVariable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\Enums.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\IZUConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\DeviceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\EntityVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Enums.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\IZUConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\ServiceRuntime.cs" />

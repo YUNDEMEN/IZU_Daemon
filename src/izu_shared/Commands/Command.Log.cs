@@ -1,5 +1,4 @@
 ﻿using IZU.Interfaces;
-using IZU.Service;
 using NLog;
 using System.CommandLine;
 using Wonder.Service;

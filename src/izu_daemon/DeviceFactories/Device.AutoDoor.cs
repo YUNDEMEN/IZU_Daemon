@@ -1,7 +1,6 @@
 ﻿using IZU.Base;
-using IZU.Entities;
 using IZU.Interfaces;
-using System.Net.NetworkInformation;
+using Wonder.Infrastructure;
 
 namespace IZU.DeviceFactories
 {

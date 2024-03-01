@@ -1,5 +1,4 @@
-﻿using IZU.Entities;
-using IZU.Interfaces;
+﻿using IZU.Interfaces;
 using S7.Net;
 using S7.Net.Types;
 using System.Net;

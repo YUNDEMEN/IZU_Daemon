@@ -1,5 +1,4 @@
-﻿using IZU.Entities;
-using IZU.Interfaces;
+﻿using IZU.Interfaces;
 using System.Net;
 
 namespace IZU.Base

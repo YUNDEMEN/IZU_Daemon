@@ -1,8 +1,6 @@
-﻿using NLog.Config;
-
-namespace IZU.Base
+﻿namespace Wonder.Infrastructure
 {
-    public class IZULogging
+    public class LogManager
     {
         private static ILoggerFactory _factory;
 

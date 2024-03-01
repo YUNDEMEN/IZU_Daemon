@@ -2,7 +2,6 @@
 
 namespace IZU.Base
 {
-
     public class TimestampService
     {
         static readonly DateTime time1970;

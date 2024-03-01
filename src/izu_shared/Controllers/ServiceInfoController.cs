@@ -2,14 +2,8 @@ using IZU.Base;
 using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting.Server;
-using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using NLog.Extensions.Logging;
-using System.Xml.Linq;
+using Wonder.Infrastructure;
 
 namespace IZU.Controllers
 {

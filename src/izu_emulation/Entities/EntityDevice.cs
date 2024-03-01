@@ -1,7 +1,7 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
 
-namespace IZU.Entities
+namespace IZU.Base
 {
     public class DeviceEntity : IDisposable
     {

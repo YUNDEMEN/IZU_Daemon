@@ -9,9 +9,15 @@
     <Import_RootNamespace>Wonder</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Extension.HttpRequst.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\LogManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Extensions.Parse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\DatetimeJsonConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Ref.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\WonderResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegistAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegiserTypes.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\Extension.Services.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\TypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\ILongRunningTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\LongRunningTask.cs" />
@@ -27,7 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ITelnetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ITelnetCommandService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\xPrint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\xPrint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\WonderTelnetService.cs" />
   </ItemGroup>
   <ItemGroup>

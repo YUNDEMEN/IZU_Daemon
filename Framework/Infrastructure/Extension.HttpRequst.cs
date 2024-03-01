@@ -1,24 +1,16 @@
-﻿using IZU.Entities;
-using IZU.Interfaces;
-using IZU.Service;
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Serialization;
+using System.Text.Json;
 
-namespace IZU.Base
+namespace Wonder.Infrastructure
 {
-    public static class Extensions
+    public record Resp(string result, string error);
+    public static class HttpRequstExtensions
     {
-        public static int ToInt32(this string value, int defaultValue = 0)
-        {
-            if (int.TryParse(value, out int result))
-                return result;
-            return defaultValue;
-        }
-
         public static async Task<Resp> HttpGetAsync(this string api, int timeoutSeconds = 5)
         {
             using HttpClient httpClient = new HttpClient();
             string error = string.Empty;
-            string result=string.Empty;
+            string result = string.Empty;
             try
             {
                 httpClient.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
@@ -37,7 +29,7 @@ namespace IZU.Base
             {
                 httpClient.Dispose();
             }
-            return new Resp(result,error );
+            return new Resp(result, error);
         }
 
         public static async Task<Resp> HttpPostAsync(this string api, int timeoutSeconds = 5)

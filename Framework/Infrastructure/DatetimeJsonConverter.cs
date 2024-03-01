@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace IZU.Base
+namespace Wonder.Infrastructure
 {
 	/// <summary>
 	/// 格式化返回的时间格式

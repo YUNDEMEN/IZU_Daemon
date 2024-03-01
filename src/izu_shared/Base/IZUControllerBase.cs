@@ -1,13 +1,10 @@
-﻿using IZU.Controllers;
-using IZU.DeviceFactories;
-using IZU.Entities;
+﻿using IZU.DeviceFactories;
 using IZU.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace IZU.Base
 {
-	public abstract class IZUControllerBase : ControllerBase
+    public abstract class IZUControllerBase : ControllerBase
 	{
 		protected readonly IIZUService _izuService;
 		protected readonly IS7NetService _s7netService;

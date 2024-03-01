@@ -1,4 +1,4 @@
-﻿namespace Wonder.Utils
+﻿namespace Wonder.Infrastructure
 {
     public class xPrint
     {

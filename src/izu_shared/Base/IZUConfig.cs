@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 
-namespace IZU.Entities
+namespace IZU.Base
 {
     public class IZUConfig
     {

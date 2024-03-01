@@ -1,4 +1,4 @@
-﻿namespace IZU.Entities
+﻿namespace IZU.Base
 {
     public enum FunctionTypes
     {

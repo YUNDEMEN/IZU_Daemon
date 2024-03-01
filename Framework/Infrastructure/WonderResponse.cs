@@ -1,6 +1,7 @@
-﻿namespace IZU.Base
+﻿namespace Wonder.Infrastructure
 {
-	public class WonderResponse
+    public record class response_object(object data, bool ok, string message);
+    public class WonderResponse
 	{
 		public bool ok { get; set; }
 		public string? message { get; set; }

@@ -1,8 +1,9 @@
 ﻿using System.Reflection;
+using Wonder.Infrastructure;
 
 namespace Wonder.Service.Framework
 {
-    internal static class Extensions
+    internal static class FrameworkExtensions
     {
         public static IServiceCollection RegistServices(this IServiceCollection services, IConfiguration configuration)
         {
@@ -66,6 +67,8 @@ namespace Wonder.Service.Framework
                     AddHostedService.MakeGenericMethod(new Type[] { type.Implementation }).Invoke(null, new object?[] { services });
                 }
             }
+
+            LogManager.ConfigureLogger(services.BuildServiceProvider().GetRequiredService<ILoggerFactory>());
             return services;
         }
     }

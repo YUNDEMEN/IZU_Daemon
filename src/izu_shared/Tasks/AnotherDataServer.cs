@@ -1,4 +1,4 @@
-﻿using IZU.Entities;
+﻿using IZU.Base;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
 using System.Text;

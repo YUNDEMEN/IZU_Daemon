@@ -1,4 +1,4 @@
-﻿namespace IZU.Base
+﻿namespace Wonder.Infrastructure
 {
     public class Ref<T>
     {

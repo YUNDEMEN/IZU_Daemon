@@ -2,7 +2,8 @@
 using System.CommandLine;
 using Wonder.Service;
 using Wonder.Service.Framework;
-using Wonder.Utils;
+using Wonder.Infrastructure;
+using IZU.Base;
 
 namespace IZU.Commands
 {
@@ -52,17 +53,17 @@ namespace IZU.Commands
             if (required)
             {
                 xPrint printer = new();
-                printer.AppendLine($"server endpoint:{Entities.IZUConfig.Server}");
-                printer.AppendLine($"izu backend:{Entities.IZUConfig.BackendIZUBaseUrl}");
-                printer.AppendLine($"izu id:{Entities.IZUConfig.izuId}");
-                printer.AppendLine($"map version:{Entities.IZUConfig.MapVersion}");
-                printer.AppendLine($"multicast ip:{Entities.IZUConfig.MulticastIP}");
-                printer.AppendLine($"multicast port:{Entities.IZUConfig.PortMulticastServer}");
-                printer.AppendLine($"multicast interval:{Entities.IZUConfig.IntervalMulticastServer} ms");
-                printer.AppendLine($"multicast(json) port:{Entities.IZUConfig.PortMulticastFullDataServer}");
-                printer.AppendLine($"multicast(json) interval:{Entities.IZUConfig.IntervalMulticastFullDataServer} ms");
-                printer.AppendLine($"publish interval:{Entities.IZUConfig.PublishMillionSeconds} ms (websocket)");
-                printer.AppendLine($"variables:{Entities.IZUConfig.DeviceTableFrom}");
+                printer.AppendLine($"server endpoint:{IZUConfig.Server}");
+                printer.AppendLine($"izu backend:{IZUConfig.BackendIZUBaseUrl}");
+                printer.AppendLine($"izu id:{IZUConfig.izuId}");
+                printer.AppendLine($"map version:{IZUConfig.MapVersion}");
+                printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
+                printer.AppendLine($"multicast port:{IZUConfig.PortMulticastServer}");
+                printer.AppendLine($"multicast interval:{IZUConfig.IntervalMulticastServer} ms");
+                printer.AppendLine($"multicast(json) port:{IZUConfig.PortMulticastFullDataServer}");
+                printer.AppendLine($"multicast(json) interval:{IZUConfig.IntervalMulticastFullDataServer} ms");
+                printer.AppendLine($"publish interval:{IZUConfig.PublishMillionSeconds} ms (websocket)");
+                printer.AppendLine($"variables:{IZUConfig.DeviceTableFrom}");
                 commandService.WriteLine(printer.ToString());
             }
         }

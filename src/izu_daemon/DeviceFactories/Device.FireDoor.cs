@@ -1,4 +1,4 @@
-﻿using IZU.Entities;
+﻿using IZU.Base;
 using IZU.Interfaces;
 
 namespace IZU.DeviceFactories
