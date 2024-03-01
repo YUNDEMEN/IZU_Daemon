@@ -306,3 +306,4 @@ healthchecksdb
 /src/izu_emulation/build
 /build
 /src/izu_daemon/Properties/launchSettings.json
+/src/izu_emulation/Properties/launchSettings.json
