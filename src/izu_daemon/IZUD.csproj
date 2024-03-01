@@ -12,28 +12,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Base\**" />
     <Compile Remove="build\**" />
     <Compile Remove="Commands\**" />
     <Compile Remove="Controllers\**" />
     <Compile Remove="DeviceTable\**" />
     <Compile Remove="Interfaces\**" />
     <Compile Remove="Service\**" />
-    <Content Remove="Base\**" />
     <Content Remove="build\**" />
     <Content Remove="Commands\**" />
     <Content Remove="Controllers\**" />
     <Content Remove="DeviceTable\**" />
     <Content Remove="Interfaces\**" />
     <Content Remove="Service\**" />
-    <EmbeddedResource Remove="Base\**" />
     <EmbeddedResource Remove="build\**" />
     <EmbeddedResource Remove="Commands\**" />
     <EmbeddedResource Remove="Controllers\**" />
     <EmbeddedResource Remove="DeviceTable\**" />
     <EmbeddedResource Remove="Interfaces\**" />
     <EmbeddedResource Remove="Service\**" />
-    <None Remove="Base\**" />
     <None Remove="build\**" />
     <None Remove="Commands\**" />
     <None Remove="Controllers\**" />
