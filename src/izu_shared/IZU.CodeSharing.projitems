@@ -31,7 +31,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\EntityVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\IZUConfig.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\ServiceRuntime.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\ServiceRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDevices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IFireDoor.cs" />
@@ -42,7 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IServiceRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Service\IZUWebSocketService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\IZUWebSocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\WonderTelnetService.cs" />

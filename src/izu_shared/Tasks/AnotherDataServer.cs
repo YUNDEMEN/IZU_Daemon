@@ -2,16 +2,18 @@
 using IZU.Interfaces;
 using NNanomsg.Protocols;
 using System.Text;
-using Wonder;
+using Wonder.Service.Framework;
 
 namespace IZU.Tasks
 {
-    public class AnotherDataServer : LongRunningTask
+    [Regist(RegisterTypes.LongRunningTask)]
+    public class AnotherDataServer : LongRunningTask, IAnotherDataServer
     {
-        private CancellationTokenSource _cancelNanoDataServer;
+        private CancellationTokenSource? _cancelNanoDataServer;
         private NNanomsg.NanomsgEndpoint NanomsgEndpoint_DataServer;
         private readonly IS7NetService _s7NetService;
-        private PairSocket nanoPairSocketServer;
+        private PairSocket? nanoPairSocketServer;
+
         public AnotherDataServer(ILogger<AnotherDataServer> logger, IS7NetService s7NetService)
             : base(logger)
         {
@@ -27,8 +29,10 @@ namespace IZU.Tasks
         }
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            lastExecuteTime = DateTime.Now.ToString();
             nanoPairSocketServer.Receive();
             nanoPairSocketServer.Send(Encoding.GetEncoding("GB2312").GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(_s7NetService.GetAllDevices())));
+            await Task.CompletedTask;
         }
     }
 }

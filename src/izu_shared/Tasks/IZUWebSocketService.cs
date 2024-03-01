@@ -6,48 +6,36 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
+using Wonder.Service.Framework;
 
 namespace IZU.Service
 {
-    public class IZUWebSocketService : IWebsocketService
+    [Regist(RegisterTypes.Singleton | RegisterTypes.LongRunningTask)]
+    public class IZUWebSocketService : LongRunningTask, IIZUWebSocketService
     {
         private readonly ILogger<IZUWebSocketService> _logger;
         private const int BufferSize = 4096;
         private int task_ws_delay = 100;
         private IS7NetService _s7NetService { get; }
-        private CancellationTokenSource _cancelWebsocketServer;
-        readonly ConcurrentDictionary<Guid, WebsocketServerClient> _clients = new();
-        public List<WebsocketServerClient> Clients { get; private set; }
+        public readonly ConcurrentDictionary<Guid, WebsocketServerClient> Clients;
         public IZUWebSocketService(ILogger<IZUWebSocketService> logger, IS7NetService s7netService)
+            : base(logger)
         {
             _logger = logger;
             _s7NetService = s7netService;
+            Clients = new();
+        }
+        public override void Start()
+        {
             Refresh();
+            //_logger.LogDebug($"websocket publish task started, sending on port {IZUConfig.ServerPort}");
+            base.Start();
         }
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            lastExecuteTime = DateTime.Now.ToString();
+            JObject root = new();
 
-        public void Stop()
-        {
-            _cancelWebsocketServer.Cancel();
-        }
-
-        public void Start()
-        {
-            InitialWebsocket();
-        }
-        /// <summary>
-        /// WEBSOCKET SERVER
-        /// PORT 8031
-        /// REMOTE SERVER
-        /// </summary>
-        void InitialWebsocket()
-        {
-            _cancelWebsocketServer = new CancellationTokenSource();
-            Task.Factory.StartNew(async () =>
-            {
-                JObject root = new();
-                _logger.LogDebug($"websocket publish task started, sending on port {IZUConfig.ServerPort}");
-                while (!_cancelWebsocketServer.IsCancellationRequested)
-                {
 #if RELEASE
                     if (_clients.Count == 0)
                     {
@@ -55,50 +43,38 @@ namespace IZU.Service
                         continue;
                     }
 #endif
-                    root = WsPublishDevices();
+            root = WsPublishDevices();
 
-                    var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(root.ToString(Formatting.None)));
-                    foreach (var client in _clients.Values)
+            var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(root.ToString(Formatting.None)));
+            foreach (var client in Clients.Values)
+            {
+                if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
+
+                await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
+                    .ContinueWith(async (t, state) =>
                     {
-                        if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
-
-                        await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
-                            .ContinueWith(async (t, state) =>
-                            {
-                                if (t.Exception != null && state is WebsocketServerClient client)
-                                {
-                                    try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
-                                    try { client.Socket.Abort(); } catch { }
-                                    try { client.Socket.Dispose(); } catch { }
-                                    client.Status = 1;//marked as wasted
-                                }
-                            }, client).ConfigureAwait(false);
-                    }
-                    foreach (var client in _clients.Values)
-                    {
-                        if (client.Status == 0 || !string.IsNullOrEmpty(client.target))
-                            continue;
-                        _clients.TryRemove(client.SessionId, out var removedClient);
-                    }
-
-                    await Task.Delay(task_ws_delay);
-                }
-            }, _cancelWebsocketServer.Token);
+                        if (t.Exception != null && state is WebsocketServerClient client)
+                        {
+                            try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
+                            try { client.Socket.Abort(); } catch { }
+                            try { client.Socket.Dispose(); } catch { }
+                            client.Status = 1;//marked as wasted
+                        }
+                    }, client).ConfigureAwait(false);
+            }
+            foreach (var client in Clients.Values)
+            {
+                if (client.Status == 0 || !string.IsNullOrEmpty(client.target))
+                    continue;
+                Clients.TryRemove(client.SessionId, out var removedClient);
+            }
         }
-
-
-        /// <summary>
-        /// 刷新发布数据频率
-        /// </summary>
-        public void Refresh()
+        public override void Stop()
         {
-            task_ws_delay = IZUConfig.PublishMillionSeconds;
-            //task_multicast_delay = IZUConfig.IntervalMulticastServer;
-            //task_multicast_full_delay = IZUConfig.IntervalMulticastFullDataServer;
-            //task_nano_data_delay = IZUConfig.IntervalNanoDataServer;
+            base.Stop();
+            Clients.Clear();
         }
 
-       
         public async Task Acceptor(HttpContext context, Func<Task> next)
         {
             if (!context.WebSockets.IsWebSocketRequest) return;
@@ -113,14 +89,14 @@ namespace IZU.Service
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
 
-            _clients.GetOrAdd(sessionid, cliid => new WebsocketServerClient(socket, sessionid));
+            Clients.GetOrAdd(sessionid, cliid => new WebsocketServerClient(socket, sessionid));
             _logger.LogDebug($"websocket client connected, session id {sessionid}");
 
             var buffer = new byte[BufferSize];
             var seg = new ArraySegment<byte>(buffer);
             try
             {
-                while (socket.State == WebSocketState.Open && _clients.ContainsKey(sessionid))
+                while (socket.State == WebSocketState.Open && Clients.ContainsKey(sessionid))
                 {
                     var incoming = await socket.ReceiveAsync(seg, CancellationToken.None);
                     var outgoing = new ArraySegment<byte>(buffer, 0, incoming.Count);
@@ -130,7 +106,7 @@ namespace IZU.Service
             catch
             {
             }
-            _clients.TryRemove(sessionid, out var removedClient);
+            Clients.TryRemove(sessionid, out var removedClient);
             _logger.LogDebug($"websocket client disconnected, session id {sessionid}");
         }
 
@@ -426,6 +402,11 @@ namespace IZU.Service
                 _logger.LogWarning($"websocket server publish error: {ex.Message}");
             }
             return root;
+        }
+
+        public void Refresh()
+        {
+            ExecutionDelay = IZUConfig.PublishMillionSeconds;
         }
     }
 }

@@ -3,7 +3,7 @@ using IZU.Entities;
 using IZU.Service;
 using NLog.Extensions.Logging;
 using System.Text;
-using Wonder;
+using Wonder.Service.Framework;
 
 #region 检查程序配置是否存在
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
@@ -24,7 +24,7 @@ AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledException
 };
 
 string result = IZUConfig.Read();
-if(!string.IsNullOrEmpty(result))
+if (!string.IsNullOrEmpty(result))
     StartInfo($"startinfo.log", result);
 
 if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config")))
@@ -44,7 +44,7 @@ var opt = new WebApplicationOptions
 
 try
 {
-    int index= Array.IndexOf(opt.Args, "--urls");
+    int index = Array.IndexOf(opt.Args, "--urls");
     if (index < 0)
         throw new Exception("未设置Url");
     if (opt.Args.Length > index + 1)
@@ -54,7 +54,7 @@ try
         IZUConfig.ServerPort = url.Port;
     }
 }
-catch(Exception ex)
+catch (Exception ex)
 {
     StartInfo($"startinfo.log", $"服务IP设置不正确: {ex.Message}");
     return;
@@ -68,7 +68,7 @@ builder.Logging.AddTelnetLogger(configuration =>
     var c = builder.Configuration.GetRequiredSection("Logging:ColorConsole:LogLevelToColorMap").GetChildren();
     //Replace LogLevel and ConsoleColor values from appsettings.json
     configuration.LogLevelToColorMap = c.ToDictionary(
-        t => (LogLevel)Enum.Parse(typeof(LogLevel), t.Key), 
+        t => (LogLevel)Enum.Parse(typeof(LogLevel), t.Key),
         v => (ConsoleColor)Enum.Parse(typeof(ConsoleColor), v.Value!)
         );
 });
@@ -90,8 +90,7 @@ builder.Services.AddCors(options =>
 });
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Services.AddTelnetService();
-builder.Services.AddIZU();
-builder.Services.AddTasks();
+builder.Services.RegistServices(builder.Configuration);
 
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()
@@ -100,10 +99,32 @@ builder.Services.AddTasks();
 //});
 
 var app = builder.Build();
-
 app.UseTelnet();
 //app.UseAuthorization();
 app.UseCors("AllowAnyOrigin");
 app.UseWebSockets();
 app.MapControllers();
+
+//app.Map("/allservices", async (context) =>
+//{
+//    var sb = new StringBuilder();
+//    sb.Append("<h1>All Services</h1>");
+//    sb.Append("<table><thead>");
+//    sb.Append("<tr><th>Type</th><th>Lifetime</th><th>Instance</th></tr>");
+//    sb.Append("</thead><tbody>");
+//    foreach (var svc in _services)
+//    {
+//        sb.Append("<tr>");
+//        sb.Append($"<td>{svc.ServiceType.FullName}</td>");
+//        sb.Append($"<td>{svc.Lifetime}</td>");
+//        sb.Append($"<td>{svc.ImplementationType?.FullName}</td>");
+//        sb.Append("</tr>");
+//    }
+//    sb.Append("</tbody></table>");
+//    await context.Response.WriteAsync(sb.ToString());
+//});
+
+
+
+
 await app.RunAsync();

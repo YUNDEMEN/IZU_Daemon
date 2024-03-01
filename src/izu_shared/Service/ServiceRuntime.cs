@@ -1,7 +1,9 @@
 using IZU.Interfaces;
+using Wonder.Service.Framework;
 
 namespace IZU.Entities
 {
+    [Regist(RegisterTypes.Singleton)]
     public class ServiceRuntime : IServiceRuntime
     {
         private string _lastStartTime = string.Empty;

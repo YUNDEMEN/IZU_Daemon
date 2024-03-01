@@ -3,7 +3,7 @@ using IZU.DeviceFactories;
 using IZU.Entities;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
-using Wonder;
+using Wonder.Service.Framework;
 
 namespace IZU.Tasks
 {
@@ -12,6 +12,7 @@ namespace IZU.Tasks
     /// PORT 8231
     /// REMOTE COMMAND SERVER
     /// </summary>
+    [Regist(RegisterTypes.LongRunningTask)]
     public class CommandServer : LongRunningTask
     {
         private readonly IS7NetService _s7NetService;
@@ -33,6 +34,7 @@ namespace IZU.Tasks
         protected override bool NoDelay => true;
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            lastExecuteTime = DateTime.Now.ToString();
             byte[] buffer = replySocket.Receive();
             string operation = System.Text.Encoding.UTF8.GetString(buffer);
             operation = await OperationFromOso(operation);

@@ -7,8 +7,8 @@ namespace IZU.Controllers
     [ApiController]
     public class WebSocketController : ControllerBase
     {
-        readonly IWebsocketService _websocketService;
-        public WebSocketController(IWebsocketService websocketService)
+        readonly IIZUWebSocketService _websocketService;
+        public WebSocketController(IIZUWebSocketService websocketService)
         {
             _websocketService = websocketService;
         }

@@ -4,6 +4,7 @@ using IZU.Service;
 using NLog.Extensions.Logging;
 using System.Text;
 using Wonder;
+using Wonder.Service.Framework;
 
 #region 检查程序配置是否存在
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
@@ -90,8 +91,7 @@ builder.Services.AddCors(options =>
 });
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Services.AddTelnetService();
-builder.Services.AddIZU();
-builder.Services.AddTasks();
+builder.Services.RegistServices(builder.Configuration);
 
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()

@@ -9,9 +9,14 @@
     <Import_RootNamespace>Wonder</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TypeService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ILongRunningTask.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)LongRunningTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegistAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegiserTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\TypeService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\ILongRunningTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\LongRunningTask.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Service\Framework\" />
   </ItemGroup>
 </Project>

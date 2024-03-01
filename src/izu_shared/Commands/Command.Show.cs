@@ -1,27 +1,36 @@
 ﻿using IZU.Interfaces;
 using IZU.Service;
 using System.CommandLine;
+using Wonder.Service.Framework;
 
 namespace IZU.Commands
 {
     public class ShowCommand : TelnetCommandBase
     {
+        readonly IServiceProvider _serviceProvider;
         public ShowCommand(ITelnetCommandService commandService, IIZUService service, IS7NetService s7netService)
             : base("show", commandService, service, s7netService)
         {
-            var optInfo = new Option<bool>(new string[] { "--info", "-i" }, () => false, "打印当前配置");
+            var optInfo = new Option<bool>(new string[] { "config", "-c" }, () => false, "打印当前配置");
             Add(optInfo);
             var optReload = new Option<bool>(new string[] { "--reload", "-r" }, () => false, "重新加载设备变量表，并重启PLC SERVER");
             Add(optReload);
-            this.SetHandler(OnReloadConfig, optInfo, optReload);
+            this.SetHandler(ShowConfig, optInfo, optReload);
 
             var deviceNameArg = new Argument<string>("n", () => string.Empty, "设备名称");
-            var devicesOption = new Option<bool>(new string[] { "--all", "-all" }, () => false, "所有设备");
-            var devicesCommand = new Command("device", "查看设备信息") { deviceNameArg, devicesOption };
+            var optionAllDevices = new Option<bool>(new string[] { "--all", "-all" }, () => true, "所有设备");
+            var devicesCommand = new Command("device", "查看设备信息") { deviceNameArg, optionAllDevices };
             Add(devicesCommand);
-            devicesCommand.SetHandler(ShowDevices, deviceNameArg, devicesOption);
+            devicesCommand.SetHandler(ShowDevice, deviceNameArg, optionAllDevices);
+
+
+            var taskIdArg = new Argument<int>("n", () => 0, "任务编号");
+            var optionAllTasks = new Option<bool>(new string[] { "--all", "-all" }, () => true, "所有设备");
+            var taskCommand = new Command("task", "查看运行的后台服务信息") { taskIdArg, optionAllTasks };
+            Add(taskCommand);
+            taskCommand.SetHandler(ShowTask, taskIdArg, optionAllTasks);
         }
-        void OnReloadConfig(bool info, bool reload)
+        void ShowConfig(bool info, bool reload)
         {
             if (reload)
             {
@@ -53,7 +62,7 @@ namespace IZU.Commands
             }
         }
 
-        void ShowDevices(string name, bool all)
+        void ShowDevice(string name, bool all)
         {
             int w = 16;
             if (!string.IsNullOrEmpty(name))
@@ -76,8 +85,8 @@ namespace IZU.Commands
                     foreach (var variableEntity in deviceEntity.Variables)
                     {
                         if (!variableEntity.Disabled)
-                            commandService.WriteLine(string.Format("{0} = {1}", variableEntity.ActionType,$"{variableEntity.Value}").PadRight(w) + ":" +
-                                variableEntity.Address + "(" + variableEntity.FunctionType + ") -"+ variableEntity.VariableType);
+                            commandService.WriteLine(string.Format("{0} = {1}", variableEntity.ActionType, $"{variableEntity.Value}").PadRight(w) + ":" +
+                                variableEntity.Address + "(" + variableEntity.FunctionType + ") -" + variableEntity.VariableType);
                         else
                             commandService.WriteLine($"{variableEntity.ActionType}= ".PadRight(w) + ":" +
                             variableEntity.Address + "(" + variableEntity.FunctionType + ") -disabled");
@@ -85,7 +94,7 @@ namespace IZU.Commands
                 }
             }
 
-            if (all)
+           else if (all)
             {
                 var devices = _s7netService.GetAllDevices();
                 commandService.WriteLine("total device number".PadRight(w) + ":" + devices.Count);
@@ -105,5 +114,26 @@ namespace IZU.Commands
             }
         }
 
+        void ShowTask(int id, bool all)
+        {
+            if (id > 0)
+            {
+                var tasks = commandService.ServiceProvider.GetServices<ILongRunningTask>();
+                var t = tasks.FirstOrDefault(t => t.ID == id);
+                if (t == null)
+                    commandService.WriteLine($"Task with ID {t.ID} does not exist.");
+                else
+                    commandService.WriteLine($"{t.ToString()}");
+            }
+           else if (all)
+            {
+                var tasks = commandService.ServiceProvider.GetServices<ILongRunningTask>();
+                commandService.WriteLine("total tasks:" + tasks.Count());
+                foreach (var t in tasks)
+                {
+                    commandService.WriteLine($"{t.ID} = {t.Name}");
+                }
+            }
+        }
     }
 }

@@ -5,17 +5,19 @@ using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using TinyCsvParser;
+using Wonder.Service.Framework;
 
 namespace IZU.Service
 {
+    [Regist(RegisterTypes.Singleton)]
     public class IZUService : IIZUService
     {
         public readonly IServiceRuntime _serviceRuntime;
         private readonly ILogger<IZUService> _logger;
-        private readonly IWebsocketService _communicationServer;
+        private readonly IIZUWebSocketService _communicationServer;
 
         public IS7NetService S7netService { get; }
-        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IWebsocketService communicationServer)
+        public IZUService(ILoggerFactory loggerFactory, ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IIZUWebSocketService communicationServer)
         {
             IZULogging.ConfigureLogger(loggerFactory);
             _logger = logger;
@@ -35,7 +37,6 @@ namespace IZU.Service
 
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
-            _communicationServer.Start();
         }
 
         private async Task GetMapVersion()

@@ -77,6 +77,7 @@ namespace IZU.Service
 
     public interface ITelnetCommandService
     {
+        IServiceProvider ServiceProvider { get; }
         void CollectCommands();
         string RunCommand(params string[] args);
         void WriteLine(string message);
@@ -89,6 +90,7 @@ namespace IZU.Service
         protected IS7NetService? _s7netService;
         private readonly RootCommand _commandRoot;
         private TestConsole? _telnetConsole;
+        public IServiceProvider ServiceProvider { get { return _serviceProvider; } }
         public TelnetCommandService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

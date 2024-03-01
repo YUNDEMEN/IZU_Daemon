@@ -1,9 +1,11 @@
 ﻿using IZU.Entities;
 using IZU.Interfaces;
 using System.Collections.Concurrent;
+using Wonder.Service.Framework;
 
 namespace IZU.Service
 {
+    [Regist(RegisterTypes.Singleton)]
     public class S7NetService : IS7NetService
     {
         private readonly ConcurrentDictionary<string, DeviceEntity> _cDic = new();

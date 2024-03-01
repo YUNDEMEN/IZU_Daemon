@@ -1,7 +1,7 @@
 ﻿using IZU.Base;
 using IZU.Entities;
 using IZU.Interfaces;
-using Wonder;
+using Wonder.Service.Framework;
 
 namespace IZU.Tasks
 {
@@ -9,7 +9,8 @@ namespace IZU.Tasks
     /// SOCKET UDP CLIENT
     /// PORT 8131
     /// REMOTE CLIENT
-    /// </summary>
+    /// </summary>    
+    [Regist(RegisterTypes.LongRunningTask)]
     public class MulticastTask : LongRunningTask
     {
         int? f_oldState = 0;
@@ -17,7 +18,6 @@ namespace IZU.Tasks
         long open_time = 0;
         long opened_time = 0;
         string operation = string.Empty;
-        CancellationTokenSource _cancelMulticastServer;
         WonderMulticast _multicastSender;
         private readonly IS7NetService _s7NetService;
         public MulticastTask(ILogger<MulticastTask> logger, IS7NetService s7NetService)
@@ -28,13 +28,13 @@ namespace IZU.Tasks
         public override void Start()
         {
             ExecutionDelay = IZUConfig.IntervalMulticastServer;
-            _cancelMulticastServer = new CancellationTokenSource();
             _multicastSender = new WonderMulticast(IZUConfig.MulticastIP);
             _multicastSender.RunAsClient(IZUConfig.PortMulticastServer);
             base.Start();
         }
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            lastExecuteTime = DateTime.Now.ToString();
             var msg = _s7NetService.GetAllDevices();
             // 提取数据
             List<string> data = new();

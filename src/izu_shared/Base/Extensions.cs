@@ -7,16 +7,6 @@ namespace IZU.Base
 {
     public static class Extensions
     {
-        public static IServiceCollection AddIZU(this IServiceCollection service)
-        {
-            service.AddSingleton<IIZUService, IZUService>();
-            service.AddSingleton<IS7NetService, S7NetService>();
-            service.AddSingleton<IWebsocketService, IZUWebSocketService>();
-            service.AddSingleton<IServiceRuntime, ServiceRuntime>();
-            service.AddHostedService<MainBackgroundService>();
-            return service;
-        }
-
         public static int ToInt32(this string value, int defaultValue = 0)
         {
             if (int.TryParse(value, out int result))

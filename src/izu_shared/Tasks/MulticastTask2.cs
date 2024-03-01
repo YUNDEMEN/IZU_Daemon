@@ -3,7 +3,7 @@ using IZU.Entities;
 using IZU.Interfaces;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Wonder;
+using Wonder.Service.Framework;
 
 namespace IZU.Tasks
 {
@@ -12,6 +12,7 @@ namespace IZU.Tasks
     /// PORT 8331
     /// REMOTE CLIENT
     /// </summary>
+    [Regist(RegisterTypes.LongRunningTask)]
     public class MulticastTask2 : LongRunningTask
     {
         int? f_oldState = 0;
@@ -40,6 +41,7 @@ namespace IZU.Tasks
         }
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            lastExecuteTime = DateTime.Now.ToString();
             root = WsPublishDevices2();
             await _multicastFullSender.SendToAsync("PUB_DEVICE_STATUS" + root.ToString(Formatting.None));
         }

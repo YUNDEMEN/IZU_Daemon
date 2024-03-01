@@ -1,14 +1,15 @@
 ﻿using IZU.Interfaces;
-using Wonder;
+using Wonder.Service.Framework;
 
 namespace IZU.Service
 {
+    [Regist(RegisterTypes.HostedService)]
     public sealed class MainBackgroundService : BackgroundService
     {
         readonly IIZUService _izuService;
         readonly IEnumerable<ILongRunningTask> _runningTasks;
         readonly ILogger _logger;
-        public MainBackgroundService(ILogger<MainBackgroundService> logger, IIZUService izuService, IEnumerable<ILongRunningTask> tasks)
+        public MainBackgroundService(ILogger<MainBackgroundService> logger, IServiceProvider serviceProvider, IIZUService izuService, IEnumerable<ILongRunningTask> tasks)
         {
             _logger = logger;
             _izuService = izuService;

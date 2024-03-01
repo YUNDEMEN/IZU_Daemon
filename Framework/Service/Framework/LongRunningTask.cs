@@ -1,4 +1,6 @@
-﻿namespace Wonder
+﻿using System.Text;
+
+namespace Wonder.Service.Framework
 {
     public abstract class LongRunningTask : ILongRunningTask
     {
@@ -12,7 +14,7 @@
         /// <summary>
         /// 任务名称（唯一），默认为类型名称
         /// </summary>
-        protected virtual string Name { get; set; }
+        public virtual string Name { get; set; }
         /// <summary>
         /// 是否禁用任务延迟
         /// 当设置为True时，任务为不延迟， 需要在外部设置等待，一般用在执行任务中等待对方响应的场景
@@ -32,6 +34,9 @@
         protected CancellationTokenSource cancellationTokenSource { get; private set; }
         protected ILogger _logger { get; set; }
 
+        protected string lastExecuteTime = string.Empty;
+        public int ID { get { return theTask.Id; } }
+
         protected LongRunningTask(ILogger logger)
         {
             _logger = logger;
@@ -47,6 +52,7 @@
         /// <returns></returns>
         protected virtual async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            lastExecuteTime = DateTime.Now.ToString();
             await Task.CompletedTask.WaitAsync(TimeSpan.FromSeconds(ExecutionDelay), cancellationToken);
         }
 
@@ -111,13 +117,15 @@
             }
         }
 
-        public static List<TypeService> GetTasks()
+        public override string ToString()
         {
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-             .SelectMany(s => s.GetTypes())
-             .Where(t => t.BaseType != null && t.BaseType.Equals(typeof(LongRunningTask)) && !t.IsInterface)
-             .Select(t => new TypeService(t.Name, t.GetInterface($"ILongRunningTask"), t));
-            return types.Where(t => t.Service != null).ToList();
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine($"Task: {Name} ({(IsStarted ? "Started" : "Not started")})");
+            builder.AppendLine($"Duration: {ExecutionDelay}ms");
+            builder.AppendLine($"NoDelay: {NoDelay}");
+            builder.AppendLine($"Status: {theTask.Status}");
+            builder.AppendLine($"Last Excute Time: {lastExecuteTime}");
+            return builder.ToString();
         }
     }
 }
