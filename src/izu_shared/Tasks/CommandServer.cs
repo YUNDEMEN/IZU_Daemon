@@ -1,6 +1,5 @@
 ﻿using IZU.Base;
 using IZU.DeviceFactories;
-using IZU.Entities;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
 using Wonder.Infrastructure;
@@ -17,9 +16,7 @@ namespace IZU.Tasks
     public class CommandServer : LongRunningTask
     {
         private readonly IS7NetService _s7NetService;
-        private CancellationTokenSource _cancelNanoCommandServer;
         private ReplySocket replySocket;
-        private NNanomsg.NanomsgEndpoint NanomsgEndpoint_CommandServer;
         public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService)
             : base(logger)
         {
@@ -27,9 +24,8 @@ namespace IZU.Tasks
         }
         public override void Start()
         {
-            _cancelNanoCommandServer = new CancellationTokenSource();
             replySocket = new ReplySocket();
-            NanomsgEndpoint_CommandServer = replySocket.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
+            replySocket.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
             base.Start();
         }
         protected override bool NoDelay => true;
