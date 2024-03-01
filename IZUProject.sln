@@ -26,11 +26,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "job-moxa", "src\izu_job\job
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IZU", "IZU", "{58EDD1BB-E472-4D2C-8B73-C91298B49EC5}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU.CodeSharing", "src\izu_shared\IZU.CodeSharing.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeSharing", "CodeSharing", "{41720B8F-09AF-42C7-A754-F6F472E392A3}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "src\Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,18 +67,18 @@ Global
 		{62840619-F4CB-47A1-9809-A3C11648786F} = {C9A435E7-D565-4C32-B307-34C0B32D7801}
 		{58EDD1BB-E472-4D2C-8B73-C91298B49EC5} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
 		{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
-		{27D37385-9870-4EAE-8C7D-2E62C9F0F46B} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
 		{41720B8F-09AF-42C7-A754-F6F472E392A3} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
+		{27D37385-9870-4EAE-8C7D-2E62C9F0F46B} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\izu_shared\IZU.CodeSharing.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
-		Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
-		Framework\Framework.projitems*{481cbd18-3b1b-442f-8ba0-f1235a689d66}*SharedItemsImports = 5
-		src\izu_shared\IZU.CodeSharing.projitems*{481cbd18-3b1b-442f-8ba0-f1235a689d66}*SharedItemsImports = 5
-		Framework\Framework.projitems*{fbb199f1-e11a-492b-ace7-c9cb0ace66ef}*SharedItemsImports = 5
-		src\izu_shared\IZU.CodeSharing.projitems*{fbb199f1-e11a-492b-ace7-c9cb0ace66ef}*SharedItemsImports = 5
+		src\izu_shared\IZU.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
+		src\Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
+		src\Framework\Framework.projitems*{481cbd18-3b1b-442f-8ba0-f1235a689d66}*SharedItemsImports = 5
+		src\izu_shared\IZU.projitems*{481cbd18-3b1b-442f-8ba0-f1235a689d66}*SharedItemsImports = 5
+		src\Framework\Framework.projitems*{fbb199f1-e11a-492b-ace7-c9cb0ace66ef}*SharedItemsImports = 5
+		src\izu_shared\IZU.projitems*{fbb199f1-e11a-492b-ace7-c9cb0ace66ef}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
