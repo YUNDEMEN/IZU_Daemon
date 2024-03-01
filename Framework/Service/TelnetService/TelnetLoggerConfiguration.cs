@@ -1,0 +1,13 @@
+﻿namespace Wonder.Service
+{
+    public sealed class TelnetLoggerConfiguration
+    {
+        public int EventId { get; set; }
+
+        public Dictionary<LogLevel, ConsoleColor> LogLevelToColorMap { get; set; } = new()
+        {
+            [LogLevel.Information] = ConsoleColor.Green,
+            [LogLevel.Warning] = ConsoleColor.Yellow
+        };
+    }
+}

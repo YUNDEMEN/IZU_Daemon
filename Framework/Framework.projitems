@@ -15,6 +15,20 @@
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\TypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\ILongRunningTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\LongRunningTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ClientBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ClientTypes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLoggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLoggerConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\SocketBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetCommandService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ITelnetService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ITelnetCommandService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\xPrint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\WonderTelnetService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Service\Framework\" />

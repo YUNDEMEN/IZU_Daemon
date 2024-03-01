@@ -2,16 +2,22 @@
 using IZU.Service;
 using NLog;
 using System.CommandLine;
+using Wonder.Service;
 
 namespace IZU.Commands
 {
     public class LogCommand : TelnetCommandBase
     {
         Logger _logger;
-        public LogCommand(ITelnetCommandService commandService, IIZUService service, IS7NetService s7netService)
-            : base("log", commandService, service, s7netService)
+        readonly IIZUService _izuService;
+        readonly IS7NetService _s7netService;
+        public LogCommand(ITelnetCommandService commandService)
+            : base("log", commandService)
         {
             _logger = LogManager.GetLogger(nameof(LogCommand));
+            _izuService = commandService.ServiceProvider.GetService<IIZUService>()!;
+            _s7netService = commandService.ServiceProvider.GetService<IS7NetService>()!;
+
             Description = "修改 NLog 日志等级\r\n[ Trace=0, Debug=1, Info=2, Warn=3, Error=4, Fatal=5, Off=6 ]";
 
             var optRuleName = new Option<string>(new string[] { "--rule-name", "-r" }, "设置最小等级") { IsRequired = true };

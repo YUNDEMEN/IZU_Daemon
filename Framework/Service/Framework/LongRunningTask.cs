@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using Wonder.Utils;
 
 namespace Wonder.Service.Framework
 {
@@ -119,13 +119,13 @@ namespace Wonder.Service.Framework
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine($"Task: {Name} ({(IsStarted ? "Started" : "Not started")})");
-            builder.AppendLine($"Duration: {ExecutionDelay}ms");
-            builder.AppendLine($"NoDelay: {NoDelay}");
-            builder.AppendLine($"Status: {theTask.Status}");
-            builder.AppendLine($"Last Excute Time: {lastExecuteTime}");
-            return builder.ToString();
+            xPrint printer = new();
+            printer.AppendLine($"Task: {Name} ({(IsStarted ? "Started" : "Not started")})");
+            printer.AppendLine($"Duration: {ExecutionDelay}ms");
+            printer.AppendLine($"NoDelay: {NoDelay}");
+            printer.AppendLine($"Task Status: {theTask?.Status}");
+            printer.AppendLine($"Run State: {lastExecuteTime}");
+            return printer.ToString();
         }
     }
 }

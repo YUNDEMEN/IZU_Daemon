@@ -46,7 +46,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\IZUWebSocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Service\WonderTelnetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\AnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\CommandServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastTask.cs" />

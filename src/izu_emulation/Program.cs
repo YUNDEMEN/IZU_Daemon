@@ -3,6 +3,7 @@ using IZU.Entities;
 using IZU.Service;
 using NLog.Extensions.Logging;
 using System.Text;
+using Wonder.Service;
 using Wonder.Service.Framework;
 
 #region 检查程序配置是否存在

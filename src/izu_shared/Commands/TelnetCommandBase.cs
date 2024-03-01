@@ -1,21 +1,17 @@
 ﻿using IZU.Interfaces;
-using IZU.Service;
 using System.CommandLine;
 using System.CommandLine.IO;
+using Wonder.Service;
 
 namespace IZU.Commands
 {
     public abstract class TelnetCommandBase : Command
     {
         protected ITelnetCommandService commandService;
-        protected IIZUService _izuService;
-        protected IS7NetService _s7netService;
-        public TelnetCommandBase(string commandName, ITelnetCommandService commandService, IIZUService service, IS7NetService s7netService)
+        public TelnetCommandBase(string commandName, ITelnetCommandService commandService)
             : base(commandName)
         {
             this.commandService = commandService;
-            _izuService = service;
-            _s7netService = s7netService;
             Name = commandName;
         }
     }
