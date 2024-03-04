@@ -1,5 +1,4 @@
 ﻿using IZU.Base;
-using IZU.Entities;
 using IZU.Interfaces;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -37,8 +36,12 @@ namespace IZU.Service
 
             var device_var_list = await GetDeviceVariables();
             S7netService.Start(device_var_list);
+            await CheckDevices();
         }
-
+        /// <summary>
+        /// 获取地图版本
+        /// </summary>
+        /// <returns></returns>
         private async Task GetMapVersion()
         {
             using (HttpClient httpClient = new())
@@ -54,7 +57,7 @@ namespace IZU.Service
                         string result = await response.Content.ReadAsStringAsync();
                         var jsonResult = JsonObject.Parse(result);
                         var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                        if (resultObject!=null && resultObject.ok && resultObject.data != null)
+                        if (resultObject != null && resultObject.ok && resultObject.data != null)
                         {
                             IZUConfig.MapVersion = $"{resultObject.data}";
                             if (!IZUConfig.WriteToAppSetting("map_version", IZUConfig.MapVersion))
@@ -81,11 +84,16 @@ namespace IZU.Service
             }
         }
 
+        /// <summary>
+        /// 获取远程配置
+        /// 1. izu id
+        /// 2. wspub_interval
+        /// </summary>
+        /// <returns></returns>
         public async Task ReadConfigFromDBAsync()
         {
             _logger.LogInformation($"begin get izu info...");
             int izu_id = 0;
-
             using (HttpClient httpClient = new())
             {
                 try
@@ -135,7 +143,7 @@ namespace IZU.Service
                                         int.TryParse($"{resultObject.data}", out izu_id);
                                         _logger.LogInformation($"add izu info successfully");
                                         IZUConfig.izuId = izu_id;
-                                        if (!IZUConfig.WriteToAppSetting("izuId",izu_id))
+                                        if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
                                             _logger.LogWarning($"add izuId to json failed.");
                                     }
                                 }
@@ -167,9 +175,9 @@ namespace IZU.Service
                                             }));
                                             if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                                             {
-                                                 result = await response.Content.ReadAsStringAsync();
+                                                result = await response.Content.ReadAsStringAsync();
                                                 var jsonResult = JsonObject.Parse(result);
-                                                 resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                                                resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                                                 if (!resultObject!.ok)
                                                 {
                                                     _logger.LogWarning($"add izu info failed: {resultObject.message}");
@@ -219,32 +227,6 @@ namespace IZU.Service
                         else
                             _logger.LogInformation($"add izuId to json successfully");
                     }
-                    var devices = S7netService.GetAllDevices();
-                    var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
-                    foreach (var item in groups)
-                    {
-                        var ds = from x in item.ToList()
-                                 select new
-                                 {
-                                     name = x.Name,
-                                     izu_id,
-                                     map_version = IZUConfig.MapVersion
-                                 };
-                        response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
-                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
-                        {
-                            string result = await response.Content.ReadAsStringAsync();
-                            response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                            if (!resultObject!.ok)
-                            {
-                                _logger.LogWarning($"upload izu {item.Key} info failed: {resultObject.message}");
-                            }
-                            else
-                            {
-                                _logger.LogInformation($"upload izu {item.Key} info successfully");
-                            }
-                        }
-                    }
 
                     _communicationServer.Refresh();
                 }
@@ -263,6 +245,10 @@ namespace IZU.Service
             }
         }
 
+        /// <summary>
+        /// 获取变量表
+        /// </summary>
+        /// <returns></returns>
         public async Task<List<VariableEntity>> GetDeviceVariables()
         {
             if (IZUConfig.DeviceTableFrom == "db")
@@ -273,7 +259,6 @@ namespace IZU.Service
             {
                 return await GetDeviceTableFromLocalFileAsync();
             }
-
         }
 
         async Task<List<VariableEntity>> GetDeviceTableFromDBAsync()
@@ -369,6 +354,53 @@ namespace IZU.Service
             return variables;
         }
 
+        /// <summary>
+        /// 检查变量表
+        /// 更新当前izu id和地图版本
+        /// </summary>
+        /// <returns></returns>
+        async Task CheckDevices()
+        {
+            using (HttpClient httpClient = new())
+            {
+                try
+                {
+                    httpClient.Timeout = TimeSpan.FromSeconds(2);
+                    httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    var devices = S7netService.GetAllDevices();
+                    var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
+                    foreach (var item in groups)
+                    {
+                        var ds = from x in item.ToList()
+                                 select new
+                                 {
+                                     name = x.Name,
+                                     izu_id = IZUConfig.izuId,
+                                     map_version = IZUConfig.MapVersion
+                                 };
+                        var response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
+                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                        {
+                            string result = await response.Content.ReadAsStringAsync();
+                            response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                            if (!resultObject!.ok)
+                            {
+                                _logger.LogWarning($"upload izu {item.Key} info failed: {resultObject.message}");
+                            }
+                            else
+                            {
+                                _logger.LogInformation($"upload izu {item.Key} info successfully");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"check devices error: {ex.Message}");
+                }
+            }
+        }
 
         public void Stop()
         {
