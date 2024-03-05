@@ -77,7 +77,5 @@
 
   <Import Project="..\Framework\Framework.projitems" Label="Shared" />
 
-  <Import Project="..\izu_shared\IZU.projitems" Label="Shared" />
-
 
 </Project>
