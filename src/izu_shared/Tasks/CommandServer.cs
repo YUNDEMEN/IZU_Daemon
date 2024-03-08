@@ -16,11 +16,13 @@ namespace IZU.Tasks
     public class CommandServer : LongRunningTask
     {
         private readonly IS7NetService _s7NetService;
+        private readonly ISendDeviceToOhtTask _sendDeviceToOhtTask;
         private ReplySocket replySocket;
-        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService)
+        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService, ISendDeviceToOhtTask sendDeviceToOhtTask)
             : base(logger)
         {
             _s7NetService = s7NetService;
+            _sendDeviceToOhtTask = sendDeviceToOhtTask;
         }
         public override void Start()
         {
@@ -33,9 +35,9 @@ namespace IZU.Tasks
         {
             lastExecuteTime = DateTime.Now.ToString();
             byte[] buffer = replySocket.Receive();
-            string operation = System.Text.Encoding.UTF8.GetString(buffer);
-            operation = await OperationFromOso(operation);
-            replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation));
+            string operation_feedback = System.Text.Encoding.UTF8.GetString(buffer);
+            operation_feedback = await CommandFromOso(operation_feedback);
+            replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation_feedback));
         }
 
         /// <summary>
@@ -43,59 +45,109 @@ namespace IZU.Tasks
         /// </summary>
         /// <param name="data">接受指令( 格式：{deviceType}:{deviceName}:{commandName}:{commandArg} )</param>
         /// <returns></returns>
-        public async Task<string> OperationFromOso(string data)
+        public async Task<string> CommandFromOso(string data)
         {
-            string[] cmdArray = data.Split(':');
-            if (cmdArray.Length > 4)
+            string[] oper_arr = data.Split('>');
+            if (oper_arr.Length < 2)
                 return "command not available";
 
-            int type = cmdArray[0].ToInt32();
-            if (type == 0)
-                return "device type not available";
+            DeviceOperations deviceOperation = (DeviceOperations)oper_arr[0].ToInt32(0);
+            string cmd_str = oper_arr[1];
+            if (string.IsNullOrEmpty(cmd_str))
+                return $"command [{deviceOperation}] not available";
 
-            DeviceTypes deviceType = (DeviceTypes)type;
-            string deviceName = cmdArray[1];
-            var device = _s7NetService.GetDevice(deviceName);
-            if (device == null)
-                return $"device {deviceName} is not existed";
-
-            int oper = cmdArray[2].ToInt32();
-            if (oper == 0)
-                return "device operation not available";
-            DeviceOperations deviceOperation = (DeviceOperations)oper;
-
-            IOperatable? deviceObject = null;
-            switch (deviceType)
+            switch (deviceOperation)
             {
-                case DeviceTypes.NONE:
-                    break;
-                case DeviceTypes.IZU:
-                    break;
-                case DeviceTypes.HID:
-                    break;
-                case DeviceTypes.AUTODOOR:
-                    deviceObject = new AutoDoor(device);
-                    break;
-                case DeviceTypes.FIREDOOR:
-                    break;
-            }
-            if (deviceObject == null)
-                return $"unknown device {deviceName}";
-            else
-            {
-                switch (deviceOperation)
-                {
-                    default:
-                    case DeviceOperations.None:
-                        return "unkown device operation";
-                    case DeviceOperations.Open:
-                        return await deviceObject!.OpenAsync();
-                    case DeviceOperations.Close:
-                        return await deviceObject!.CloseAsync();
+                default:
+                case DeviceOperations.None:
+                    return $"unkown command [{deviceOperation}]";
+                case DeviceOperations.Open:
+                case DeviceOperations.Close://1>3:ad01
+                    {
+                        string[] cmd_arr = cmd_str.Split(':');
+                        if (cmd_arr.Length < 2)
+                            return $"command [{deviceOperation}] not available";
 
-                }
-            }
+                        DeviceTypes deviceType = (DeviceTypes)cmd_arr[0].ToInt32(0);
+                        string deviceName = cmd_arr[1];
+                        var device = _s7NetService.GetDevice(deviceName);
+                        if (device == null)
+                            return $"device {deviceName} is not existed(command [{deviceOperation}])";
 
+                        IOperatable? deviceObject = null;
+                        switch (deviceType)
+                        {
+                            case DeviceTypes.NONE:
+                                break;
+                            case DeviceTypes.IZU:
+                                break;
+                            case DeviceTypes.HID:
+                                break;
+                            case DeviceTypes.AUTODOOR:
+                                deviceObject = new AutoDoor(device);
+                                break;
+                            case DeviceTypes.FIREDOOR:
+                                break;
+                        }
+                        if (deviceObject == null)
+                            return $"unknown device {deviceName}(command [{deviceOperation}])";
+
+                        return await SwitchDeviceOperationAsync(deviceOperation, deviceObject);
+                    }
+                case DeviceOperations.Transmit://3>[{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"},{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"}...]
+                    {
+                        return await TransmitOperationAsync(deviceOperation, cmd_str);
+                    }
+            }
         }
+
+        async Task<string> SwitchDeviceOperationAsync(DeviceOperations @operations, IOperatable deviceObject)
+        {
+            return @operations switch
+            {
+                DeviceOperations.Open => await deviceObject!.OpenAsync(),
+                DeviceOperations.Close => await deviceObject!.CloseAsync(),
+                _ => $"no such command : {@operations}",
+            };
+        }
+
+        async Task<string> TransmitOperationAsync(DeviceOperations @operations, string data)
+        {
+            List<OhtInfo>? list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<OhtInfo>>(data);
+            if (list == null)
+                return await Task.FromResult($"empty command arguments  {@operations}");
+
+            string err = string.Empty;
+            switch (@operations)
+            {
+                case DeviceOperations.Transmit:
+                    {
+                        try
+                        {
+                            _sendDeviceToOhtTask.Add(list);
+                        }
+                        catch (Exception ex)
+                        {
+                            err = $"command  {@operations} error: {ex.Message}";
+                        }
+                        return await Task.FromResult(err);
+                    }
+                case DeviceOperations.StopTransmit:
+                    {
+                        try
+                        {
+                            _sendDeviceToOhtTask.Delete(list);
+                        }
+                        catch (Exception ex)
+                        {
+                            err = $"command  {@operations} error: {ex.Message}";
+                        }
+                        return await Task.FromResult(err);
+                    }
+                default:
+                    return $"no such command : {@operations}";
+            };
+        }
+
     }
 }

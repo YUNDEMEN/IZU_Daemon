@@ -89,6 +89,8 @@
     {
         None,
         Open,
-        Close
+        Close,
+        Transmit,
+        StopTransmit
     }
 }

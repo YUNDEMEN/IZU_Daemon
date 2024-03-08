@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Base\EntityVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\IZUConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ISendDeviceToOhtTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\ServiceRuntime.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IServiceRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\SendDeviceToOhtTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\IZUWebSocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />

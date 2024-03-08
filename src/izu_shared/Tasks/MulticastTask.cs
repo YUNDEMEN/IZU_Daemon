@@ -42,7 +42,7 @@ namespace IZU.Tasks
                 if (it.DeviceType.Equals(DeviceTypes.AUTODOOR))
                 {
                     f_oldState = curr_state;
-                    curr_state = CheckAuodoorStatus(it);
+                    curr_state = DeviceFactory.CheckAuodoorStatus(it);
                     // 状态流转： (0关到位 1正在关 2正在开 3开到位)
                     // 0->2 开门
                     // 2->3 开到位
