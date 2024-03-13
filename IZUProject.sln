@@ -5,9 +5,10 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
-		install-u.bat = install-u.bat
-		install.bat = install.bat
-		readme-IZU_Daemon.txt = readme-IZU_Daemon.txt
+		service-install-u.bat = service-install-u.bat
+		readme.txt = readme.txt
+		service-install.bat = service-install.bat
+		service-query.bat = service-query.bat
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A39079DA-3D89-43A4-907B-C65F67F9256D}"
@@ -26,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "job-moxa", "src\izu_job\job
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "izu", "izu", "{58EDD1BB-E472-4D2C-8B73-C91298B49EC5}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "izu", "src\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeSharing", "CodeSharing", "{41720B8F-09AF-42C7-A754-F6F472E392A3}"
 EndProject
