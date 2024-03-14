@@ -5,33 +5,33 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
-		service-install-u.bat = service-install-u.bat
 		readme.txt = readme.txt
+		service-install-u.bat = service-install-u.bat
 		service-install.bat = service-install.bat
 		service-query.bat = service-query.bat
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A39079DA-3D89-43A4-907B-C65F67F9256D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUD", "src\izu_daemon\IZUD.csproj", "{481CBD18-3B1B-442F-8BA0-F1235A689D66}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUE", "src\izu_emulation\IZUE.csproj", "{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quartz", "quartz", "{7EE62DBD-9E76-4E63-A909-61B41BA72206}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-quartz", "src\izu_job\izu-quartz\izu-quartz.csproj", "{2845D964-02FD-4B3A-92F6-B532D7EB11E2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "jobs", "jobs", "{C9A435E7-D565-4C32-B307-34C0B32D7801}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "job-moxa", "src\izu_job\job-moxa\job-moxa.csproj", "{62840619-F4CB-47A1-9809-A3C11648786F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "izu", "izu", "{58EDD1BB-E472-4D2C-8B73-C91298B49EC5}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeSharing", "CodeSharing", "{41720B8F-09AF-42C7-A754-F6F472E392A3}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "src\Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "src\izu\izu-sharing\Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu\izu-sharing\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUD", "src\izu\izu_daemon\IZUD.csproj", "{DAE46C80-43CD-4F28-B1D1-4133E284B287}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUE", "src\izu\izu_emulation\IZUE.csproj", "{CA044FD6-BD7C-4310-8CC1-639496D639A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-quartz", "src\izu-quartz\izu-quartz\izu-quartz.csproj", "{00736C91-2D54-41C8-A1F3-767A23BBD46D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "job-moxa", "src\izu-quartz\job-moxa\job-moxa.csproj", "{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,47 +39,47 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{481CBD18-3B1B-442F-8BA0-F1235A689D66}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2845D964-02FD-4B3A-92F6-B532D7EB11E2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{62840619-F4CB-47A1-9809-A3C11648786F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62840619-F4CB-47A1-9809-A3C11648786F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62840619-F4CB-47A1-9809-A3C11648786F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62840619-F4CB-47A1-9809-A3C11648786F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAE46C80-43CD-4F28-B1D1-4133E284B287}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAE46C80-43CD-4F28-B1D1-4133E284B287}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAE46C80-43CD-4F28-B1D1-4133E284B287}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAE46C80-43CD-4F28-B1D1-4133E284B287}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA044FD6-BD7C-4310-8CC1-639496D639A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA044FD6-BD7C-4310-8CC1-639496D639A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA044FD6-BD7C-4310-8CC1-639496D639A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA044FD6-BD7C-4310-8CC1-639496D639A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00736C91-2D54-41C8-A1F3-767A23BBD46D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00736C91-2D54-41C8-A1F3-767A23BBD46D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00736C91-2D54-41C8-A1F3-767A23BBD46D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00736C91-2D54-41C8-A1F3-767A23BBD46D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{481CBD18-3B1B-442F-8BA0-F1235A689D66} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
-		{FBB199F1-E11A-492B-ACE7-C9CB0ACE66EF} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
 		{7EE62DBD-9E76-4E63-A909-61B41BA72206} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
-		{2845D964-02FD-4B3A-92F6-B532D7EB11E2} = {7EE62DBD-9E76-4E63-A909-61B41BA72206}
 		{C9A435E7-D565-4C32-B307-34C0B32D7801} = {7EE62DBD-9E76-4E63-A909-61B41BA72206}
-		{62840619-F4CB-47A1-9809-A3C11648786F} = {C9A435E7-D565-4C32-B307-34C0B32D7801}
 		{58EDD1BB-E472-4D2C-8B73-C91298B49EC5} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
-		{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
 		{41720B8F-09AF-42C7-A754-F6F472E392A3} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
 		{27D37385-9870-4EAE-8C7D-2E62C9F0F46B} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
+		{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
+		{DAE46C80-43CD-4F28-B1D1-4133E284B287} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
+		{CA044FD6-BD7C-4310-8CC1-639496D639A4} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
+		{00736C91-2D54-41C8-A1F3-767A23BBD46D} = {7EE62DBD-9E76-4E63-A909-61B41BA72206}
+		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8} = {C9A435E7-D565-4C32-B307-34C0B32D7801}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\izu_shared\IZU.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
-		src\Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
-		src\Framework\Framework.projitems*{481cbd18-3b1b-442f-8ba0-f1235a689d66}*SharedItemsImports = 5
-		src\izu_shared\IZU.projitems*{481cbd18-3b1b-442f-8ba0-f1235a689d66}*SharedItemsImports = 5
-		src\Framework\Framework.projitems*{fbb199f1-e11a-492b-ace7-c9cb0ace66ef}*SharedItemsImports = 5
-		src\izu_shared\IZU.projitems*{fbb199f1-e11a-492b-ace7-c9cb0ace66ef}*SharedItemsImports = 5
+		src\izu\izu-sharing\izu_shared\IZU.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
+		src\izu\izu-sharing\Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
+		src\izu\izu-sharing\Framework\Framework.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
+		src\izu\izu-sharing\izu_shared\IZU.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
+		src\izu\izu-sharing\Framework\Framework.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
+		src\izu\izu-sharing\izu_shared\IZU.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

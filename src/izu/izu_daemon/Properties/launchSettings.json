@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "IZUD": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:34640;http://localhost:34642"
+    }
+  }
+}

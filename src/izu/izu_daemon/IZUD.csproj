@@ -6,8 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
-    <AssemblyName>$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>$(MSBuildProjectName.Replace("_Daemon", ""))</RootNamespace>
+    <AssemblyName>$(MSBuildProjectName.Replace("_Daemon", "-Service"))</AssemblyName>
     <SatelliteResourceLanguages>disabled</SatelliteResourceLanguages>
   </PropertyGroup>
 
@@ -46,6 +46,7 @@
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="S7netplus" Version="0.20.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
     <PackageReference Include="TinyCsvParser" Version="2.7.0" />
@@ -54,7 +55,7 @@
 
   <ItemGroup>
     <Reference Include="NanoMsgCore">
-      <HintPath>..\..\references\SDK\NanoMsgCore.dll</HintPath>
+      <HintPath>..\..\..\references\SDK\NanoMsgCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -73,9 +74,10 @@
     </None>
   </ItemGroup>
 
-  <Import Project="..\izu_shared\IZU.projitems" Label="Shared" />
 
-  <Import Project="..\Framework\Framework.projitems" Label="Shared" />
+  <Import Project="..\izu-sharing\izu_shared\IZU.projitems" Label="Shared" />
+
+  <Import Project="..\izu-sharing\Framework\Framework.projitems" Label="Shared" />
 
 
 </Project>

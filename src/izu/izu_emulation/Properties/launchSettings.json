@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "IZUE": {
+      "commandName": "Project",
+      "commandLineArgs": "--urls http://127.0.0.1:8031",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:34641;http://localhost:34643"
+    }
+  }
+}
