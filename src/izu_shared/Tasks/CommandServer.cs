@@ -94,6 +94,7 @@ namespace IZU.Tasks
 
                         return await SwitchDeviceOperationAsync(deviceOperation, deviceObject);
                     }
+                case DeviceOperations.StopTransmit:
                 case DeviceOperations.Transmit://3>[{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"},{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"}...]
                     {
                         return await TransmitOperationAsync(deviceOperation, cmd_str);

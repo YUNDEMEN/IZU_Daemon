@@ -88,8 +88,6 @@ namespace IZU.Tasks
                         Newtonsoft.Json.JsonConvert.SerializeObject(
                             new DeviceInfo(3,
                             _oht.device,
-                            _oht.point_brake,
-                            _oht.point_stop,
                             DeviceFactory.CheckAuodoorStatus(_device) ?? 0))));
 
                     await Task.Delay(interval);
@@ -102,20 +100,16 @@ namespace IZU.Tasks
             _cts.Cancel();
         }
     }
-    public record class OhtInfo(string addr, string device, string point_brake, string point_stop, int status = 0);
+    public record class OhtInfo(string addr, string device, int status = 0);
     internal class DeviceInfo
     {
         public int type { get; set; }
         public string device { get; set; }
-        public string point_brake { get; set; }
-        public string point_stop { get; set; }
         public int status { get; set; }
-        public DeviceInfo(int type, string device, string point_brake, string point_stop, int status = 0)
+        public DeviceInfo(int type, string device, int status = 0)
         {
             this.type = type;
             this.device = device;
-            this.point_brake = point_brake;
-            this.point_stop = point_stop;
             this.status = status;
         }
     }
