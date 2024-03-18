@@ -4,9 +4,10 @@
     {
         private static ILoggerFactory _factory;
 
-        public static void ConfigureLogger(ILoggerFactory factory)
+        public static ILoggerFactory ConfigureLogger(ILoggerFactory factory)
         {
             _factory = factory;
+            return _factory;
         }
         public static ILoggerFactory Factory
         {

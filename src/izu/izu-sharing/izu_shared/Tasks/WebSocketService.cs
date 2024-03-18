@@ -10,14 +10,13 @@ using Wonder.Service.Framework;
 namespace IZU.Service
 {
     [Regist(RegisterTypes.Singleton | RegisterTypes.LongRunningTask)]
-    public class IZUWebSocketService : LongRunningTask, IIZUWebSocketService
+    public class WebSocketService : LongRunningTask, IWebSocketService
     {
-        private readonly ILogger<IZUWebSocketService> _logger;
         private const int BufferSize = 4096;
         private int task_ws_delay = 100;
         private IS7NetService _s7NetService { get; }
         public readonly ConcurrentDictionary<Guid, WebsocketServerClient> Clients;
-        public IZUWebSocketService(ILogger<IZUWebSocketService> logger, IS7NetService s7netService)
+        public WebSocketService(ILogger<WebSocketService> logger, IS7NetService s7netService)
             : base(logger)
         {
             _logger = logger;

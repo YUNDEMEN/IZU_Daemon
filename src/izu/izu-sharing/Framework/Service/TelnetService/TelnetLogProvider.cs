@@ -6,13 +6,13 @@ namespace Wonder.Service
 {
     [UnsupportedOSPlatform("browser")]
     [ProviderAlias("ColorConsole")]
-    public sealed class TelnetLoggerProvider : ILoggerProvider
+    public sealed class TelnetLogProvider : ILoggerProvider
     {
         private readonly IDisposable? _onChangeToken;
-        private TelnetLoggerConfiguration _currentConfig;
+        private TelnetLogConfiguration _currentConfig;
         private readonly ConcurrentDictionary<string, TelnetLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
 
-        public TelnetLoggerProvider(IOptionsMonitor<TelnetLoggerConfiguration> config)
+        public TelnetLogProvider(IOptionsMonitor<TelnetLogConfiguration> config)
         {
             _currentConfig = config.CurrentValue;
             _onChangeToken = config.OnChange(updatedConfig => _currentConfig = updatedConfig);
@@ -20,7 +20,7 @@ namespace Wonder.Service
 
         public ILogger CreateLogger(string categoryName) => _loggers.GetOrAdd(categoryName, name => new TelnetLogger(name, GetCurrentConfig));
 
-        private TelnetLoggerConfiguration GetCurrentConfig() => _currentConfig;
+        private TelnetLogConfiguration GetCurrentConfig() => _currentConfig;
 
         public void Dispose()
         {

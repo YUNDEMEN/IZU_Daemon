@@ -12,16 +12,16 @@ namespace IZU.Service
     [Regist(RegisterTypes.Singleton)]
     public class IZUService : IIZUService
     {
-        public readonly IServiceRuntime _serviceRuntime;
+        private readonly IServiceRuntime _serviceRuntime;
         private readonly ILogger<IZUService> _logger;
-        private readonly IIZUWebSocketService _communicationServer;
+        private readonly IWebSocketService _webSocketService;
+        private readonly IS7NetService _s7netService;
 
-        public IS7NetService S7netService { get; }
-        public IZUService(ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IIZUWebSocketService communicationServer)
+        public IZUService(ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IWebSocketService webSocketService)
         {
             _logger = logger;
-            S7netService = s7netService;
-            _communicationServer = communicationServer;
+            _s7netService = s7netService;
+            _webSocketService = webSocketService;
             _serviceRuntime = serviceRuntime;
             logger.LogInformation("IZU service initialized");
         }
@@ -35,7 +35,7 @@ namespace IZU.Service
             IZUConfig.Read();
 
             var device_var_list = await GetDeviceVariables();
-            S7netService.Start(device_var_list);
+            _s7netService.Start(device_var_list);
             await CheckDevices();
         }
         /// <summary>
@@ -228,7 +228,7 @@ namespace IZU.Service
                             _logger.LogInformation($"add izuId to json successfully");
                     }
 
-                    _communicationServer.Refresh();
+                    _webSocketService.Refresh();
                 }
                 catch (HttpRequestException http_ex)
                 {
@@ -368,7 +368,7 @@ namespace IZU.Service
                     httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    var devices = S7netService.GetAllDevices();
+                    var devices = _s7netService.GetAllDevices();
                     var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
                     foreach (var item in groups)
                     {
@@ -404,8 +404,8 @@ namespace IZU.Service
 
         public void Stop()
         {
-            _communicationServer.Stop();
-            S7netService.Stop();
+            _webSocketService.Stop();
+            _s7netService.Stop();
         }
 
 

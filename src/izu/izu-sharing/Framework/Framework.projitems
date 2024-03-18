@@ -23,9 +23,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\LongRunningTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ClientBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ClientTypes.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLoggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLogProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLoggerConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLogConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\SocketBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetServer.cs" />
