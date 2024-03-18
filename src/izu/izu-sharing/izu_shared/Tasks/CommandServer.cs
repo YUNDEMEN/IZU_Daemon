@@ -2,6 +2,7 @@
 using IZU.DeviceFactories;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
+using System.Collections.Generic;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
 
@@ -47,6 +48,7 @@ namespace IZU.Tasks
         /// <returns></returns>
         public async Task<string> CommandFromOso(string data)
         {
+            _logger.LogDebug($"command received :{data}");
             string[] oper_arr = data.Split('>');
             if (oper_arr.Length < 2)
                 return "command not available";
@@ -92,7 +94,13 @@ namespace IZU.Tasks
                         if (deviceObject == null)
                             return $"unknown device {deviceName}(command [{deviceOperation}])";
 
-                        return await SwitchDeviceOperationAsync(deviceOperation, deviceObject);
+                        return deviceOperation switch
+                        {
+                            DeviceOperations.Open => await deviceObject!.OpenAsync(),
+                            DeviceOperations.Close => await deviceObject!.CloseAsync(),
+                            _ => $"no such command : {deviceOperation}",
+                        };
+                        //return await SwitchDeviceOperationAsync(deviceOperation, deviceObject);
                     }
                 case DeviceOperations.StopTransmit:
                 case DeviceOperations.Transmit://3>[{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"},{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"}...]
@@ -102,20 +110,18 @@ namespace IZU.Tasks
             }
         }
 
-        async Task<string> SwitchDeviceOperationAsync(DeviceOperations @operations, IOperatable deviceObject)
-        {
-            return @operations switch
-            {
-                DeviceOperations.Open => await deviceObject!.OpenAsync(),
-                DeviceOperations.Close => await deviceObject!.CloseAsync(),
-                _ => $"no such command : {@operations}",
-            };
-        }
-
         async Task<string> TransmitOperationAsync(DeviceOperations @operations, string data)
         {
-            List<OhtInfo>? list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<OhtInfo>>(data);
-            if (list == null)
+            OhtInfo? oht = null;
+            try
+            {
+                oht = Newtonsoft.Json.JsonConvert.DeserializeObject<OhtInfo>(data);
+            }
+            catch(Exception ex)
+            {
+                return $"fail to deserialize command. {ex.Message}";
+            }
+            if (oht == null)
                 return await Task.FromResult($"empty command arguments  {@operations}");
 
             string err = string.Empty;
@@ -125,7 +131,7 @@ namespace IZU.Tasks
                     {
                         try
                         {
-                            _sendDeviceToOhtTask.Add(list);
+                            _sendDeviceToOhtTask.Add(oht);
                         }
                         catch (Exception ex)
                         {
@@ -137,7 +143,7 @@ namespace IZU.Tasks
                     {
                         try
                         {
-                            _sendDeviceToOhtTask.Delete(list);
+                            _sendDeviceToOhtTask.Delete(oht);
                         }
                         catch (Exception ex)
                         {

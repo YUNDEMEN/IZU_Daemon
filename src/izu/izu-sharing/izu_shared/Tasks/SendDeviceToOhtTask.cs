@@ -25,23 +25,34 @@ namespace IZU.Tasks
             await Task.CompletedTask;
         }
 
+        public void Add(OhtInfo oht)
+        {
+            if (oht == null) return;
+            var d = _s7NetService.GetDevice(oht.device);
+            if (d == null) return;
+
+            if (_requestSockets.ContainsKey(oht.addr))
+            {
+                _requestSockets[oht.addr].SetOht(oht);
+                _requestSockets[oht.addr].Run();
+            }
+            else if (IPEndPoint.TryParse(oht.addr, out IPEndPoint? serverEndPoint))
+            {
+                InnerTask innerTask = new InnerTask(oht, serverEndPoint, d);
+                _requestSockets[oht.addr] = innerTask;
+            }
+        }
+
+        public void Delete(OhtInfo oht)
+        {
+            if (!_requestSockets.ContainsKey(oht.addr)) return;
+            _requestSockets[oht.addr].Cancel();
+        }
         public void Add(List<OhtInfo> infos)
         {
             foreach (var oht in infos)
             {
-                var d = _s7NetService.GetDevice(oht.device);
-                if (d == null) continue;
-
-                if (_requestSockets.ContainsKey(oht.addr))
-                {
-                    _requestSockets[oht.addr].SetOht(oht);
-                    _requestSockets[oht.addr].Run();
-                }
-                else if (IPEndPoint.TryParse(oht.addr, out IPEndPoint? serverEndPoint))
-                {
-                    InnerTask innerTask = new InnerTask(oht, serverEndPoint, d);
-                    _requestSockets[oht.addr] = innerTask;
-                }
+                Add(oht);
             }
         }
 
@@ -49,8 +60,7 @@ namespace IZU.Tasks
         {
             foreach (var oht in infos)
             {
-                if (!_requestSockets.ContainsKey(oht.addr)) continue;
-                _requestSockets[oht.addr].Cancel();
+                Delete(oht);
             }
         }
 
