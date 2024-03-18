@@ -33,38 +33,34 @@ namespace IZU.Service
         {
             lastExecuteTime = DateTime.Now.ToString();
             JObject root = new();
-
-#if RELEASE
-                    if (_clients.Count == 0)
-                    {
-                        await Task.Delay(task_ws_delay);
-                        continue;
-                    }
-#endif
-            root = WsPublishDevices();
-
-            var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(root.ToString(Formatting.None)));
-            foreach (var client in Clients.Values)
+            if (Clients.Count == 0) { }
+            else
             {
-                if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
+                root = WsPublishDevices();
 
-                await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
-                    .ContinueWith(async (t, state) =>
-                    {
-                        if (t.Exception != null && state is WebsocketServerClient client)
+                var outgoing = new ArraySegment<byte>(Encoding.GetEncoding("GB2312").GetBytes(root.ToString(Formatting.None)));
+                foreach (var client in Clients.Values)
+                {
+                    if (client.Status == 1 || !string.IsNullOrEmpty(client.target)) continue;
+
+                    await client.Socket.SendAsync(outgoing, WebSocketMessageType.Text, true, CancellationToken.None)
+                        .ContinueWith(async (t, state) =>
                         {
-                            try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
-                            try { client.Socket.Abort(); } catch { }
-                            try { client.Socket.Dispose(); } catch { }
-                            client.Status = 1;//marked as wasted
-                        }
-                    }, client).ConfigureAwait(false);
-            }
-            foreach (var client in Clients.Values)
-            {
-                if (client.Status == 0 || !string.IsNullOrEmpty(client.target))
-                    continue;
-                Clients.TryRemove(client.SessionId, out var removedClient);
+                            if (t.Exception != null && state is WebsocketServerClient client)
+                            {
+                                try { await client.Socket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "disconnect", CancellationToken.None); } catch { }
+                                try { client.Socket.Abort(); } catch { }
+                                try { client.Socket.Dispose(); } catch { }
+                                client.Status = 1;//marked as wasted
+                            }
+                        }, client).ConfigureAwait(false);
+                }
+                foreach (var client in Clients.Values)
+                {
+                    if (client.Status == 0 || !string.IsNullOrEmpty(client.target))
+                        continue;
+                    Clients.TryRemove(client.SessionId, out var removedClient);
+                }
             }
         }
         public override void Stop()
