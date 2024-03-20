@@ -5,7 +5,7 @@ using Wonder.Infrastructure;
 using Wonder.Service;
 using Wonder.Service.Framework;
 
-#region ¼ì²é³ÌĞòÅäÖÃÊÇ·ñ´æÔÚ
+#region æ£€æŸ¥ç¨‹åºé…ç½®æ˜¯å¦å­˜åœ¨
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
 if (dir.Exists) dir.Delete(true);
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -46,7 +46,7 @@ try
 {
     int index = Array.IndexOf(opt.Args, "--urls");
     if (index < 0)
-        throw new Exception("Î´ÉèÖÃUrl");
+        throw new Exception("æœªè®¾ç½®Url");
     if (opt.Args.Length > index + 1)
     {
         var url = new Uri(opt.Args[index + 1]);
@@ -56,10 +56,11 @@ try
 }
 catch (Exception ex)
 {
-    StartInfo($"startinfo.log", $"·şÎñIPÉèÖÃ²»ÕıÈ·: {ex.Message}");
+    StartInfo($"startinfo.log", $"æœåŠ¡IPè®¾ç½®ä¸æ­£ç¡®: {ex.Message}");
     return;
 }
 
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 var builder = WebApplication.CreateBuilder(opt);
 builder.Logging.ClearProviders();
 builder.Configuration.AddJsonFile("appsettings.json", false, true);

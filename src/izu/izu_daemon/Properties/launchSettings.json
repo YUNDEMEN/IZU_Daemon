@@ -2,6 +2,7 @@
   "profiles": {
     "IZUD": {
       "commandName": "Project",
+      "commandLineArgs": "--urls http://127.0.0.1:8031",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
