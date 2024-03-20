@@ -16,13 +16,13 @@ namespace Wonder.Service
         /// 用于远程访问服务时，将日志输出到 Telnet 客户端
         /// </summary>
         /// <param name="builder"><see cref="ILoggingBuilder"/></param>
-        /// <param name="configure"><see cref="TelnetLoggerConfiguration"/></param>
+        /// <param name="configure"><see cref="TelnetLogConfiguration"/></param>
         /// <returns></returns>
-        public static ILoggingBuilder AddTelnetLogger(this ILoggingBuilder builder, Action<TelnetLoggerConfiguration> configure)
+        public static ILoggingBuilder AddTelnetLog(this ILoggingBuilder builder, Action<TelnetLogConfiguration> configure)
         {
             builder.AddConfiguration();
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, TelnetLoggerProvider>());
-            LoggerProviderOptions.RegisterProviderOptions<TelnetLoggerConfiguration, TelnetLoggerProvider>(builder.Services);
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, TelnetLogProvider>());
+            LoggerProviderOptions.RegisterProviderOptions<TelnetLogConfiguration, TelnetLogProvider>(builder.Services);
             builder.Services.Configure(configure);
             return builder;
         }

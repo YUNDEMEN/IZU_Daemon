@@ -306,3 +306,4 @@ healthchecksdb
 /build
 /src/izu_daemon/Properties
 /src/izu_emulation/Properties
+/src/izu/izu_emulation/build

@@ -7,6 +7,8 @@ namespace Wonder.Service.Framework
     {
         public static IServiceCollection RegistServices(this IServiceCollection services, IConfiguration configuration)
         {
+            var fact = LogManager.ConfigureLogger(services.BuildServiceProvider().GetRequiredService<ILoggerFactory>());
+            var logger = fact.CreateLogger("wonder.service.framework");
             Type registration = typeof(RegistAttribute);
             var AddHostedService = typeof(ServiceCollectionHostedServiceExtensions)
                 .GetMethod("AddHostedService", 1, BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(IServiceCollection) }, null);
@@ -38,9 +40,6 @@ namespace Wonder.Service.Framework
                 }
             }
 
-            /*
-               注册Hosted Service 和 Long Running Task Service
-             */
             foreach (var type in registTypies)
             {
                 var regist = type.Implementation.GetCustomAttribute<RegistAttribute>();
@@ -49,17 +48,27 @@ namespace Wonder.Service.Framework
                 {
                     var longRuningTaskInterface = type.Implementation.GetInterface(nameof(ILongRunningTask));
                     if (longRuningTaskInterface == null) break;
-                    var serviceInterface = type.Implementation.GetInterface($"I{type.Implementation.Name}");                 
-                    if(regist.IsSingleton)
+                    var serviceInterface = type.Implementation.GetInterface($"I{type.Implementation.Name}");
+
+                    // 注册 Singleton Service
+                    if (regist.IsSingleton)
                     {
-                        services.AddSingleton(longRuningTaskInterface, t => t.GetRequiredService(serviceInterface));
+                        if (serviceInterface == null)
+                            logger.LogDebug($"Fail to Register {longRuningTaskInterface} -> I{type.Implementation.Name} is not found.");
+                        else
+                        {
+                            services.AddSingleton(longRuningTaskInterface, t => t.GetRequiredService(serviceInterface));
+                            logger.LogDebug($"Register {longRuningTaskInterface} -> {serviceInterface}");
+                        }
                     }
                     else
                     {
                         services.AddSingleton(longRuningTaskInterface, type.Implementation);
+                        logger.LogDebug($"Register {longRuningTaskInterface} -> I{type.Implementation.Name}");
                     }
                     //services.AddKeyedSingleton(longRuningTaskInterface, type.Implementation.Name, type.Implementation);
                 }
+                // 注册 Hosted Service
                 else if (regist.IsHostedService)
                 {
                     if (AddHostedService == null)
@@ -67,8 +76,6 @@ namespace Wonder.Service.Framework
                     AddHostedService.MakeGenericMethod(new Type[] { type.Implementation }).Invoke(null, new object?[] { services });
                 }
             }
-
-            LogManager.ConfigureLogger(services.BuildServiceProvider().GetRequiredService<ILoggerFactory>());
             return services;
         }
     }

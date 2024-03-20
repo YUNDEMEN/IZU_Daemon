@@ -1,6 +1,6 @@
 ﻿namespace Wonder.Service
 {
-    public sealed class TelnetLoggerConfiguration
+    public sealed class TelnetLogConfiguration
     {
         public int EventId { get; set; }
 

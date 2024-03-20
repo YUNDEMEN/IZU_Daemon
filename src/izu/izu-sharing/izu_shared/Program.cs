@@ -65,13 +65,13 @@ var builder = WebApplication.CreateBuilder(opt);
 builder.Logging.ClearProviders();
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config"));
-builder.Logging.AddTelnetLogger(configuration =>
+builder.Logging.AddTelnetLog(configuration =>
 {
     var c = builder.Configuration.GetRequiredSection("Logging:ColorConsole:LogLevelToColorMap").GetChildren();
     //Replace LogLevel and ConsoleColor values from appsettings.json
     configuration.LogLevelToColorMap = c.ToDictionary(
-        t => (LogLevel)Enum.Parse(typeof(LogLevel), t.Key),
-        v => (ConsoleColor)Enum.Parse(typeof(ConsoleColor), v.Value!)
+            t => (LogLevel)Enum.Parse(typeof(LogLevel), t.Key),
+            v => (ConsoleColor)Enum.Parse(typeof(ConsoleColor), v.Value!)
         );
 });
 builder.Host.UseWindowsService();
@@ -106,23 +106,23 @@ app.UseCors("AllowAnyOrigin");
 app.UseWebSockets();
 app.MapControllers();
 
-//app.Map("/allservices", async (context) =>
-//{
-//    var sb = new StringBuilder();
-//    sb.Append("<h1>All Services</h1>");
-//    sb.Append("<table><thead>");
-//    sb.Append("<tr><th>Type</th><th>Lifetime</th><th>Instance</th></tr>");
-//    sb.Append("</thead><tbody>");
-//    foreach (var svc in _services)
-//    {
-//        sb.Append("<tr>");
-//        sb.Append($"<td>{svc.ServiceType.FullName}</td>");
-//        sb.Append($"<td>{svc.Lifetime}</td>");
-//        sb.Append($"<td>{svc.ImplementationType?.FullName}</td>");
-//        sb.Append("</tr>");
-//    }
-//    sb.Append("</tbody></table>");
-//    await context.Response.WriteAsync(sb.ToString());
-//});
+app.Map("/izu", async (context) =>
+{
+    var sb = new StringBuilder();
+    sb.Append("<h1>All Services</h1>");
+    sb.Append("<table><thead>");
+    sb.Append("<tr><th>Type</th><th>Lifetime</th><th>Instance</th></tr>");
+    sb.Append("</thead><tbody>");
+    foreach (var svc in builder.Services)
+    {
+        sb.Append("<tr>");
+        sb.Append($"<td>{svc.ServiceType.FullName}</td>");
+        sb.Append($"<td>{svc.Lifetime}</td>");
+        sb.Append($"<td>{svc.ImplementationType?.FullName}</td>");
+        sb.Append("</tr>");
+    }
+    sb.Append("</tbody></table>");
+    await context.Response.WriteAsync(sb.ToString());
+});
 
 await app.RunAsync();

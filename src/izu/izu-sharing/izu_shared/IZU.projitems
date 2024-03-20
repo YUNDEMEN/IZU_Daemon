@@ -41,7 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\SendDeviceToOhtTask.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Tasks\IZUWebSocketService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\WebSocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\AnotherDataServer.cs" />

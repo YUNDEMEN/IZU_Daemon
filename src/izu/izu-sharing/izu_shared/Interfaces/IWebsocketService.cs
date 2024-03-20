@@ -1,6 +1,6 @@
 ﻿namespace IZU.Interfaces
 {
-    public interface IIZUWebSocketService
+    public interface IWebSocketService
     {
         /// <summary>
         /// 刷新websocket发布数据频率
