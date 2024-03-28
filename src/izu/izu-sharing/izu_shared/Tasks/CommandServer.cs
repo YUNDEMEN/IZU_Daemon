@@ -112,7 +112,7 @@ namespace IZU.Tasks
 
         async Task<string> TransmitOperationAsync(DeviceOperations @operations, string data)
         {
-            OhtInfo? oht = null;
+            OhtInfo? oht;
             try
             {
                 oht = Newtonsoft.Json.JsonConvert.DeserializeObject<OhtInfo>(data);
