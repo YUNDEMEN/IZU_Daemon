@@ -1,4 +1,5 @@
 ﻿using IZU.Base;
+using IZU.Base.dto;
 
 namespace IZU.Interfaces
 {
@@ -10,5 +11,6 @@ namespace IZU.Interfaces
         List<DeviceEntity> GetAllDevices();
         DeviceEntity? GetDevice(string deviceName);
         List<VariableEntity> GetDeviceVariables(string deviceName);
+        izu_status GetStatus();
     }
 }

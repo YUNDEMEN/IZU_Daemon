@@ -36,13 +36,20 @@ namespace IZU.Controllers
         {
             return WonderResponse.Create(_s7netService.GetAllDevices());
         }
+
+        [HttpGet("status")]
+        public WonderResponse GetStatus()
+        {
+            return WonderResponse.Create(_s7netService.GetStatus());
+        }
+
         [HttpGet("device")]
         public WonderResponse GetDevice([FromQuery] string name)
         {
             var device = _s7netService.GetDevice(name);
             if (device == null)
             {
-                return WonderResponse.Error($"Éè±¸Ãû {name} ²»´æÔÚ");
+                return WonderResponse.Error($"è®¾å¤‡å {name} ä¸å­˜åœ¨");
             }
             else
             {
@@ -58,11 +65,11 @@ namespace IZU.Controllers
                 _izuService.Stop();
                 await _izuService.StartAsync();
 
-                return WonderResponse.Create("ÒÑÖØÔØÅäÖÃºÍ±äÁ¿±í");
+                return WonderResponse.Create("å·²é‡è½½é…ç½®å’Œå˜é‡è¡¨");
             }
             catch (Exception ex)
             {
-                return WonderResponse.Error($"ÖØÔØ±äÁ¿±íÊ§°Ü: {ex.Message}");
+                return WonderResponse.Error($"é‡è½½å˜é‡è¡¨å¤±è´¥: {ex.Message}");
             }
         }
 
