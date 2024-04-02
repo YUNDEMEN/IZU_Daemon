@@ -2,7 +2,6 @@
 using IZU.DeviceFactories;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
-using System.Collections.Generic;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
 
@@ -21,7 +20,7 @@ namespace IZU.Tasks
         private ReplySocket replySocket;
         public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService, ISendDeviceToOhtTask sendDeviceToOhtTask)
             : base(logger)
-        {
+        {          
             _s7NetService = s7NetService;
             _sendDeviceToOhtTask = sendDeviceToOhtTask;
         }
