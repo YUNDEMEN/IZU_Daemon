@@ -101,15 +101,24 @@ namespace IZU.Tasks
             _cts = new CancellationTokenSource();
             Task.Factory.StartNew(() =>
             {
+                byte[]? buffer = null;
                 while (!_cts.IsCancellationRequested)
                 {
-                    _requestSocket.Receive();
-                    _requestSocket.Send(System.Text.Encoding.UTF8.GetBytes(
-                        Newtonsoft.Json.JsonConvert.SerializeObject(
-                            new DeviceInfo(2, 3,
-                            _oht.device,
-                            _oht.pid,
-                            DeviceFactory.CheckAuodoorStatus(_device) ?? 0))));
+                    buffer = _requestSocket.Receive();
+                    if (buffer == null)
+                    {
+                        _isRunning = false;
+                        break;
+                    }
+                    else
+                    {
+                        _requestSocket.Send(System.Text.Encoding.UTF8.GetBytes(
+                            Newtonsoft.Json.JsonConvert.SerializeObject(
+                                new DeviceInfo(2, 3,
+                                _oht.device,
+                                _oht.pid,
+                                DeviceFactory.CheckAuodoorStatus(_device) ?? 0))));
+                    }
                 }
                 _isRunning = false;
             });
