@@ -8,7 +8,7 @@ namespace IZU.DeviceFactories
         public readonly (string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
 
         public FireDoor() { }
-        public FireDoor(DeviceEntity deviceEntity) : base(deviceEntity)
+        public FireDoor(DeviceBase deviceEntity) : base(deviceEntity)
         {
             address_tup.R01 = GetActionType("R01");  //        系统开机状态
             address_tup.R02 = GetActionType("R02");  //        系统自动运行状态

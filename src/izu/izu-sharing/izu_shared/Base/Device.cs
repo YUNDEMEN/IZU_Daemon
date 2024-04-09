@@ -2,15 +2,15 @@
 using IZU.Interfaces;
 using Wonder.Infrastructure;
 
-namespace IZU.DeviceFactories
+namespace IZU.Base
 {
     public abstract class Device : IDevice
     {
-        private DeviceEntity _deviceEntity;
-        public DeviceEntity DeviceEntity => _deviceEntity;
+        private DeviceBase _deviceEntity;
+        public DeviceBase DeviceEntity => _deviceEntity;
 
-        public Device() { _deviceEntity = DeviceEntity.DummyDevice; }
-        public Device(DeviceEntity deviceEntity)
+        public Device() { }
+        public Device(DeviceBase deviceEntity)
         {
             _deviceEntity = deviceEntity;
         }
@@ -59,8 +59,6 @@ namespace IZU.DeviceFactories
         {
             DateTime startTime = DateTime.Now;
             string result = string.Empty;
-
-            bool? cond = false;
             while (true)
             {
                 if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
@@ -69,7 +67,7 @@ namespace IZU.DeviceFactories
                     break;
                 }
 
-                cond = await _deviceEntity!.Server!.GetBool(address_condition);
+                bool? cond = await _deviceEntity!.Server!.GetBool(address_condition);
                 if ((bool)cond != condValue)
                 {
                     await Task.Delay(10);
@@ -92,9 +90,8 @@ namespace IZU.DeviceFactories
         protected async Task<string> DelayWriteAsync(string address_write, bool value, string delay_address_write, bool delayValue, int delay)
         {
             await _deviceEntity.Server!.WriteBool(address_write, value);
-            string result = string.Empty;
             await Task.Delay(delay);
-            result = await _deviceEntity.Server!.WriteBool(delay_address_write, delayValue);
+            string result = await _deviceEntity.Server!.WriteBool(delay_address_write, delayValue);
             return result;
         }
 

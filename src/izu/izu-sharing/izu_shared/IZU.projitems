@@ -10,7 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Base\CsvVariableMapping.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Device.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\dto\izu_status.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\DeviceBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\IZUControllerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\TextRecorder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\TimestampService.cs" />

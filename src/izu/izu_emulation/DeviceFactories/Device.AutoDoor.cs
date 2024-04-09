@@ -1,5 +1,4 @@
 ﻿using IZU.Base;
-using IZU.Entities;
 using IZU.Interfaces;
 using Wonder.Infrastructure;
 
@@ -10,7 +9,7 @@ namespace IZU.DeviceFactories
         public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
 
         public AutoDoor() { }
-        public AutoDoor(DeviceEntity deviceEntity) : base(deviceEntity)
+        public AutoDoor(DeviceBase deviceEntity) : base(deviceEntity)
         {
             address_tup.R00 = GetActionType("R00");  //        上电完成
             address_tup.R01 = GetActionType("R01");  //        系统待机状态

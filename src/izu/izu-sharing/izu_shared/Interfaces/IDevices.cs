@@ -10,7 +10,7 @@ namespace IZU.Interfaces
         /// <summary>
         /// 设备名
         /// </summary>
-        DeviceEntity DeviceEntity { get; }
+        DeviceBase DeviceEntity { get; }
     }
     /// <summary>
     /// 启动

@@ -13,7 +13,7 @@ namespace IZU.DeviceFactories
 
         public string? fireAlarmInfo = string.Empty;
         public HID() { }
-        public HID(DeviceEntity deviceEntity) : base(deviceEntity)
+        public HID(DeviceBase deviceEntity) : base(deviceEntity)
         {
             address_tup.R01 = GetActionType("R01");  //   PSP待机状态
             address_tup.R02 = GetActionType("R02");  //   PSP停止状态信号
