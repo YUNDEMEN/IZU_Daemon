@@ -90,7 +90,7 @@ namespace Wonder.Service.Framework
         {
             cancellationTokenSource.Cancel();
             IsStarted = false;
-            _logger.LogInformation($"{this.GetType().Name} Task Canceled({theTask?.Status}).");
+            _logger.LogInformation($"{this.GetType().Name} Task Cancelled({theTask?.Status}).");
         }
 
         static string GetRealExceptions(Exception? ex)
