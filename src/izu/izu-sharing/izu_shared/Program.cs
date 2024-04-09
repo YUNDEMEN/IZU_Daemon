@@ -9,28 +9,30 @@ using Wonder.Service.Framework;
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
 if (dir.Exists) dir.Delete(true);
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-void StartInfo(string fileName, string? content)
+void ErrorReport(string fileName, string? content)
 {
     if (!dir.Exists) dir.Create();
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine("[{0:yyyy-MM-dd HH:mm:ss}]: {1}", DateTime.Now, content);
     File.AppendAllText(Path.Combine(dir.FullName, fileName), content);
     Console.ForegroundColor = ConsoleColor.White;
+    Console.WriteLine("按任意键继续...");
+    Console.ReadKey();
+    Environment.Exit(0);
 }
 
 AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
 {
-    StartInfo($"{AppDomain.CurrentDomain.BaseDirectory}logs\\{DateTime.Now:yyyyMMddHHmmss}-crash.log", e.ExceptionObject?.ToString());
+    ErrorReport($"{AppDomain.CurrentDomain.BaseDirectory}logs\\{DateTime.Now:yyyyMMddHHmmss}-crash.log", e.ExceptionObject?.ToString());
 };
 
 string result = IZUConfig.Read();
 if (!string.IsNullOrEmpty(result))
-    StartInfo($"startinfo.log", result);
+    ErrorReport($"startinfo.log", result);
 
 if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config")))
 {
-    StartInfo($"startinfo.log", "NLog config file missing (nlog.config)");
-    return;
+    ErrorReport($"startinfo.log", "NLog config file missing (nlog.config)");
 }
 
 #endregion
@@ -46,7 +48,7 @@ try
 {
     int index = Array.IndexOf(opt.Args, "--urls");
     if (index < 0)
-        throw new Exception("未设置Url");
+        throw new Exception("未设置本地IP地址和端口");
     if (opt.Args.Length > index + 1)
     {
         var url = new Uri(opt.Args[index + 1]);
@@ -56,8 +58,7 @@ try
 }
 catch (Exception ex)
 {
-    StartInfo($"startinfo.log", $"服务IP设置不正确: {ex.Message}");
-    return;
+    ErrorReport($"startinfo.log", $"服务IP设置不正确: {ex.Message}");
 }
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
