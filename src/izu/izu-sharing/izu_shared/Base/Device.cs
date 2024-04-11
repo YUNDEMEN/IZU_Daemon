@@ -6,7 +6,7 @@ namespace IZU.Base
 {
     public abstract class Device : IDevice
     {
-        private DeviceBase _deviceEntity;
+        protected DeviceBase _deviceEntity;
         public DeviceBase DeviceEntity => _deviceEntity;
 
         public Device() { }
