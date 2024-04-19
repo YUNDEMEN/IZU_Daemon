@@ -1,10 +1,13 @@
 using IZU.Base;
 using NLog.Extensions.Logging;
+using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using Wonder.Infrastructure;
 using Wonder.Service;
 using Wonder.Service.Framework;
 
+string guid=Guid.NewGuid().ToString();
 #region 检查程序配置是否存在
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
 if (dir.Exists) dir.Delete(true);
@@ -16,8 +19,15 @@ void ErrorReport(string fileName, string? content)
     Console.WriteLine("[{0:yyyy-MM-dd HH:mm:ss}]: {1}", DateTime.Now, content);
     File.AppendAllText(Path.Combine(dir.FullName, fileName), content);
     Console.ForegroundColor = ConsoleColor.White;
-    Console.WriteLine("按任意键继续...");
-    Console.ReadKey();
+    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+    {
+        //这段代码在Linux运行中报错，所以要在windows环境下才执行
+        Console.WriteLine("按任意键继续...");
+        Console.ReadKey();
+    }
+    else  if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+    {
+    }
     Environment.Exit(0);
 }
 
@@ -44,21 +54,29 @@ var opt = new WebApplicationOptions
     WebRootPath = AppDomain.CurrentDomain.BaseDirectory
 };
 
-try
+
+Uri? serverUrl = null;
+string error = string.Empty;
+foreach (var item in opt.Args)
 {
-    int index = Array.IndexOf(opt.Args, "--urls");
-    if (index < 0)
-        throw new Exception("未设置本地IP地址和端口");
-    if (opt.Args.Length > index + 1)
+    string addr = item.Replace("--urls=", string.Empty);
+    try
     {
-        var url = new Uri(opt.Args[index + 1]);
-        IZUConfig.ServerIP = url.Host;
-        IZUConfig.ServerPort = url.Port;
+        serverUrl = new Uri(addr);
+        IZUConfig.ServerIP = serverUrl.Host;
+        IZUConfig.ServerPort = serverUrl.Port;
+        break;
+    }
+    catch (Exception ex)
+    {
+        error += addr + ex.StackTrace;
     }
 }
-catch (Exception ex)
+
+if (serverUrl == null)
 {
-    ErrorReport($"startinfo.log", $"服务IP设置不正确: {ex.Message}");
+    ErrorReport($"startinfo.log", $"args ({opt.Args.Length}): {string.Join("; ", opt.Args)} \r {error}");
+    throw new Exception("未设置本地IP地址和端口");
 }
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
