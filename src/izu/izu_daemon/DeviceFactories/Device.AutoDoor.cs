@@ -38,6 +38,76 @@ namespace IZU.DeviceFactories
             address_tup.W10 = GetActionType("W10");  //        自动 / 手动模式
         }
 
+        /// <summary>
+        /// 获取自动门状态（0关到位 1正在关 2正在开 3开到位）
+        /// <code>
+        /// 0->2 开门
+        /// 2->3 开到位
+        /// 3->1 关门
+        /// 1->0 关到位
+        /// </code>
+        /// </summary>
+        /// <returns></returns>
+        public int? GetStatus()
+        {
+            var opening = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
+            var opened = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
+            var openState = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
+            var closing = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
+            var closed = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
+            var closeState = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
+            if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
+                return null;
+            else
+            {
+                if (// 关到位
+/* R06=false*/(bool)closing == false
+/* R08=true*/&& (bool)closed
+/* R03=true*/&& (bool)closeState
+/* R05=false*/&& (bool)opening == false
+/* R07=false*/&& (bool)opened == false
+/* R04=false*/&& (bool)openState == false)
+                    return 0;
+
+
+
+                else if (// 正在关
+/* R06=true*/ (bool)closing
+/* R08=false*/&& (bool)closed == false
+/* R03=false*/&& (bool)closeState == false
+/* R05=false*/&& (bool)opening == false
+/* R07=false*/&& (bool)opened == false
+/* R04=false*/&& (bool)openState == false)
+                    return 1;
+
+
+
+                else if (// 正在开
+/* R06=false*/(bool)closing == false
+/* R08=false*/&& (bool)closed == false
+/* R03=false*/&& (bool)closeState == false
+/* R05=true*/&& (bool)opening
+/* R07=false*/&& (bool)opened == false
+/* R04=false*/&& (bool)openState == false)
+                    return 2;
+
+
+
+                else if (// 开到位
+/* R06=false*/(bool)closing == false
+/* R08=false*/&& (bool)closed == false
+/* R03=false*/&& (bool)closeState == false
+/* R05=false*/&& (bool)opening == false
+/* R07=true*/&& (bool)opened
+/* R04=true*/&& (bool)openState)
+                    return 3;
+
+
+                else
+                    return null;
+            }
+        }
+
         public async Task<string> InitialAsync()
         {
             Ref<bool> @ref = new();

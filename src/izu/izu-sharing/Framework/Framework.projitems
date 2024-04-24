@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Extension.HttpRequst.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\KeyedList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\LogManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Extensions.Parse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\DatetimeJsonConverter.cs" />
