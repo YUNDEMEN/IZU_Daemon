@@ -36,7 +36,7 @@ namespace IZU.Tasks
             lastExecuteTime = DateTime.Now.ToString();
             byte[] buffer = replySocket.Receive();
             string operation_feedback = System.Text.Encoding.UTF8.GetString(buffer);
-            operation_feedback = await CommandFromOso(operation_feedback);
+            operation_feedback = await CommandHandler(operation_feedback);
             replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation_feedback));
         }
 
@@ -45,7 +45,7 @@ namespace IZU.Tasks
         /// </summary>
         /// <param name="data">接受指令( 格式：{deviceType}:{deviceName}:{commandName}:{commandArg} )</param>
         /// <returns></returns>
-        public async Task<string> CommandFromOso(string data)
+        public async Task<string> CommandHandler(string data)
         {
             _logger.LogDebug($"command received :{data}");
             string[] oper_arr = data.Split('>');
