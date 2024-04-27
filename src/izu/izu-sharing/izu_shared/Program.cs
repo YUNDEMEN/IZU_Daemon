@@ -73,7 +73,7 @@ foreach (var item in opt.Args)
 
 if (serverUrl == null)
 {
-    ErrorReport($"startinfo.log", $"args ({opt.Args.Length}): {string.Join("; ", opt.Args)} \r {error}\r\n[urls] should be passed in");
+    ErrorReport($"startinfo.log", $" {{urls}} should be passed in");
     throw new Exception("未设置本地IP地址和端口");
 }
 
