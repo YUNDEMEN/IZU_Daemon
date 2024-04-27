@@ -1,13 +1,11 @@
 using IZU.Base;
 using NLog.Extensions.Logging;
-using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using Wonder.Infrastructure;
 using Wonder.Service;
 using Wonder.Service.Framework;
 
-string guid=Guid.NewGuid().ToString();
 #region 检查程序配置是否存在
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
 if (dir.Exists) dir.Delete(true);
@@ -75,7 +73,7 @@ foreach (var item in opt.Args)
 
 if (serverUrl == null)
 {
-    ErrorReport($"startinfo.log", $"args ({opt.Args.Length}): {string.Join("; ", opt.Args)} \r {error}");
+    ErrorReport($"startinfo.log", $"args ({opt.Args.Length}): {string.Join("; ", opt.Args)} \r {error}\r\n[urls] should be passed in");
     throw new Exception("未设置本地IP地址和端口");
 }
 
