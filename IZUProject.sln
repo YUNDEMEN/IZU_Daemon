@@ -5,6 +5,7 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
 		readme.txt = readme.txt
 		service-install-u.bat = service-install-u.bat
 		service-install.bat = service-install.bat
