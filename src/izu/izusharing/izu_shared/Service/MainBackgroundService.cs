@@ -20,9 +20,20 @@ namespace IZU.Service
             _logger.LogInformation("---------------IZU service starting---------------");
             await _izuService.StartAsync();
 
-            foreach (var task in _runningTasks)
+            if (_runningTasks != null)
             {
-                task.Start();
+                foreach (var task in _runningTasks)
+                {
+                    try
+                    {
+                        task.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"{ex.Message}");
+                        _logger.LogError($"{ex.StackTrace}");
+                    }
+                }
             }
             _logger.LogInformation("---------------IZU service started---------------");
         }

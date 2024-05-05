@@ -12,7 +12,7 @@ namespace IZU.Tasks
         readonly IDictionary<string, InnerTask> _requestSockets;
         private readonly IS7NetService _s7NetService;
 
-        public SendDeviceToOhtTask(ILogger<AnotherDataServer> logger, IS7NetService s7NetService)
+        public SendDeviceToOhtTask(ILogger<SendDeviceToOhtTask> logger, IS7NetService s7NetService)
             : base(logger)
         {
             _s7NetService = s7NetService;
