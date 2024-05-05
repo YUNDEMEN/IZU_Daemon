@@ -12,7 +12,7 @@ namespace IZU.Tasks
         readonly IDictionary<string, InnerTask> _requestSockets;
         private readonly IS7NetService _s7NetService;
 
-        public SendDeviceToOhtTask(ILogger<AnotherDataServer> logger, IS7NetService s7NetService)
+        public SendDeviceToOhtTask(ILogger<SendDeviceToOhtTask> logger, IS7NetService s7NetService)
             : base(logger)
         {
             _s7NetService = s7NetService;
@@ -69,7 +69,7 @@ namespace IZU.Tasks
     internal class InnerTask
     {
         const int timeoutSeconds = 2;
-        CancellationTokenSource _cts;
+        CancellationTokenSource? _cts;
         OhtInfo _oht;
         RequestSocket _requestSocket;
         DeviceEntity _device;
@@ -128,6 +128,7 @@ namespace IZU.Tasks
         {
             _requestSocket.Send(System.Text.Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(new DeviceInfo(0, 3, _oht.device, _oht.pid, 0))));
             _requestSocket.Receive();
+            if (_cts == null) return;
             _cts.Cancel();
         }
     }

@@ -26,6 +26,21 @@ namespace IZU.Service
             logger.LogInformation("IZU service initialized");
         }
 
+        /*
+                 启动流程：
+                 1. 读取本地配置
+                 2. 获取地图版本（izu/map）
+                 3. 读取远程配置（izu/exist?n= 、izu/existById、izu/add、izu/edit）
+                    调用 izu/exist?n= 判断当前 izu 服务器是否存在（根据当前 izu ip address 检索）
+                        如果存在， 获取wspub_interval、izu_id（更新本地izu id）
+                        如果不存在
+                            如果本地 izu id 不存在 ，调用 izu/add 添加当前 izu 服务器（获取izu_id，更新本地izu id）
+                            如果本地 izu id 存在 ，调用 izu/existById 判断 izu id 是否存在
+                                如果不存在，调用 izu/add 添加当前 izu 服务器（获取izu_id）
+                                如果存在，调用 izu/edit 更新本地 izu ip 
+                 4. 读取变量表（本地/远程）
+                 5. 启动 S7NetService
+        */
         public async Task StartAsync()
         {
             _serviceRuntime.MarkStarted();

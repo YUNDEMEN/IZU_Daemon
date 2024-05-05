@@ -5,6 +5,7 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
 		readme.txt = readme.txt
 		service-install-u.bat = service-install-u.bat
 		service-install.bat = service-install.bat
@@ -21,9 +22,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "izu", "izu", "{58EDD1BB-E47
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeSharing", "CodeSharing", "{41720B8F-09AF-42C7-A754-F6F472E392A3}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "src\izu\izu-sharing\Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "src\izu\izusharing\Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu\izu-sharing\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu\izusharing\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUD", "src\izu\izu_daemon\IZUD.csproj", "{DAE46C80-43CD-4F28-B1D1-4133E284B287}"
 EndProject
@@ -75,11 +76,11 @@ Global
 		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\izu\izu-sharing\izu_shared\IZU.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
-		src\izu\izu-sharing\Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
-		src\izu\izu-sharing\Framework\Framework.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
-		src\izu\izu-sharing\izu_shared\IZU.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
-		src\izu\izu-sharing\Framework\Framework.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
-		src\izu\izu-sharing\izu_shared\IZU.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
+		src\izu\izusharing\izu_shared\IZU.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
+		src\izu\izusharing\Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
+		src\izu\izusharing\Framework\Framework.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
+		src\izu\izusharing\izu_shared\IZU.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
+		src\izu\izusharing\Framework\Framework.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
+		src\izu\izusharing\izu_shared\IZU.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

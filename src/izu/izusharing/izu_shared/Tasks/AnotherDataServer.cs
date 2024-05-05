@@ -6,7 +6,7 @@ using Wonder.Service.Framework;
 
 namespace IZU.Tasks
 {
-    [Regist(RegisterTypes.LongRunningTask)]
+    //[Regist(RegisterTypes.LongRunningTask)]
     public class AnotherDataServer : LongRunningTask, IAnotherDataServer
     {
         private readonly IS7NetService _s7NetService;
