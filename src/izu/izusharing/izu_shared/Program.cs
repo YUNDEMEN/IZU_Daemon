@@ -23,7 +23,7 @@ void ErrorReport(string fileName, string? content)
         Console.WriteLine("按任意键继续...");
         Console.ReadKey();
     }
-    else  if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
     }
     Environment.Exit(0);
@@ -53,32 +53,53 @@ var opt = new WebApplicationOptions
 };
 
 
-Uri? serverUrl = null;
 string error = string.Empty;
-foreach (var item in opt.Args)
+
+if (opt.Args.Count()<2)
 {
-    string addr = item.Replace("--urls=", string.Empty);
     try
     {
-        serverUrl = new Uri(addr);
-        IZUConfig.ServerIP = serverUrl.Host;
-        IZUConfig.ServerPort = serverUrl.Port;
-        break;
+        var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
+        var ip = addressList.FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.ToString();
+        Console.WriteLine(ip);
+        IZUConfig.ServerIP = ip;
+        IZUConfig.ServerPort = 8031;
     }
     catch (Exception ex)
     {
-        error += addr + ex.StackTrace;
+        error += "get local ipaddress failed: " + ex.StackTrace;
+    }
+}
+else
+{
+    Uri? serverUrl = null;
+    foreach (var item in opt.Args)
+    {
+        string addr = item.Replace("--urls=", string.Empty);
+        try
+        {
+            serverUrl = new Uri(addr);
+
+            IZUConfig.ServerIP = serverUrl.Host;
+            IZUConfig.ServerPort = serverUrl.Port;
+            break;
+        }
+        catch (Exception ex)
+        {
+            error += addr + ex.StackTrace;
+        }
+    }
+    if (serverUrl == null)
+    {
+        ErrorReport($"startinfo.log", $" {{urls}} should be passed in");
+        throw new Exception("未设置本地IP地址和端口");
     }
 }
 
-if (serverUrl == null)
-{
-    ErrorReport($"startinfo.log", $" {{urls}} should be passed in");
-    throw new Exception("未设置本地IP地址和端口");
-}
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 var builder = WebApplication.CreateBuilder(opt);
+builder.WebHost.UseUrls($"http://{IZUConfig.ServerIP}:{IZUConfig.ServerPort}");
 builder.Logging.ClearProviders();
 builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config"));
@@ -109,7 +130,6 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddTelnetService();
 builder.Services.RegistServices(builder.Configuration);
-
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()
 //.OnChange((profile,t) =>
@@ -117,13 +137,19 @@ builder.Services.RegistServices(builder.Configuration);
 //});
 
 var app = builder.Build();
+//app.Lifetime.ApplicationStarted.Register(() =>
+//{
+//    ICollection<string> urls = app.Urls;
+//    var serverUrl = new Uri(urls.First());
+//    IZUConfig.ServerIP = serverUrl.Host;
+//    IZUConfig.ServerPort = serverUrl.Port;
+//});
 app.UseTelnet();
-//app.UseAuthorization();
 app.UseCors("AllowAnyOrigin");
 app.UseWebSockets();
 app.MapControllers();
 
-app.Map("/izu", async (context) =>
+app.Map("/info", async (context) =>
 {
     var sb = new StringBuilder();
     sb.Append("<h1>All Services</h1>");
