@@ -1,4 +1,6 @@
-﻿namespace Wonder.Infrastructure
+﻿using Microsoft.Extensions.Logging;
+
+namespace Wonder.Infrastructure
 {
     public class LogManager
     {

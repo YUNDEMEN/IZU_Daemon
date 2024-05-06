@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
+using System;
 
 namespace Wonder.Service
 {
@@ -41,7 +45,7 @@ namespace Wonder.Service
         /// </summary>
         /// <param name="app"></param>
         /// <exception cref="Exception"></exception>
-        public static void UseTelnet(this WebApplication app)
+        public static void UseTelnet(this IHost app)
         {
             ITelnetService? telnetService = app.Services.GetService<ITelnetService>();
             if (telnetService == null)

@@ -1,4 +1,6 @@
-﻿namespace Wonder.Service
+﻿using Microsoft.Extensions.Logging;
+
+namespace Wonder.Service
 {
     public sealed class TelnetLogConfiguration
     {

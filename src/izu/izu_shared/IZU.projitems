@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Base\Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\WebsocketServerClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\WonderMulticast.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\WonderResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Log.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Show.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TelnetCommandBase.cs" />

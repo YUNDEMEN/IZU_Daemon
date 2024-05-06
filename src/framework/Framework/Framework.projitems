@@ -15,7 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Extensions.Parse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\DatetimeJsonConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Ref.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\WonderResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegistAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegiserTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\Extension.Services.cs" />

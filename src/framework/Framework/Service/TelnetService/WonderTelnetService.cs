@@ -13,6 +13,8 @@
  */
 namespace Wonder.Service
 {
+    using Microsoft.Extensions.Logging;
+    using System.Collections.Generic;
     using System.Net;
 
     public class WonderTelnetService : ITelnetService

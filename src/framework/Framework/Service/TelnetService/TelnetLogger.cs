@@ -1,4 +1,7 @@
-﻿namespace Wonder.Service
+﻿using Microsoft.Extensions.Logging;
+using System;
+
+namespace Wonder.Service
 {
     public sealed class TelnetLogger : ILogger
     {

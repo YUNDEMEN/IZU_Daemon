@@ -1,9 +1,14 @@
-﻿using System.Reflection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Reflection;
 using Wonder.Infrastructure;
 
 namespace Wonder.Service.Framework
 {
-    internal static class FrameworkExtensions
+    public static class FrameworkExtensions
     {
         public static IServiceCollection RegistServices(this IServiceCollection services, IConfiguration configuration)
         {
