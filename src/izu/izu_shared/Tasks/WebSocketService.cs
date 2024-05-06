@@ -13,7 +13,6 @@ namespace IZU.Service
     public class WebSocketService : LongRunningTask, IWebSocketService
     {
         private const int BufferSize = 4096;
-        private int task_ws_delay = 100;
         private IS7NetService _s7NetService { get; }
         public readonly ConcurrentDictionary<Guid, WebsocketServerClient> Clients;
         public WebSocketService(ILogger<WebSocketService> logger, IS7NetService s7netService)
@@ -26,7 +25,6 @@ namespace IZU.Service
         public override void Start()
         {
             Refresh();
-            //_logger.LogDebug($"websocket publish task started, sending on port {IZUConfig.ServerPort}");
             base.Start();
         }
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)

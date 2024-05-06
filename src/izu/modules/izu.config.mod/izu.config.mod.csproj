@@ -10,4 +10,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="ServiceFramework">
+      <HintPath>..\..\..\..\references\framework\ServiceFramework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /y &quot;.\bin\debug\net7.0\izu.*.mod.dll&quot;  &quot;..\..\izu_emulation\bin\Debug\net7.0&quot;" />
+  </Target>
 </Project>

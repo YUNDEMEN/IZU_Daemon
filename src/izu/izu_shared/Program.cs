@@ -55,7 +55,7 @@ var opt = new WebApplicationOptions
 
 string error = string.Empty;
 
-if (opt.Args.Count()<2)
+if (opt.Args.Count() < 2)
 {
     try
     {
@@ -95,7 +95,6 @@ else
         throw new Exception("未设置本地IP地址和端口");
     }
 }
-
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 var builder = WebApplication.CreateBuilder(opt);
@@ -149,19 +148,23 @@ app.UseCors("AllowAnyOrigin");
 app.UseWebSockets();
 app.MapControllers();
 
-app.Map("/info", async (context) =>
+app.Map("/", async (context) =>
 {
     var sb = new StringBuilder();
-    sb.Append("<h1>All Services</h1>");
+    sb.Append("<style>td.left {\r\n  text-align: left;\r\n  vertical-align: middle;\r\n}");
+    sb.Append("th.left {\r\n  text-align: left;\r\n  vertical-align: middle;\r\n}</style>");
+    sb.Append("<h1>Registered Services</h1>");
     sb.Append("<table><thead>");
-    sb.Append("<tr><th>Type</th><th>Lifetime</th><th>Instance</th></tr>");
+    sb.Append("<tr><th class=\"left\">Type</th><th class=\"left\">Lifetime</th><th class=\"left\">Instance</th></tr>");
     sb.Append("</thead><tbody>");
-    foreach (var svc in builder.Services)
+    foreach (var svc in builder.Services.Where(t =>
+    !t.ServiceType.FullName.StartsWith("Microsoft") && !t.ServiceType.FullName.StartsWith("System")
+    ).Select(t => t))
     {
         sb.Append("<tr>");
-        sb.Append($"<td>{svc.ServiceType.FullName}</td>");
-        sb.Append($"<td>{svc.Lifetime}</td>");
-        sb.Append($"<td>{svc.ImplementationType?.FullName}</td>");
+        sb.Append($"<td width=\"40%\">{svc.ServiceType.FullName}</td>");
+        sb.Append($"<td width=\"40%\" class=\"left\">{svc.Lifetime}  |  {svc.ServiceType.Name}</td>");
+        sb.Append($"<td width=\"40%\">{svc.ImplementationType?.FullName}</td>");
         sb.Append("</tr>");
     }
     sb.Append("</tbody></table>");

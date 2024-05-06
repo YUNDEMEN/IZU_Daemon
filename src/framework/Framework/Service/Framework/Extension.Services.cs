@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
 using System.Reflection;
 using Wonder.Infrastructure;
 
@@ -14,6 +12,22 @@ namespace Wonder.Service.Framework
         {
             var fact = LogManager.ConfigureLogger(services.BuildServiceProvider().GetRequiredService<ILoggerFactory>());
             var logger = fact.CreateLogger("wonder.service.framework");
+
+            DirectoryInfo root = new(AppDomain.CurrentDomain.BaseDirectory);
+            var modFiles = root.GetFiles("izu*mod.dll", SearchOption.TopDirectoryOnly);
+            foreach (var modFile in modFiles)
+            {
+                try
+                {
+                    var mod = AppDomain.CurrentDomain.Load(File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}izu.config.mod.dll"));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning($"load mod error: {ex.Message}. {modFile.FullName}");
+                    logger.LogError($"load mod error: {ex.StackTrace}. {modFile.FullName}");
+                }
+            }
+
             Type registration = typeof(RegistAttribute);
             var AddHostedService = typeof(ServiceCollectionHostedServiceExtensions)
                 .GetMethod("AddHostedService", 1, BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(IServiceCollection) }, null);

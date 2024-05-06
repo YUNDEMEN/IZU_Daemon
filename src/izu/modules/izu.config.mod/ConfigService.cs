@@ -1,12 +1,12 @@
 ﻿namespace izu.config.mod
 {
     using Microsoft.Extensions.Logging;
-    //using Wonder.Service.Framework;
+    using Wonder.Service.Framework;
     public interface IConfigService
     {
 
     }
-    //[Regist(RegisterTypes.Singleton)]
+    [Regist(RegisterTypes.Singleton)]
     public class ConfigService : IConfigService
     {
         private readonly ILogger<ConfigService> logger;
