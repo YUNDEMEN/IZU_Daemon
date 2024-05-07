@@ -114,6 +114,6 @@ namespace IZU.Interfaces
 
     public interface IOperatable:ICanOpen,ICanClose
     {
-
+        int? GetStatus();
     }
 }

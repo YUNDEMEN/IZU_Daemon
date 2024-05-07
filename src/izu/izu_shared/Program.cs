@@ -173,7 +173,11 @@ app.Map("/", async (context) =>
     {
         block.Append("<tr>");
         //block.Append($"<td width=\"40%\">{svc.ServiceType.FullName}</td>");
-        block.Append($"<td width=\"40%\" class=\"left\">{svc.ServiceType.Name}</td>");
+        if (svc.ImplementationType == null)
+        {
+            continue;
+        }
+        block.Append($"<td width=\"40%\" class=\"left\">{svc.ServiceType.Name}<br>&#x21aa {svc.ImplementationType.Name}</td>");
         block.Append($"<td width=\"40%\">{svc.Lifetime}</td>");
         block.Append("</tr>");
     }

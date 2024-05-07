@@ -6,6 +6,7 @@ using Wonder.Service.Framework;
 
 namespace IZU.Tasks
 {
+    /*
     [Regist(RegisterTypes.LongRunningTask | RegisterTypes.Singleton)]
     public class SendDeviceToOhtTask : LongRunningTask, ISendDeviceToOhtTask
     {
@@ -149,4 +150,5 @@ namespace IZU.Tasks
             this.status = status;
         }
     }
+    */
 }
