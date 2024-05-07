@@ -5,11 +5,11 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
+		src\framework\build.frw.bat = src\framework\build.frw.bat
 		build.izu.d.bat = build.izu.d.bat
 		build.izu.e.bat = build.izu.e.bat
 		Dockerfile = Dockerfile
-		src\framework\build.frw.bat = src\framework\build.frw.bat
-		readme.txt = readme.txt
+		changelog.txt = changelog.txt
 		service-install-u.bat = service-install-u.bat
 		service-install.bat = service-install.bat
 		service-query.bat = service-query.bat
@@ -31,7 +31,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-quartz", "src\izu-quart
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "job-moxa", "src\izu-quartz\job-moxa\job-moxa.csproj", "{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "izu.config.mod", "src\izu\modules\izu.config.mod\izu.config.mod.csproj", "{8DA64240-9B20-43D8-A80D-5119F51B7A16}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu.config.mod", "src\izu\modules\izu.config.mod\izu.config.mod.csproj", "{8DA64240-9B20-43D8-A80D-5119F51B7A16}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mods", "mods", "{32C7239F-25E8-4A87-AF9E-7B577F45D51E}"
 EndProject
