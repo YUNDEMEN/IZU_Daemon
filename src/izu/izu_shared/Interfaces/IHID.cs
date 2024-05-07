@@ -1,8 +1,6 @@
-﻿using IZU.Entities;
-
-namespace IZU.Interfaces
+﻿namespace IZU.Interfaces
 {
-	public interface IHID : IDevice, ICanStart, ICanStop, IEmergency, IReset
+    public interface IHID : IDevice, ICanStart, ICanStop, IEmergency, IReset
 	{
 
 	}

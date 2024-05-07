@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
 using TinyCsvParser;
+using TinyCsvParser.Reflection;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
 
@@ -12,18 +13,24 @@ namespace IZU.Service
     [Regist(RegisterTypes.Singleton)]
     public class IZUService : IIZUService
     {
-        private readonly IServiceRuntime _serviceRuntime;
-        private readonly ILogger<IZUService> _logger;
-        private readonly IWebSocketService _webSocketService;
-        private readonly IS7NetService _s7netService;
-
-        public IZUService(ILogger<IZUService> logger, IServiceRuntime serviceRuntime, IS7NetService s7netService, IWebSocketService webSocketService)
+        private readonly ILogger<IZUService> logger;
+        private readonly IWebSocketService webSocketService;
+        private readonly IS7NetService s7netService;
+        private readonly List<string> logs;
+        public List<string> Logs { get { return logs; } }
+        public IZUService(ILogger<IZUService> logger, IS7NetService s7netService, IWebSocketService webSocketService)
         {
-            _logger = logger;
-            _s7netService = s7netService;
-            _webSocketService = webSocketService;
-            _serviceRuntime = serviceRuntime;
-            logger.LogInformation("IZU service initialized");
+            this.logger = logger;
+            this.s7netService = s7netService;
+            this.webSocketService = webSocketService;
+            logs = new List<string>();
+        }
+
+        void Log(string message, LogLevel logLevel = LogLevel.Information)
+        {
+            if (string.IsNullOrEmpty(message)) { return; }
+            logger.Log(logLevel, message);
+            logs.Add($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss:fff}]:  {message}");
         }
 
         /*
@@ -43,14 +50,16 @@ namespace IZU.Service
         */
         public async Task StartAsync()
         {
-            _serviceRuntime.MarkStarted();
-            IZUConfig.Read();
+            logs.Clear();
+            Log("service is starting");
+            Log(IZUConfig.Read());
             await GetMapVersion();
             await ReadConfigFromDBAsync();
-            IZUConfig.Read();
+            Log(IZUConfig.Read());
+            Log("current config is:\r\n" + IZUConfig.ToString());
 
             var device_var_list = await GetDeviceVariables();
-            _s7netService.Start(device_var_list);
+            s7netService.Start(device_var_list);
             await CheckDevices();
         }
         /// <summary>
@@ -63,6 +72,7 @@ namespace IZU.Service
             {
                 try
                 {
+                    Log($"begin get map version...(call api: izu/map)");
                     httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -77,20 +87,20 @@ namespace IZU.Service
                             IZUConfig.MapVersion = $"{resultObject.data}";
                             if (!IZUConfig.WriteToAppSetting("map_version", IZUConfig.MapVersion))
                             {
-                                _logger.LogWarning($"write mapVersion to json failed.");
+                                Log($"write map version to json failed.", LogLevel.Warning);
                             }
                             else
-                                _logger.LogInformation($"current mapVersion is {IZUConfig.MapVersion}");
+                                Log($"current map version is \"{IZUConfig.MapVersion}\"");
                         }
                     }
                 }
                 catch (HttpRequestException http_ex)
                 {
-                    _logger.LogWarning($"get mapVersion error: {http_ex.Message}");
+                    Log($"get map version failed: {http_ex.Message}", LogLevel.Warning);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"get mapVersion error: {ex.Message}");
+                    Log($"get map version failed: {ex.Message}", LogLevel.Warning);
                 }
                 finally
                 {
@@ -107,7 +117,8 @@ namespace IZU.Service
         /// <returns></returns>
         public async Task ReadConfigFromDBAsync()
         {
-            _logger.LogInformation($"begin get izu info...");
+            Log($"begin get izu info... (call api: izu/exist?n={IZUConfig.Server})");
+            Log($"current local izu id={IZUConfig.izuId}");
             int izu_id = 0;
             using (HttpClient httpClient = new())
             {
@@ -127,18 +138,18 @@ namespace IZU.Service
                             JObject izuObj = (JObject)resultObject.data;
                             IZUConfig.PublishMillionSeconds = (int)izuObj["wspub_interval"]!;
                             izu_id = (int)izuObj["id"]!;
-                            _logger.LogInformation($"get izu info successfully");
-                            //if ($"{izuObj["status"]}" == "disabled")
-                            //    return;
+                            Log($"remote izu id={izu_id}");
                         }
                     }
 
                     if (izu_id == 0)
                     {
+                        Log($"get remote izu id failed");
                         if (string.IsNullOrEmpty(IZUConfig.Read()))
                         {
                             if (IZUConfig.izuId == 0)
                             {
+                                Log($"local izu id=0, try to add local ip={IZUConfig.Server} to server (call api: izu/add)");
                                 response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
                                 {
                                     ip = IZUConfig.Server,
@@ -151,20 +162,21 @@ namespace IZU.Service
                                     var resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                                     if (!resultObject!.ok)
                                     {
-                                        _logger.LogWarning($"add izu info failed: {resultObject.message}");
+                                        Log($"add izu ip={IZUConfig.Server} failed: {resultObject.message}", LogLevel.Warning);
                                     }
                                     else
                                     {
                                         int.TryParse($"{resultObject.data}", out izu_id);
-                                        _logger.LogInformation($"add izu info successfully");
                                         IZUConfig.izuId = izu_id;
+                                        Log($"add izu ip={IZUConfig.Server} successfully, current izu id={izu_id}");
                                         if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
-                                            _logger.LogWarning($"add izuId to json failed.");
+                                            Log($"update local izu id failed.  local temp izu id={IZUConfig.izuId}", LogLevel.Warning);
                                     }
                                 }
                             }
                             else
                             {
+                                Log($"local izu id={IZUConfig.izuId}, try to check remote id (call api: izu/existById)");
                                 // 判断是否存在该id
                                 response = await httpClient.PostAsync($"izu/existById", JsonContent.Create(new
                                 {
@@ -176,13 +188,13 @@ namespace IZU.Service
                                     response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                                     if (!resultObject!.ok)
                                     {
-                                        _logger.LogWarning($"get bool existById {izu_id} failed: {resultObject.message}");
+                                        Log($"check remote izu id failed: {resultObject.message}", LogLevel.Warning);
                                     }
                                     else
                                     {
-                                        _logger.LogInformation($"get bool existById {izu_id} successfully");
                                         if ((bool)resultObject.data == false)
                                         {
+                                            Log($"local izu id={IZUConfig.izuId} does not exist in remote server. try to add local ip={IZUConfig.Server} to server (call api: izu/add)");
                                             response = await httpClient.PostAsync($"izu/add", JsonContent.Create(new
                                             {
                                                 ip = IZUConfig.Server,
@@ -195,23 +207,26 @@ namespace IZU.Service
                                                 resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                                                 if (!resultObject!.ok)
                                                 {
-                                                    _logger.LogWarning($"add izu info failed: {resultObject.message}");
+                                                    Log($"add izu ip={IZUConfig.Server} failed: {resultObject.message}", LogLevel.Warning);
                                                 }
                                                 else
                                                 {
                                                     int.TryParse($"{resultObject.data}", out izu_id);
-                                                    _logger.LogDebug($"add izu info successfully");
                                                     IZUConfig.izuId = izu_id;
+                                                    Log($"add izu ip={IZUConfig.Server} successfully, current izu id={izu_id}");
                                                     if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
-                                                        _logger.LogWarning($"add izuId to json failed.");
-                                                    else
-                                                        _logger.LogInformation($"add izuId to json successfully");
+                                                        Log($"update local izu id failed.  local temp izu id={IZUConfig.izuId}", LogLevel.Warning);
                                                 }
                                             }
+                                        }
+                                        else
+                                        {
+                                            Log($"local izu id={IZUConfig.izuId} exists in remote server");
                                         }
                                     }
                                 }
 
+                                Log($"try to update izu id={IZUConfig.izuId}, ip={IZUConfig.Server} to server (call api: izu/edit)");
                                 response = await httpClient.PostAsync($"izu/edit", JsonContent.Create(new
                                 {
                                     id = IZUConfig.izuId,
@@ -224,11 +239,11 @@ namespace IZU.Service
                                     response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                                     if (!resultObject!.ok)
                                     {
-                                        _logger.LogWarning($"edit izu {izu_id} ipPort config info failed: {resultObject.message}");
+                                        Log($"update izu id={IZUConfig.izuId}, ip={IZUConfig.Server} failed: {resultObject.message}", LogLevel.Warning);
                                     }
                                     else
                                     {
-                                        _logger.LogInformation($"edit izu {izu_id} ipPort config info successfully");
+                                        Log($"update izu id={IZUConfig.izuId}, ip={IZUConfig.Server} to remote server successfully");
                                     }
                                 }
                             }
@@ -238,20 +253,20 @@ namespace IZU.Service
                     {
                         IZUConfig.izuId = izu_id;
                         if (!IZUConfig.WriteToAppSetting("izuId", izu_id))
-                            _logger.LogWarning($"add izuId to json failed.");
+                            Log($"update local izu id={izu_id} failed.  local temp izu id={IZUConfig.izuId}", LogLevel.Warning);
                         else
-                            _logger.LogInformation($"add izuId to json successfully");
+                            Log($"update local izu id successfully");
                     }
 
-                    _webSocketService.Refresh();
+                    webSocketService.Refresh();
                 }
                 catch (HttpRequestException http_ex)
                 {
-                    _logger.LogWarning($"get izu info error: {http_ex.Message}");
+                    Log($"get izu info failed: {http_ex.Message}", LogLevel.Warning);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"get izu info error: {ex.Message}");
+                    Log($"get izu info failed: {ex.Message}", LogLevel.Warning);
                 }
                 finally
                 {
@@ -266,6 +281,7 @@ namespace IZU.Service
         /// <returns></returns>
         public async Task<List<VariableEntity>> GetDeviceVariables()
         {
+            Log($"begin getting devices table from {IZUConfig.DeviceTableFrom}", LogLevel.Warning);
             if (IZUConfig.DeviceTableFrom == "db")
             {
                 return await GetDeviceTableFromDBAsync();
@@ -278,12 +294,17 @@ namespace IZU.Service
 
         async Task<List<VariableEntity>> GetDeviceTableFromDBAsync()
         {
-            if (IZUConfig.izuId == 0) return new List<VariableEntity>();
+            if (IZUConfig.izuId == 0)
+            {
+                Log($"current izu id={IZUConfig.izuId}, can not get devices from remote server", LogLevel.Warning);
+                return new List<VariableEntity>();
+            }
             using (HttpClient httpClient = new())
             {
                 List<VariableEntity> variables = new List<VariableEntity>();
                 try
                 {
+                    Log($"try to get devices from remote server. (call api: izu/get/device/vars/by?id={IZUConfig.izuId})");
                     httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
                     httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -295,7 +316,6 @@ namespace IZU.Service
                     if (!resultObject!.ok)
                         throw new Exception(resultObject.message);
 
-                    _logger.LogInformation($"download izu device table successfully");
                     var arr = Newtonsoft.Json.JsonConvert.DeserializeObject<JArray>(resultObject!.data!.ToString()!);
                     foreach (var item in arr!)
                     {
@@ -313,14 +333,15 @@ namespace IZU.Service
                             RefreshInterval = $"{item["refresh"]}".ToInt32(100)
                         });
                     }
+                    Log($"get devices table successfully, total variables: {arr.Count}");
                 }
                 catch (HttpRequestException http_ex)
                 {
-                    _logger.LogWarning($"download izu device table failed: {http_ex.Message}");
+                    Log($"get devices table failed: {http_ex.Message}", LogLevel.Warning);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"download izu device table failed: {ex.Message}");
+                    Log($"get devices table failed: {ex.Message}", LogLevel.Warning);
                 }
                 return variables;
             }
@@ -328,12 +349,12 @@ namespace IZU.Service
 
         async Task<List<VariableEntity>> GetDeviceTableFromLocalFileAsync()
         {
-            _logger.LogInformation("start loading device table");
+            Log("start loading local devices table. location: .\\DeviceTable\\*.csv");
 
             DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DeviceTable"));
             if (!dir.Exists)
             {
-                _logger.LogWarning("device table missing");
+                Log("devices table is missing", LogLevel.Warning);
                 return new List<VariableEntity>();
             }
             List<VariableEntity> variables = new List<VariableEntity>();
@@ -350,21 +371,21 @@ namespace IZU.Service
                     {
                         if (!item.IsValid || item.Error != null)
                         {
-                            _logger.LogWarning("load device table {0} error, {1}", deviceFile, item.Error);
+                            Log($"load devices table {deviceFile} error, {item.Error}", LogLevel.Warning);
                             continue;
                         }
                         variables.Add(item.Result);
                     }
-                    _logger.LogInformation("device table loaded {0}, variable count {1}", deviceFile, variables.Count);
+                    Log($"device table loaded {deviceFile}, total variables: {variables.Count}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning("load device table {0} exception, {1}", deviceFile, ex.Message);
+                    Log($"load devices table {deviceFile} error: {ex.Message}", LogLevel.Error);
                     //throw;
                 }
             }
 
-            _logger.LogInformation("end loading device table");
+            Log("end loading");
             await Task.Delay(10);
             return variables;
         }
@@ -376,14 +397,21 @@ namespace IZU.Service
         /// <returns></returns>
         async Task CheckDevices()
         {
+            var devices = s7netService.GetAllDevices();
+            if (devices.Count > 0)
+                Log($"try to update devices izu id={IZUConfig.izuId} to remote server({devices.Count}). (call api: izu/update/devices)");
+            else
+            {
+                Log($"devices table is empy", LogLevel.Warning);
+                return;
+            }
             using (HttpClient httpClient = new())
             {
                 try
                 {
                     httpClient.Timeout = TimeSpan.FromSeconds(2);
                     httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
-                    httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    var devices = _s7netService.GetAllDevices();
+                    httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));                  
                     var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
                     foreach (var item in groups)
                     {
@@ -401,26 +429,26 @@ namespace IZU.Service
                             response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
                             if (!resultObject!.ok)
                             {
-                                _logger.LogWarning($"upload izu {item.Key} info failed: {resultObject.message}");
+                                Log($"upload devices izu id={IZUConfig.izuId} failed: {resultObject.message}", LogLevel.Warning);
                             }
                             else
                             {
-                                _logger.LogInformation($"upload izu {item.Key} info successfully");
+                                Log($"upload devices izu id={IZUConfig.izuId} successfully");
                             }
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"check devices error: {ex.Message}");
+                    Log($"check devices failed: {ex.Message}", LogLevel.Warning);
                 }
             }
         }
 
         public void Stop()
         {
-            _webSocketService.Stop();
-            _s7netService.Stop();
+            webSocketService.Stop();
+            s7netService.Stop();
         }
 
 

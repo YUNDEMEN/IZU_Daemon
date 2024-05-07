@@ -17,7 +17,7 @@ namespace IZU.Commands
             _izuService = commandService.ServiceProvider.GetService<IIZUService>()!;
             _s7netService = commandService.ServiceProvider.GetService<IS7NetService>()!;
 
-            Description = "修改 NLog 日志等级\r\n[ Trace=0, Debug=1, Info=2, Warn=3, Error=4, Fatal=5, Off=6 ]";
+            Description = "修改 NLog 日志等级 [ Trace=0, Debug=1, Info=2, Warn=3, Error=4, Fatal=5, Off=6 ]";
 
             var optRuleName = new Option<string>(new string[] { "--rule-name", "-r" }, "设置最小等级") { IsRequired = true };
             Add(optRuleName);

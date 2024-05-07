@@ -1,8 +1,6 @@
-﻿using IZU.Entities;
-
-namespace IZU.Interfaces
+﻿namespace IZU.Interfaces
 {
-	public interface IFireDoor : IDevice, ICanStart, ICanStop, IOperatable, IEmergency, IReset
+    public interface IFireDoor : IDevice, ICanStart, ICanStop, IOperatable, IEmergency, IReset
 	{
 
 	}

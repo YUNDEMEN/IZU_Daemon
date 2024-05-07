@@ -5,5 +5,6 @@
         Task StartAsync();
         void Stop();
 		Task ReadConfigFromDBAsync();
+        List<string> Logs { get; }
     }
 }

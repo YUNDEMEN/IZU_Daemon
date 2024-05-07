@@ -1,6 +1,4 @@
-﻿using IZU.Entities;
-
-namespace IZU.Interfaces
+﻿namespace IZU.Interfaces
 {
     public interface IAutoDoor : IDevice, ICanStart, ICanStop, IOperatable, IEmergency, IReset, IInitial, ISwitch
     {

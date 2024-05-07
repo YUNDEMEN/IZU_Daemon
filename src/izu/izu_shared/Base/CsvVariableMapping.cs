@@ -1,5 +1,4 @@
-﻿using IZU.Entities;
-using TinyCsvParser.Mapping;
+﻿using TinyCsvParser.Mapping;
 using TinyCsvParser.TypeConverter;
 
 namespace IZU.Base

@@ -1,5 +1,7 @@
 using IZU.Base;
+using IZU.Interfaces;
 using NLog.Extensions.Logging;
+using System.CommandLine;
 using System.Runtime.InteropServices;
 using System.Text;
 using Wonder.Infrastructure;
@@ -143,6 +145,8 @@ var app = builder.Build();
 //    IZUConfig.ServerIP = serverUrl.Host;
 //    IZUConfig.ServerPort = serverUrl.Port;
 //});
+
+
 app.UseTelnet();
 app.UseCors("AllowAnyOrigin");
 app.UseWebSockets();
@@ -150,25 +154,47 @@ app.MapControllers();
 
 app.Map("/", async (context) =>
 {
-    var sb = new StringBuilder();
-    sb.Append("<style>td.left {\r\n  text-align: left;\r\n  vertical-align: middle;\r\n}");
-    sb.Append("th.left {\r\n  text-align: left;\r\n  vertical-align: middle;\r\n}</style>");
-    sb.Append("<h1>Registered Services</h1>");
-    sb.Append("<table><thead>");
-    sb.Append("<tr><th class=\"left\">Type</th><th class=\"left\">Lifetime</th><th class=\"left\">Instance</th></tr>");
-    sb.Append("</thead><tbody>");
+    var sp = context.RequestServices;
+    var izus = sp.GetService<IIZUService>();
+    var block = new StringBuilder();
+    block.Append("<style>td.left { text-align: left; vertical-align: middle;}");
+    block.Append("h1 { text-align: center; vertical-align: middle;}");
+    block.Append("th.left { text-align: left; vertical-align: middle;}</style>");
+    block.Append("<h1>INTELLIGENT ZONE UNIT BACKEND SERVICE</h1>");
+    block.Append("<div style=\"display: flex;width: 100%;\">");
+    block.Append("<ul style=\"flex: 0 0 20%;\">");
+    block.Append("<h2>Registered Services</h2>");
+    block.Append("<table><thead>");
+    block.Append("<tr><th class=\"left\">Name</th><th class=\"left\">Lifetime</th></tr>");
+    block.Append("</thead><tbody>");
     foreach (var svc in builder.Services.Where(t =>
     !t.ServiceType.FullName.StartsWith("Microsoft") && !t.ServiceType.FullName.StartsWith("System")
     ).Select(t => t))
     {
-        sb.Append("<tr>");
-        sb.Append($"<td width=\"40%\">{svc.ServiceType.FullName}</td>");
-        sb.Append($"<td width=\"40%\" class=\"left\">{svc.Lifetime}  |  {svc.ServiceType.Name}</td>");
-        sb.Append($"<td width=\"40%\">{svc.ImplementationType?.FullName}</td>");
-        sb.Append("</tr>");
+        block.Append("<tr>");
+        //block.Append($"<td width=\"40%\">{svc.ServiceType.FullName}</td>");
+        block.Append($"<td width=\"40%\" class=\"left\">{svc.ServiceType.Name}</td>");
+        block.Append($"<td width=\"40%\">{svc.Lifetime}</td>");
+        block.Append("</tr>");
     }
-    sb.Append("</tbody></table>");
-    await context.Response.WriteAsync(sb.ToString());
+    block.Append("</tbody></table>");
+    block.Append("</ul>");
+
+    block.Append("<ul style=\"flex: 0 0 70%;\">");
+    block.Append("<h2>Start Info</h2>");
+    block.Append("<table><thead>");
+    block.Append("<tr><th class=\"left\"></th></tr>");
+    block.Append("</thead><tbody>");
+    foreach (var log in izus.Logs)
+    {
+        block.Append("<tr>");
+        block.Append($"<td width=\"40%\">{log.Replace("\r\n", "<br>")}</td>");
+        block.Append("</tr>");
+    }
+    block.Append("</tbody></table>");
+    block.Append("</ul>");
+    block.Append("</div>");
+    await context.Response.WriteAsync(block.ToString());
 });
 
 await app.RunAsync();

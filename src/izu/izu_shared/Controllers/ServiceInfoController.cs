@@ -1,6 +1,5 @@
 using IZU.Base;
 using IZU.DeviceFactories;
-using IZU.Entities;
 using IZU.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Wonder.Infrastructure;

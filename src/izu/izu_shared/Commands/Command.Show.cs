@@ -1,9 +1,9 @@
-﻿using IZU.Interfaces;
+﻿using IZU.Base;
+using IZU.Interfaces;
 using System.CommandLine;
+using Wonder.Infrastructure;
 using Wonder.Service;
 using Wonder.Service.Framework;
-using Wonder.Infrastructure;
-using IZU.Base;
 
 namespace IZU.Commands
 {
@@ -35,14 +35,15 @@ namespace IZU.Commands
             Add(taskCommand);
             taskCommand.SetHandler(ShowTask, taskIdArg, optionAllTasks);
         }
-        void ShowConfig(bool required, bool reload)
+        async void ShowConfig(bool required, bool reload)
         {
             if (reload)
             {
                 try
                 {
+                    commandService.WriteLine($"operating");
                     _s7netService.Stop();
-                    _izuService.StartAsync().Wait();
+                    await _izuService.StartAsync();
                     commandService.WriteLine($"config reloaded successfully");
                 }
                 catch (Exception ex)
@@ -52,19 +53,7 @@ namespace IZU.Commands
             }
             if (required)
             {
-                xPrint printer = new();
-                printer.AppendLine($"server endpoint:{IZUConfig.Server}");
-                printer.AppendLine($"izu backend:{IZUConfig.BackendIZUBaseUrl}");
-                printer.AppendLine($"izu id:{IZUConfig.izuId}");
-                printer.AppendLine($"map version:{IZUConfig.MapVersion}");
-                printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
-                printer.AppendLine($"multicast port:{IZUConfig.PortMulticastServer}");
-                printer.AppendLine($"multicast interval:{IZUConfig.IntervalMulticastServer} ms");
-                printer.AppendLine($"multicast(json) port:{IZUConfig.PortMulticastFullDataServer}");
-                printer.AppendLine($"multicast(json) interval:{IZUConfig.IntervalMulticastFullDataServer} ms");
-                printer.AppendLine($"publish interval:{IZUConfig.PublishMillionSeconds} ms (websocket)");
-                printer.AppendLine($"variables:{IZUConfig.DeviceTableFrom}");
-                commandService.WriteLine(printer.ToString());
+                commandService.WriteLine(IZUConfig.ToString());
             }
         }
 
@@ -101,7 +90,7 @@ namespace IZU.Commands
                 }
             }
 
-           else if (all)
+            else if (all)
             {
                 var devices = _s7netService.GetAllDevices();
                 commandService.WriteLine("total device number:" + devices.Count);
@@ -119,6 +108,7 @@ namespace IZU.Commands
                     }
                     printer.AppendLine(info);
                 }
+
                 commandService.WriteLine(printer.ToString());
             }
         }
@@ -134,7 +124,7 @@ namespace IZU.Commands
                 else
                     commandService.WriteLine($"{theTask}");
             }
-           else if (all)
+            else if (all)
             {
                 var tasks = commandService.ServiceProvider.GetServices<ILongRunningTask>();
                 commandService.WriteLine("total tasks:" + tasks.Count());

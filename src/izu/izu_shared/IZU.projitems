@@ -33,7 +33,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ISendDeviceToOhtTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Service\ServiceRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDevices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IFireDoor.cs" />
@@ -41,7 +40,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IIZUService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IPlcServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IS7NetService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IServiceRuntime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\SendDeviceToOhtTask.cs" />

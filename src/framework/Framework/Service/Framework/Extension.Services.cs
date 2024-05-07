@@ -14,7 +14,7 @@ namespace Wonder.Service.Framework
             var logger = fact.CreateLogger("wonder.service.framework");
 
             DirectoryInfo root = new(AppDomain.CurrentDomain.BaseDirectory);
-            var modFiles = root.GetFiles("izu*mod.dll", SearchOption.TopDirectoryOnly);
+            var modFiles = root.GetFiles("*.mod.dll", SearchOption.TopDirectoryOnly);
             foreach (var modFile in modFiles)
             {
                 try

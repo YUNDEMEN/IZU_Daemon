@@ -1,6 +1,4 @@
-﻿using IZU.Entities;
-
-namespace IZU.Base
+﻿namespace IZU.Base
 {
     public class DeviceFactory
     {

@@ -12,24 +12,23 @@
             _titles = new();
             _contents = new();
         }
+        public bool HasContent { get { return _contents.Count > 0; } }
         public void AppendLine(string line)
         {
-            var ts = line.Split(HEADERSPLITTER, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (ts.Length > 1)
-            {
-                _titles.Add(ts[0]);
-                _contents.Add(ts[1]);
-            }
+            int i = line.IndexOf(HEADERSPLITTER[0]);
+            i = i < 0 ? line.IndexOf(HEADERSPLITTER[1]) : i;
+            _titles.Add(line[..i]);
+            _contents.Add(line[(i+1)..]?.Trim());
         }
         public string Build()
         {
             int indices = _titles.Count > _contents.Count ? _contents.Count : _titles.Count;
-            int max = _titles.Max(t => t.Length);
+            int max = _titles.Count > 0 ? _titles.Max(t => t.Length) : 0;
             for (int i = 0; i < indices; i++)
             {
                 _lines.Add($"{_titles[i].PadRight(max)} : {_contents[i]}");
             }
-            return string.Join("\r\n", _lines);
+            return _lines.Count > 0 ? string.Join("\r\n", _lines) : string.Empty;
         }
         public override string ToString()
         {

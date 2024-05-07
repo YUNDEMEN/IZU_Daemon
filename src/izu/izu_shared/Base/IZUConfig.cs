@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using Wonder.Infrastructure;
 
 
 namespace IZU.Base
@@ -160,6 +161,23 @@ namespace IZU.Base
                 return true;
             }
             catch { return false; }
+        }
+
+        public static string ToString()
+        {
+            xPrint printer = new();
+            printer.AppendLine($"server endpoint:{IZUConfig.Server}");
+            printer.AppendLine($"izu backend:{IZUConfig.BackendIZUBaseUrl}");
+            printer.AppendLine($"izu id:{IZUConfig.izuId}");
+            printer.AppendLine($"map version:{IZUConfig.MapVersion}");
+            printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
+            printer.AppendLine($"multicast port:{IZUConfig.PortMulticastServer}");
+            printer.AppendLine($"multicast interval:{IZUConfig.IntervalMulticastServer} ms");
+            printer.AppendLine($"multicast(json) port:{IZUConfig.PortMulticastFullDataServer}");
+            printer.AppendLine($"multicast(json) interval:{IZUConfig.IntervalMulticastFullDataServer} ms");
+            printer.AppendLine($"publish interval:{IZUConfig.PublishMillionSeconds} ms (websocket)");
+            printer.AppendLine($"variables:{IZUConfig.DeviceTableFrom}");
+            return printer.ToString();
         }
     }
 }
