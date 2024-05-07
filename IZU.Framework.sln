@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
+	ProjectSection(SolutionItems) = preProject
+		src\framework\build.frw.bat = src\framework\build.frw.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A39079DA-3D89-43A4-907B-C65F67F9256D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceFramework", "src\framework\ServiceFramework\ServiceFramework.csproj", "{D854A39A-F771-4806-B56E-44194E59B397}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "src\framework\Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{9B6CCE9B-C127-43FD-948F-D6994DC74FA4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SomeTest", "src\framework\SomeTest\SomeTest.csproj", "{8C46B924-2FBB-4CDB-84F9-FFA110ADF7AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D854A39A-F771-4806-B56E-44194E59B397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D854A39A-F771-4806-B56E-44194E59B397}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D854A39A-F771-4806-B56E-44194E59B397}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D854A39A-F771-4806-B56E-44194E59B397}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C46B924-2FBB-4CDB-84F9-FFA110ADF7AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C46B924-2FBB-4CDB-84F9-FFA110ADF7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C46B924-2FBB-4CDB-84F9-FFA110ADF7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C46B924-2FBB-4CDB-84F9-FFA110ADF7AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{27D37385-9870-4EAE-8C7D-2E62C9F0F46B} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
+		{8C46B924-2FBB-4CDB-84F9-FFA110ADF7AD} = {9B6CCE9B-C127-43FD-948F-D6994DC74FA4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\framework\Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
+		src\framework\Framework\Framework.projitems*{d854a39a-f771-4806-b56e-44194e59b397}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal

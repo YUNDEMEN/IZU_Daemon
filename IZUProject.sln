@@ -5,7 +5,10 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
+		build.izu.d.bat = build.izu.d.bat
+		build.izu.e.bat = build.izu.e.bat
 		Dockerfile = Dockerfile
+		src\framework\build.frw.bat = src\framework\build.frw.bat
 		readme.txt = readme.txt
 		service-install-u.bat = service-install-u.bat
 		service-install.bat = service-install.bat
@@ -20,12 +23,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "jobs", "jobs", "{C9A435E7-D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "izu", "izu", "{58EDD1BB-E472-4D2C-8B73-C91298B49EC5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeSharing", "CodeSharing", "{41720B8F-09AF-42C7-A754-F6F472E392A3}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Framework", "src\izu\izusharing\Framework\Framework.shproj", "{27D37385-9870-4EAE-8C7D-2E62C9F0F46B}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu\izusharing\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUD", "src\izu\izu_daemon\IZUD.csproj", "{DAE46C80-43CD-4F28-B1D1-4133E284B287}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IZUE", "src\izu\izu_emulation\IZUE.csproj", "{CA044FD6-BD7C-4310-8CC1-639496D639A4}"
@@ -33,6 +30,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "izu-quartz", "src\izu-quartz\izu-quartz\izu-quartz.csproj", "{00736C91-2D54-41C8-A1F3-767A23BBD46D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "job-moxa", "src\izu-quartz\job-moxa\job-moxa.csproj", "{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "izu.config.mod", "src\izu\modules\izu.config.mod\izu.config.mod.csproj", "{8DA64240-9B20-43D8-A80D-5119F51B7A16}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mods", "mods", "{32C7239F-25E8-4A87-AF9E-7B577F45D51E}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IZU", "src\izu\izu_shared\IZU.shproj", "{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{80933FA1-3F4B-492B-8000-A27F56567958}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,6 +61,10 @@ Global
 		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DA64240-9B20-43D8-A80D-5119F51B7A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DA64240-9B20-43D8-A80D-5119F51B7A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DA64240-9B20-43D8-A80D-5119F51B7A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DA64240-9B20-43D8-A80D-5119F51B7A16}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,23 +73,21 @@ Global
 		{7EE62DBD-9E76-4E63-A909-61B41BA72206} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
 		{C9A435E7-D565-4C32-B307-34C0B32D7801} = {7EE62DBD-9E76-4E63-A909-61B41BA72206}
 		{58EDD1BB-E472-4D2C-8B73-C91298B49EC5} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
-		{41720B8F-09AF-42C7-A754-F6F472E392A3} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
-		{27D37385-9870-4EAE-8C7D-2E62C9F0F46B} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
-		{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC} = {41720B8F-09AF-42C7-A754-F6F472E392A3}
 		{DAE46C80-43CD-4F28-B1D1-4133E284B287} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
 		{CA044FD6-BD7C-4310-8CC1-639496D639A4} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
 		{00736C91-2D54-41C8-A1F3-767A23BBD46D} = {7EE62DBD-9E76-4E63-A909-61B41BA72206}
 		{A6D607A5-96C6-44C2-863F-580A8DBDB3D8} = {C9A435E7-D565-4C32-B307-34C0B32D7801}
+		{8DA64240-9B20-43D8-A80D-5119F51B7A16} = {32C7239F-25E8-4A87-AF9E-7B577F45D51E}
+		{32C7239F-25E8-4A87-AF9E-7B577F45D51E} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
+		{080E1D2B-15A2-41B6-9A1D-D0610CD2E9EC} = {80933FA1-3F4B-492B-8000-A27F56567958}
+		{80933FA1-3F4B-492B-8000-A27F56567958} = {58EDD1BB-E472-4D2C-8B73-C91298B49EC5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		src\izu\izusharing\izu_shared\IZU.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
-		src\izu\izusharing\Framework\Framework.projitems*{27d37385-9870-4eae-8c7d-2e62c9f0f46b}*SharedItemsImports = 13
-		src\izu\izusharing\Framework\Framework.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
-		src\izu\izusharing\izu_shared\IZU.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
-		src\izu\izusharing\Framework\Framework.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
-		src\izu\izusharing\izu_shared\IZU.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
+		src\izu\izu_shared\IZU.projitems*{080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec}*SharedItemsImports = 13
+		src\izu\izu_shared\IZU.projitems*{ca044fd6-bd7c-4310-8cc1-639496d639a4}*SharedItemsImports = 5
+		src\izu\izu_shared\IZU.projitems*{dae46c80-43cd-4f28-b1d1-4133e284b287}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
