@@ -308,3 +308,4 @@ healthchecksdb
 /src/izu_emulation/Properties
 /src/izu/izu_emulation/build
 /src/izu/izu_emulation/build-full
+/src/framework/build/release.net6.win_x64

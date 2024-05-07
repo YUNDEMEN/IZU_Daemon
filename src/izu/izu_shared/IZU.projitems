@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>080e1d2b-15a2-41b6-9a1d-d0610cd2e9ec</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>IZU</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Base\SafeNanoReplyServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\CsvVariableMapping.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Device.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\dto\izu_status.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\DeviceBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\IZUControllerBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\TextRecorder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\TimestampService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\WebsocketServerClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\WonderMulticast.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\WonderResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Log.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Show.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TelnetCommandBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controllers\ServiceInfoController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controllers\WebSocketController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\DeviceFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\EntityVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\Enums.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\IZUConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ISendDeviceToOhtTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDevices.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IFireDoor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IHID.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IIZUService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IPlcServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IS7NetService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\SendDeviceToOhtTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\WebSocketService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\AnotherDataServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\CommandServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastTask2.cs" />
+  </ItemGroup>
+</Project>

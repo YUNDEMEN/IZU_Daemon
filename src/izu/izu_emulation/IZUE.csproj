@@ -54,6 +54,9 @@
     <Reference Include="NanoMsgCore">
       <HintPath>..\..\..\references\SDK\NanoMsgCore.dll</HintPath>
     </Reference>
+    <Reference Include="ServiceFramework">
+      <HintPath>..\..\..\references\framework\ServiceFramework.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -71,10 +74,7 @@
     </None>
   </ItemGroup>
 
-
-  <Import Project="..\izusharing\izu_shared\IZU.projitems" Label="Shared" />
-
-  <Import Project="..\izusharing\Framework\Framework.projitems" Label="Shared" />
+  <Import Project="..\izu_shared\IZU.projitems" Label="Shared" />
 
 
 </Project>
