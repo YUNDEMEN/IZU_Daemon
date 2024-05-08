@@ -1,7 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 using Wonder.Infrastructure;
 
 
@@ -34,16 +31,6 @@ namespace IZU.Base
 
         public static string MulticastIP { get; set; } = string.Empty;
 
-
-        /// <summary>
-        /// 多播端口（报文）
-        /// 用于oso接受设备状态
-        /// </summary>
-        public static int PortMulticastServer;
-        /// <summary>
-        /// 多播频率（ms）
-        /// </summary>
-        public static int IntervalMulticastServer;
         /// <summary>
         /// 接受OHT控制设备指令端口
         /// </summary>
@@ -82,35 +69,37 @@ namespace IZU.Base
             try
             {
                 JObject configJson = JObject.Parse(json);
-                if (configJson["izu_backend"] == null)
-                    return "izu_backend node not found!";
-                if (configJson["map_version"] == null)
-                    return "map_version node not found!";
-                if (configJson["multicast_ip"] == null)
-                    return "multicast_ip node not found!";
-                if (configJson["PortMulticastServer"] == null)
-                    return "PortMulticastServer node not found!";
-                if (configJson["IntervalMulticastServer"] == null)
-                    return "IntervalMulticastServer node not found!";
-                if (configJson["PortNanoCommandServer"] == null)
-                    return "PortNanoCommandServer node not found!";
-                if (configJson["PortMulticastFullDataServer"] == null)
-                    return "PortMulticastFullDataServer node not found!";
-                if (configJson["IntervalMulticastFullDataServer"] == null)
-                    return "IntervalMulticastFullDataServer node not found!";
-                if (configJson["PortNanoDataServer"] == null)
-                    return "PortNanoDataServer node not found!";
-                if (configJson["IntervalNanoDataServer"] == null)
-                    return "IntervalNanoDataServer node not found!";
                 if (configJson["izuId"] == null)
                     return "izuId node not found!";
+
+                if (configJson["izu_backend"] == null)
+                    return "izu_backend node not found!";
+
+                if (configJson["map_version"] == null)
+                    return "map_version node not found!";
+
+                if (configJson["multicast_ip"] == null)
+                    return "multicast_ip node not found!";
+
+                if (configJson["PortNanoCommandServer"] == null)
+                    return "PortNanoCommandServer node not found!";
+
+                if (configJson["PortMulticastFullDataServer"] == null)
+                    return "PortMulticastFullDataServer node not found!";
+
+                if (configJson["IntervalMulticastFullDataServer"] == null)
+                    return "IntervalMulticastFullDataServer node not found!";
+
+                if (configJson["PortNanoDataServer"] == null)
+                    return "PortNanoDataServer node not found!";
+
+                if (configJson["IntervalNanoDataServer"] == null)
+                    return "IntervalNanoDataServer node not found!";
 
                 MulticastIP = configJson["multicast_ip"]!.ToString();
                 BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
                 DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
                 MapVersion = configJson!["map_version"]!.ToString();
-                PortMulticastServer = Int32.Parse(configJson!["PortMulticastServer"]!.ToString());
-                IntervalMulticastServer = Int32.Parse(configJson!["IntervalMulticastServer"]!.ToString());
                 PortNanoCommandServer = Int32.Parse(configJson!["PortNanoCommandServer"]!.ToString());
                 PortMulticastFullDataServer = Int32.Parse(configJson!["PortMulticastFullDataServer"]!.ToString());
                 IntervalMulticastFullDataServer = Int32.Parse(configJson!["IntervalMulticastFullDataServer"]!.ToString());
@@ -172,11 +161,9 @@ namespace IZU.Base
             printer.AppendLine($"map version:{IZUConfig.MapVersion}");
             printer.AppendLine($"command port:{IZUConfig.PortNanoCommandServer}");
             printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
-            printer.AppendLine($"multicast port:{IZUConfig.PortMulticastServer}");
-            printer.AppendLine($"multicast interval:{IZUConfig.IntervalMulticastServer} ms");
             printer.AppendLine($"multicast(json) port:{IZUConfig.PortMulticastFullDataServer}");
             printer.AppendLine($"multicast(json) interval:{IZUConfig.IntervalMulticastFullDataServer} ms");
-            printer.AppendLine($"publish interval:{IZUConfig.PublishMillionSeconds} ms (websocket)");
+            printer.AppendLine($"ws push interval:{IZUConfig.PublishMillionSeconds} ms (websocket)");
             printer.AppendLine($"variables:{IZUConfig.DeviceTableFrom}");
             return printer.ToString();
         }
