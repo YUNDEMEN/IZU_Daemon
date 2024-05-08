@@ -36,6 +36,16 @@ namespace IZU.Base
             this.receiveTimeoutSeconds = receiveTimeoutSeconds;
             this.sendTimeoutSeconds = sendTimeoutSeconds;
         }
+
+        internal void Create(string ip,int port)
+        {
+            if (IPEndPoint.TryParse($"{ip}:{port}", out var ipend))
+                Create(ipend);
+            else
+            {
+                _logger.LogWarning($"ip or port should be given");
+            }
+        }
         internal void Create(IPEndPoint ipEndPoint)
         {
             if (ipEndPoint == null)

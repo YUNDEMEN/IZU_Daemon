@@ -35,6 +35,7 @@ namespace Wonder.Service.Framework
         /// False 未开始
         /// </summary>
         protected bool IsStarted { get; private set; }
+        protected bool IsFaulted { get; private set; }
         protected CancellationTokenSource cancellationTokenSource { get; private set; }
         protected ILogger _logger { get; set; }
 
@@ -46,9 +47,9 @@ namespace Wonder.Service.Framework
             _logger = logger;
             Name = GetType().Name;
             IsStarted = false;
+            IsFaulted = false;
             cancellationTokenSource = new CancellationTokenSource();
         }
-
         /// <summary>
         /// 任务执行虚函数，需要在派生类中重写
         /// </summary>
@@ -62,6 +63,7 @@ namespace Wonder.Service.Framework
 
         public virtual void Start()
         {
+            IsFaulted = false;
             if (IsStarted)
                 return;
 
@@ -82,6 +84,7 @@ namespace Wonder.Service.Framework
             theTask.ContinueWith(x =>
             {
                 IsStarted = false;
+                IsFaulted = true;
                 _logger.LogError($"Long Running Task Failed: {this.GetType().Name} ({theTask.Status}). {GetRealExceptions(x.Exception)}");
             },
             TaskContinuationOptions.NotOnCanceled

@@ -241,7 +241,7 @@ namespace IZU.DeviceFactories
             Ref<bool> @ref = new();
             string state = await GetBool(address_tup.R02, @ref);
             if (!string.IsNullOrEmpty(state)) return state;
-            if (!@ref.Value) return "It is not running automatically now!";
+            if (!@ref.Value) return $"device {_deviceEntity.Name} is not running automatically now!";
 
             Ref<bool> @r04 = new();
             Ref<bool> @r05 = new();
@@ -254,7 +254,7 @@ namespace IZU.DeviceFactories
             state = await GetBool(address_tup.R04, @r04);
             if (!string.IsNullOrEmpty(state)) return state;
             if (@r05.Value || @r07.Value || @r04.Value)
-                return "door is opening!";
+                return $"{_deviceEntity.Name} is opening!";
 
 
             Ref<bool> @r06 = new();
@@ -294,7 +294,7 @@ namespace IZU.DeviceFactories
             }
             else
             {
-                return "Closing in progress! Do not open door!";
+                return $"{_deviceEntity.Name}  is closing in progress! Do not open door!";
             }
         }
 

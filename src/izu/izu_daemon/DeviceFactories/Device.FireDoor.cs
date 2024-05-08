@@ -32,6 +32,10 @@ namespace IZU.DeviceFactories
             address_tup.W09 = GetActionType("W09");  //        初始化回原点按钮
             address_tup.W10 = GetActionType("W10");  //        自动 / 手动模式
         }
+        public int? GetStatus()
+        {
+            return 0;
+        }
 
         public async Task<string> OpenAsync()
         {

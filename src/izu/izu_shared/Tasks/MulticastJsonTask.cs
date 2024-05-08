@@ -12,7 +12,7 @@ namespace IZU.Tasks
     /// REMOTE CLIENT
     /// </summary>
     [Regist(RegisterTypes.LongRunningTask)]
-    public class MulticastTask2 : LongRunningTask
+    public class MulticastJsonTask : LongRunningTask
     {
         int? f_oldState = 0;
         int? curr_state = 0;
@@ -24,7 +24,7 @@ namespace IZU.Tasks
         private readonly IS7NetService _s7NetService;
         private WonderMulticast _multicastFullSender;
 
-        public MulticastTask2(ILogger<MulticastTask2> logger, IS7NetService s7NetService)
+        public MulticastJsonTask(ILogger<MulticastJsonTask> logger, IS7NetService s7NetService)
             : base(logger)
         {
             _s7NetService = s7NetService;
@@ -41,12 +41,12 @@ namespace IZU.Tasks
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             lastExecuteTime = DateTime.Now.ToString();
-            root = WsPublishDevices2();
+            root = WsPublishDevices();
             await _multicastFullSender.SendToAsync("PUB_DEVICE_STATUS" + root.ToString(Formatting.None));
         }
 
 
-        public JArray WsPublishDevices2()
+        public JArray WsPublishDevices()
         {
             JArray root = new();
             JArray currentArray = new();

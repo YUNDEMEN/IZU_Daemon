@@ -45,7 +45,7 @@ namespace IZU.Base
         /// </summary>
         public static int IntervalMulticastServer;
         /// <summary>
-        /// 接受OSO控制设备指令端口
+        /// 接受OHT控制设备指令端口
         /// </summary>
         public static int PortNanoCommandServer;
         /// <summary>
@@ -170,6 +170,7 @@ namespace IZU.Base
             printer.AppendLine($"izu backend:{IZUConfig.BackendIZUBaseUrl}");
             printer.AppendLine($"izu id:{IZUConfig.izuId}");
             printer.AppendLine($"map version:{IZUConfig.MapVersion}");
+            printer.AppendLine($"command port:{IZUConfig.PortNanoCommandServer}");
             printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
             printer.AppendLine($"multicast port:{IZUConfig.PortMulticastServer}");
             printer.AppendLine($"multicast interval:{IZUConfig.IntervalMulticastServer} ms");

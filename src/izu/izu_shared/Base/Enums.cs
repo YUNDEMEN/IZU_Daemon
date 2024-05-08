@@ -87,9 +87,8 @@
     }
     public enum DeviceOperations
     {
-        None,
-        Open,
-        Close,
+        Open=0,
+        Close=3,
         Transmit,
         StopTransmit
     }

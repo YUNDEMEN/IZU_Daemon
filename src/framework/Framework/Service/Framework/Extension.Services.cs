@@ -34,7 +34,7 @@ namespace Wonder.Service.Framework
 
             var domainTypies = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes());
             var registTypies = domainTypies.Where(t => t.IsAssignableFrom(t) && t.IsDefined(registration, true) && !t.IsInterface).Select(t => new TypeService(t.Name, null, t));
-            var specTypies = registTypies.Select(t => new TypeService(t.Key, t.Implementation.GetInterface($"I{t.Key}"), t.Implementation)).Where(t => t.Service != null);
+            var specTypies = registTypies.Where(t=>t.Implementation!=null).Select(t => new TypeService(t.Key, t.Implementation.GetInterface($"I{t.Key}"), t.Implementation)).Where(t => t.Service != null);
             /*
                注册拥有具体接口的服务：
                     MyService : IMyService
@@ -43,19 +43,25 @@ namespace Wonder.Service.Framework
             foreach (var type in specTypies)
             {
                 var regist = type.Implementation.GetCustomAttribute<RegistAttribute>();
-                if (regist == null) continue;
-
+                if (regist == null)
+                {
+                    logger.LogDebug($"Failed to Regist type={type.Service!}, impl={type.Implementation}");
+                    continue;
+                }
                 if (regist.IsScoped)
                 {
                     services.AddScoped(type.Service!, type.Implementation);
+                    logger.LogDebug($"AddScoped type={type.Service!}, impl={type.Implementation}");
                 }
                 else if (regist.IsSingleton)
                 {
                     services.AddSingleton(type.Service!, type.Implementation);
+                    logger.LogDebug($"AddSingleton type={type.Service!}, impl={type.Implementation}");
                 }
                 else if (regist.IsTransient)
                 {
                     services.AddTransient(type.Service!, type.Implementation);
+                    logger.LogDebug($"AddTransient type={type.Service!}, impl={type.Implementation}");
                 }
             }
 
@@ -73,7 +79,7 @@ namespace Wonder.Service.Framework
                     if (regist.IsSingleton)
                     {
                         if (serviceInterface == null)
-                            logger.LogDebug($"Fail to Register {longRuningTaskInterface} -> I{type.Implementation.Name} is not found.");
+                            logger.LogDebug($"Fail to Regist {longRuningTaskInterface} -> I{type.Implementation.Name} is not found.");
                         else
                         {
                             services.AddSingleton(longRuningTaskInterface, t => t.GetRequiredService(serviceInterface));

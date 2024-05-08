@@ -16,17 +16,26 @@ namespace IZU.Tasks
     public class CommandServer : LongRunningTask
     {
         private readonly IS7NetService _s7NetService;
-        private readonly ISendDeviceToOhtTask _sendDeviceToOhtTask;
+        //private readonly ISendDeviceToOhtTask _sendDeviceToOhtTask;
         private ReplySocket replySocket;
-        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService, ISendDeviceToOhtTask sendDeviceToOhtTask)
+        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService)//, ISendDeviceToOhtTask sendDeviceToOhtTask)
             : base(logger)
         {          
             _s7NetService = s7NetService;
-            _sendDeviceToOhtTask = sendDeviceToOhtTask;
+            HeartsBeating.New(5000, HeartbeatingAction!);
+            //_sendDeviceToOhtTask = sendDeviceToOhtTask;
+        }
+        void HeartbeatingAction()
+        {
+            if (IsFaulted)
+            {
+                Start();
+            }
         }
         public override void Start()
         {
             replySocket = new ReplySocket();
+            replySocket.Options.SendTimeout = TimeSpan.FromSeconds(2);
             replySocket.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
             base.Start();
         }
@@ -35,48 +44,78 @@ namespace IZU.Tasks
         {
             lastExecuteTime = DateTime.Now.ToString();
             byte[] buffer = replySocket.Receive();
-            string operation_feedback = System.Text.Encoding.UTF8.GetString(buffer);
-            operation_feedback = await CommandHandler(operation_feedback);
-            replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation_feedback));
+            if(buffer != null)
+            {
+                string operation_feedback = System.Text.Encoding.UTF8.GetString(buffer);
+                operation_feedback = await CommandHandler(operation_feedback);
+                replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation_feedback));
+            }
+            else
+            {
+                _logger.LogWarning($"CommandServer Received null message");
+                replySocket.Send(System.Text.Encoding.UTF8.GetBytes("NULL"));
+            }
         }
-
+        IDictionary<string, string> ToKeyed(string argstr)
+        {
+            IDictionary<string, string> kd = new Dictionary<string, string>();
+            var args = argstr.Split(';');
+            foreach (var item in args)
+            {
+                int idx = item.IndexOf(':');
+                if (idx < 0) continue;
+                string k = item[..idx];
+                string v = item[(idx + 1)..];
+                kd[k] = v;
+            }
+            return kd;
+        }
         /// <summary>
         /// 开门指令
         /// </summary>
-        /// <param name="data">接受指令( 格式：{deviceType}:{deviceName}:{commandName}:{commandArg} )</param>
+        /// <param name="data">接受指令( 格式：operation>>>arg1:value1;arg2:value2 )</param>
         /// <returns></returns>
         public async Task<string> CommandHandler(string data)
         {
             _logger.LogDebug($"command received :{data}");
-            string[] oper_arr = data.Split('>');
-            if (oper_arr.Length < 2)
-                return "command not available";
-
-            DeviceOperations deviceOperation = (DeviceOperations)oper_arr[0].ToInt32(0);
-            string cmd_str = oper_arr[1];
-            if (string.IsNullOrEmpty(cmd_str))
-                return $"command [{deviceOperation}] not available";
-
-            switch (deviceOperation)
+            int arrowIndex = data.IndexOf(">>>");
+            if (arrowIndex < 0)
             {
-                default:
-                case DeviceOperations.None:
-                    return $"unkown command [{deviceOperation}]";
-                case DeviceOperations.Open:
-                case DeviceOperations.Close://1>3:ad01
+                _logger.LogWarning($"command format is incorrect! {data}");
+                return "NULL";
+            }
+            string operCode = data[..arrowIndex];
+            if (string.IsNullOrEmpty(operCode))
+            {
+                _logger.LogWarning($"command format is incorrect! {data}");
+                return "NULL";
+            }
+
+            string argstr = data[(arrowIndex + 3)..];
+            IDictionary<string, string> args = ToKeyed(argstr);
+            switch (operCode)
+            {
+                case "Open"://Open>>>oht:0;type:3;door:ad01
+                case "Close"://Close>>>oht:0;type:3;door:ad01
                     {
-                        string[] cmd_arr = cmd_str.Split(':');
-                        if (cmd_arr.Length < 2)
-                            return $"command [{deviceOperation}] not available";
+                        args.TryGetValue("oht", out string? oht);
+                        args.TryGetValue("door", out string? name);
 
-                        DeviceTypes deviceType = (DeviceTypes)cmd_arr[0].ToInt32(0);
-                        string deviceName = cmd_arr[1];
-                        var device = _s7NetService.GetDevice(deviceName);
+                        if (string.IsNullOrEmpty(oht) || string.IsNullOrEmpty(name))
+                        {
+                            _logger.LogWarning($"oht={oht} or device={name} is incorrect");
+                            return "NULL";
+                        }
+
+                        var device = _s7NetService.GetDevice(name);
                         if (device == null)
-                            return $"device {deviceName} is not existed(command [{deviceOperation}])";
-
+                        {
+                            _logger.LogWarning($"device {name} is not existed (command [{data}])");
+                            return "NULL";
+                        }
+                     
                         IOperatable? deviceObject = null;
-                        switch (deviceType)
+                        switch (device.DeviceType)
                         {
                             case DeviceTypes.NONE:
                                 break;
@@ -91,24 +130,48 @@ namespace IZU.Tasks
                                 break;
                         }
                         if (deviceObject == null)
-                            return $"unknown device {deviceName}(command [{deviceOperation}])";
-
-                        return deviceOperation switch
                         {
-                            DeviceOperations.Open => await deviceObject!.OpenAsync(),
-                            DeviceOperations.Close => await deviceObject!.CloseAsync(),
-                            _ => $"no such command : {deviceOperation}",
+                            _logger.LogWarning($"unknown device {name} (command [{data}])");
+                            return "NULL";
+                        }
+
+                        string result= operCode switch
+                        {
+                            "Open" => await deviceObject!.OpenAsync(),
+                            "Close" => await deviceObject!.CloseAsync(),
+                            _ => $"no such command : {operCode}",
                         };
-                        //return await SwitchDeviceOperationAsync(deviceOperation, deviceObject);
+                        if (!string.IsNullOrEmpty(result))
+                        {
+                            _logger.LogWarning(result);
+                        }
+                        int status = deviceObject.GetStatus() ?? 0;
+                        return $"{ToName(status)}";
                     }
-                case DeviceOperations.StopTransmit:
-                case DeviceOperations.Transmit://3>[{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"},{"oht":"ip:port","device":"ad02","point_stop":"","point_brake"}...]
+                default:
                     {
-                        return await TransmitOperationAsync(deviceOperation, cmd_str);
+                        _logger.LogWarning($"unkown command [{operCode}]");
+                        return "NULL";
                     }
             }
         }
-
+        string ToName(int status)
+        {
+            switch (status)
+            {
+                case 3:
+                    return "Open";
+                case 2:
+                    return "Opening";
+                case 1:
+                    return "Closing";
+                case 0:
+                    return "Close";
+                default:
+                    return "NULL";
+            }
+        }
+        /*
         async Task<string> TransmitOperationAsync(DeviceOperations @operations, string data)
         {
             OhtInfo? oht;
@@ -130,7 +193,7 @@ namespace IZU.Tasks
                     {
                         try
                         {
-                            _sendDeviceToOhtTask.Add(oht);
+                            //_sendDeviceToOhtTask.Add(oht);
                         }
                         catch (Exception ex)
                         {
@@ -142,7 +205,7 @@ namespace IZU.Tasks
                     {
                         try
                         {
-                            _sendDeviceToOhtTask.Delete(oht);
+                            //_sendDeviceToOhtTask.Delete(oht);
                         }
                         catch (Exception ex)
                         {
@@ -154,6 +217,6 @@ namespace IZU.Tasks
                     return $"no such command : {@operations}";
             };
         }
-
+        */
     }
 }

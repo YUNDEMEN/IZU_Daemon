@@ -8,6 +8,7 @@
     <AssemblyName>$(MSBuildProjectName)</AssemblyName>
     <SatelliteResourceLanguages>disabled</SatelliteResourceLanguages>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <UserSecretsId>7610e73f-ff46-4121-b10d-55fddf0c94f2</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
