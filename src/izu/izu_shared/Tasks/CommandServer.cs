@@ -99,7 +99,6 @@ namespace IZU.Tasks
                 case "Close"://Close>>>oht:0;type:3;door:ad01
                     {
                         args.TryGetValue("oht", out string? oht);
-                        args.TryGetValue("type", out string? type);
                         args.TryGetValue("door", out string? name);
 
                         if (string.IsNullOrEmpty(oht) || string.IsNullOrEmpty(name))
@@ -107,16 +106,16 @@ namespace IZU.Tasks
                             _logger.LogWarning($"oht={oht} or device={name} is incorrect");
                             return "NULL";
                         }
-                        DeviceTypes deviceType = (DeviceTypes)type.ToInt32(3);
+
                         var device = _s7NetService.GetDevice(name);
                         if (device == null)
                         {
                             _logger.LogWarning($"device {name} is not existed (command [{data}])");
                             return "NULL";
                         }
-
+                     
                         IOperatable? deviceObject = null;
-                        switch (deviceType)
+                        switch (device.DeviceType)
                         {
                             case DeviceTypes.NONE:
                                 break;
@@ -146,7 +145,8 @@ namespace IZU.Tasks
                         {
                             _logger.LogWarning(result);
                         }
-                        return $"{deviceObject.GetStatus() ?? 0}";
+                        int status = deviceObject.GetStatus() ?? 0;
+                        return $"{ToName(status)}";
                     }
                 default:
                     {
@@ -155,7 +155,22 @@ namespace IZU.Tasks
                     }
             }
         }
-
+        string ToName(int status)
+        {
+            switch (status)
+            {
+                case 3:
+                    return "Open";
+                case 2:
+                    return "Opening";
+                case 1:
+                    return "Closing";
+                case 0:
+                    return "Close";
+                default:
+                    return "NULL";
+            }
+        }
         /*
         async Task<string> TransmitOperationAsync(DeviceOperations @operations, string data)
         {
