@@ -63,6 +63,8 @@ if (opt.Args.Count() < 2)
     {
         var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
         var ip = addressList.FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.ToString();
+        if (string.IsNullOrEmpty(ip))
+            throw new NullReferenceException("获取本机IP失败");
         Console.WriteLine(ip);
         IZUConfig.ServerIP = ip;
         IZUConfig.ServerPort = 8031;
@@ -106,12 +108,39 @@ builder.Configuration.AddJsonFile("appsettings.json", false, true);
 builder.Logging.AddNLog(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config"));
 builder.Logging.AddTelnetLog(configuration =>
 {
-    var c = builder.Configuration.GetRequiredSection("Logging:ColorConsole:LogLevelToColorMap").GetChildren();
-    //Replace LogLevel and ConsoleColor values from appsettings.json
-    configuration.LogLevelToColorMap = c.ToDictionary(
-            t => (LogLevel)Enum.Parse(typeof(LogLevel), t.Key),
-            v => (ConsoleColor)Enum.Parse(typeof(ConsoleColor), v.Value!)
-        );
+    /*     
+     *     Telnet Log 日志颜色配置
+  
+          "Logging": {
+            "LogLevel": {
+              "Default": "Debug",
+              "Microsoft.AspNetCore": "Warning"
+            },
+            "ColorConsole": {
+              "LogLevelToColorMap": {
+                "Debug": "Gray",
+                "Information": "Green",
+                "Warning": "Yellow",
+                "Error": "Magenta",
+                "Critical": "Red"
+              }
+            }
+          },
+     */
+    try
+    {
+        var section = builder.Configuration.GetRequiredSection("Logging:ColorConsole:LogLevelToColorMap");
+        var colorSettings = section.GetChildren();
+        //Replace LogLevel and ConsoleColor values from appsettings.json
+        configuration.LogLevelToColorMap = colorSettings.ToDictionary(
+                t => (LogLevel)Enum.Parse(typeof(LogLevel), t.Key),
+                v => (ConsoleColor)Enum.Parse(typeof(ConsoleColor), v.Value!)
+            );
+    }
+    catch
+    {
+        Console.WriteLine("telnet log settings is not available!");
+    }
 });
 builder.Host.UseWindowsService();
 builder.Services.AddControllers().AddJsonOptions(options =>
@@ -138,6 +167,7 @@ builder.Services.RegistServices(builder.Configuration);
 //});
 
 var app = builder.Build();
+//程序启动时，可以捕捉绑定的Url列表
 //app.Lifetime.ApplicationStarted.Register(() =>
 //{
 //    ICollection<string> urls = app.Urls;
@@ -145,8 +175,6 @@ var app = builder.Build();
 //    IZUConfig.ServerIP = serverUrl.Host;
 //    IZUConfig.ServerPort = serverUrl.Port;
 //});
-
-
 app.UseTelnet();
 app.UseCors("AllowAnyOrigin");
 app.UseWebSockets();
@@ -154,8 +182,11 @@ app.MapControllers();
 
 app.Map("/", async (context) =>
 {
-    var sp = context.RequestServices;
-    var izus = sp.GetService<IIZUService>();
+    var specServices = builder.Services.Where(t =>
+    !string.IsNullOrEmpty(t.ServiceType.FullName) &&
+    !t.ServiceType.FullName.StartsWith("Microsoft") &&
+    !t.ServiceType.FullName.StartsWith("System"))
+    .Select(t => t);
     var block = new StringBuilder();
     block.Append("<style>td.left { text-align: left; vertical-align: middle;}");
     block.Append("h1 { text-align: center; vertical-align: middle;}");
@@ -167,12 +198,9 @@ app.Map("/", async (context) =>
     block.Append("<table><thead>");
     block.Append("<tr><th class=\"left\">Name</th><th class=\"left\">Lifetime</th></tr>");
     block.Append("</thead><tbody>");
-    foreach (var svc in builder.Services.Where(t =>
-    !t.ServiceType.FullName.StartsWith("Microsoft") && !t.ServiceType.FullName.StartsWith("System")
-    ).Select(t => t))
+    foreach (var svc in specServices)
     {
         block.Append("<tr>");
-        //block.Append($"<td width=\"40%\">{svc.ServiceType.FullName}</td>");
         if (svc.ImplementationType == null)
         {
             continue;
@@ -189,12 +217,19 @@ app.Map("/", async (context) =>
     block.Append("<table><thead>");
     block.Append("<tr><th class=\"left\"></th></tr>");
     block.Append("</thead><tbody>");
-    foreach (var log in izus.Logs)
+
+    var sp = context.RequestServices;
+    var izus = sp.GetService<IIZUService>();
+    if (izus != null)
     {
-        block.Append("<tr>");
-        block.Append($"<td width=\"40%\">{log.Replace("\r\n", "<br>")}</td>");
-        block.Append("</tr>");
+        foreach (var log in izus.Logs)
+        {
+            block.Append("<tr>");
+            block.Append($"<td width=\"40%\">{log.Replace("\r\n", "<br>")}</td>");
+            block.Append("</tr>");
+        }
     }
+
     block.Append("</tbody></table>");
     block.Append("</ul>");
     block.Append("</div>");

@@ -31,7 +31,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Base\EntityVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\IZUConfig.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ISendDeviceToOhtTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />
@@ -43,13 +42,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IS7NetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Tasks\SendDeviceToOhtTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\WebSocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Tasks\AnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\CommandServer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastTask.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastTask2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\MulticastJsonTask.cs" />
   </ItemGroup>
 </Project>
