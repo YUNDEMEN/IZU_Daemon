@@ -17,7 +17,7 @@ namespace IZU.Base
             if (item == null)
                 //	throw new RowNotInTableException($"Server IP address missing!");
                 _logger.LogWarning($"server IP address is not found in {Name} ({FromFile})! default IP address is 127.0.0.1");
-            Server = new PlcServer(_loggerFactory, DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, PullDataFromDeviceTimeInterval, GetActionTypes());
+            Server = new PlcServer(_loggerFactory, DeviceType, Name, item == null ? "127.0.0.1" : item.ServerIP, HeartbeatTimeInterval, GetActionTypes());
             Server.Config(Variables);
         }
 

@@ -54,7 +54,7 @@ namespace IZU.Base
 					if (writer == null)
 					{
 						bool newFile = !File.Exists(Path.Combine(recordFolder, $"{DateTime.Now:yyyy-MM-dd}.csv"));
-						writer = new(Path.Combine(recordFolder, $"{DateTime.Now:yyyy-MM-dd}.csv"), true, Encoding.UTF8);
+						writer = new(Path.Combine(recordFolder, $"{DateTime.Now:yyyy-MM-dd}.csv"), true, Encoding.GetEncoding("GB2312"));
 						if (newFile) await writer.WriteLineAsync(header);
 					}
 

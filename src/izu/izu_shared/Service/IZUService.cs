@@ -366,17 +366,20 @@ namespace IZU.Service
                 CsvParser<VariableEntity> csvParser = new(csvParserOptions, csvMapper);
                 try
                 {
-                    var csvs = csvParser.ReadFromFile(deviceFile.FullName, Encoding.ASCII);
-                    foreach (var item in csvs)
+                    using FileStream stream = new FileStream(deviceFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     {
-                        if (!item.IsValid || item.Error != null)
+                        var csvs = csvParser.ReadFromStream(stream, Encoding.GetEncoding("GB2312"));
+                        foreach (var item in csvs)
                         {
-                            Log($"load devices table {deviceFile} error, {item.Error}", LogLevel.Warning);
-                            continue;
+                            if (!item.IsValid || item.Error != null)
+                            {
+                                Log($"load devices table {deviceFile} error, {item.Error}", LogLevel.Warning);
+                                continue;
+                            }
+                            variables.Add(item.Result);
                         }
-                        variables.Add(item.Result);
+                        Log($"device table loaded {deviceFile}, total variables: {variables.Count}");
                     }
-                    Log($"device table loaded {deviceFile}, total variables: {variables.Count}");
                 }
                 catch (Exception ex)
                 {
@@ -399,49 +402,47 @@ namespace IZU.Service
         {
             var devices = s7netService.GetAllDevices();
             if (devices.Count > 0)
-                Log($"try to update devices izu id={IZUConfig.izuId} to remote server({devices.Count}). (call api: izu/update/devices)");
+                Log($"try to update devices({devices.Count}) izu id={IZUConfig.izuId} to remote server. (call api: izu/update/devices)");
             else
             {
                 Log($"devices table is empy", LogLevel.Warning);
                 return;
             }
-            using (HttpClient httpClient = new())
+            using HttpClient httpClient = new();
+            try
             {
-                try
+                httpClient.Timeout = TimeSpan.FromSeconds(2);
+                httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
+                httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
+                foreach (var item in groups)
                 {
-                    httpClient.Timeout = TimeSpan.FromSeconds(2);
-                    httpClient.BaseAddress = new Uri(IZUConfig.BackendIZUBaseUrl);
-                    httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));                  
-                    var groups = from x in devices where x.DeviceType != DeviceTypes.IZU && x.DeviceType != DeviceTypes.NONE group x by x.DeviceType;
-                    foreach (var item in groups)
+                    var ds = from x in item.ToList()
+                             select new
+                             {
+                                 name = x.Name,
+                                 izu_id = IZUConfig.izuId,
+                                 map_version = IZUConfig.MapVersion
+                             };
+                    var response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
+                    if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
                     {
-                        var ds = from x in item.ToList()
-                                 select new
-                                 {
-                                     name = x.Name,
-                                     izu_id = IZUConfig.izuId,
-                                     map_version = IZUConfig.MapVersion
-                                 };
-                        var response = await httpClient.PostAsync($"izu/update/devices", JsonContent.Create(ds));
-                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                        string result = await response.Content.ReadAsStringAsync();
+                        response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
+                        if (!resultObject!.ok)
                         {
-                            string result = await response.Content.ReadAsStringAsync();
-                            response_object? resultObject = Newtonsoft.Json.JsonConvert.DeserializeObject<response_object>(result);
-                            if (!resultObject!.ok)
-                            {
-                                Log($"upload devices izu id={IZUConfig.izuId} failed: {resultObject.message}", LogLevel.Warning);
-                            }
-                            else
-                            {
-                                Log($"upload devices izu id={IZUConfig.izuId} successfully");
-                            }
+                            Log($"upload devices izu id={IZUConfig.izuId} failed: {resultObject.message}", LogLevel.Warning);
+                        }
+                        else
+                        {
+                            Log($"upload devices izu id={IZUConfig.izuId} successfully");
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    Log($"check devices failed: {ex.Message}", LogLevel.Warning);
-                }
+            }
+            catch (Exception ex)
+            {
+                Log($"check devices failed: {ex.Message}", LogLevel.Warning);
             }
         }
 

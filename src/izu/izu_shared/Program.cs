@@ -22,8 +22,8 @@ void ErrorReport(string fileName, string? content)
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     {
         //这段代码在Linux运行中报错，所以要在windows环境下才执行
-        Console.WriteLine("按任意键继续...");
-        Console.ReadKey();
+        //Console.WriteLine("按任意键继续...");
+        //Console.ReadKey();
     }
     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
     {
@@ -188,6 +188,7 @@ app.Map("/", async (context) =>
     !t.ServiceType.FullName.StartsWith("System"))
     .Select(t => t);
     var block = new StringBuilder();
+    block.Append("<head><meta charset=\"utf-8\"></meta></head>");
     block.Append("<style>td.left { text-align: left; vertical-align: middle;}");
     block.Append("h1 { text-align: center; vertical-align: middle;}");
     block.Append("th.left { text-align: left; vertical-align: middle;}</style>");

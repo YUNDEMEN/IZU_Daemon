@@ -156,14 +156,15 @@ namespace IZU.Base
         {
             xPrint printer = new();
             printer.AppendLine($"server endpoint:{IZUConfig.Server}");
-            printer.AppendLine($"izu backend:{IZUConfig.BackendIZUBaseUrl}");
             printer.AppendLine($"izu id:{IZUConfig.izuId}");
+            printer.AppendLine($"izu backend:{IZUConfig.BackendIZUBaseUrl}");
             printer.AppendLine($"map version:{IZUConfig.MapVersion}");
+            printer.AppendLine($"data port:{IZUConfig.PortNanoDataServer}");
             printer.AppendLine($"command port:{IZUConfig.PortNanoCommandServer}");
             printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
             printer.AppendLine($"multicast(json) port:{IZUConfig.PortMulticastFullDataServer}");
             printer.AppendLine($"multicast(json) interval:{IZUConfig.IntervalMulticastFullDataServer} ms");
-            printer.AppendLine($"ws push interval:{IZUConfig.PublishMillionSeconds} ms (websocket)");
+            printer.AppendLine($"ws push interval:{IZUConfig.PublishMillionSeconds} ms");
             printer.AppendLine($"variables:{IZUConfig.DeviceTableFrom}");
             return printer.ToString();
         }

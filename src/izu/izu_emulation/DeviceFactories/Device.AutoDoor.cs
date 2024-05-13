@@ -289,7 +289,7 @@ namespace IZU.DeviceFactories
                     await WriteBool(address_tup.R04, true);
                 });
                 //simulation
-
+                TimeoutClose();
                 return await ConditionWriteAsync(address_tup.R05, address_tup.W07, false, true);
             }
             else
@@ -300,6 +300,18 @@ namespace IZU.DeviceFactories
 
         public async Task<string> CloseAsync()
         {
+            /*
+             防止夹车逻辑：
+            如果收到天车开门指令，则在DoorAtions中添加一条门对应天车的记录
+            收到天车关门指令，则移除DoorActions中门对应天车的记录
+
+            在关门的时候调用函数判断该门是否能关闭
+             Tasks.DoorActions.CanClose(DOORNAME)
+             */
+            if (!Tasks.DoorActions.CanClose(DeviceEntity.Name))
+                return $"cannot close door, oht ({Tasks.DoorActions.Ohts(DeviceEntity.Name)}) will pass through {DeviceEntity.Name}";
+
+
             Ref<bool> @ref = new();
             string state = await GetBool(address_tup.R02, @ref);
             if (!string.IsNullOrEmpty(state)) return state;
@@ -397,6 +409,31 @@ namespace IZU.DeviceFactories
         public async Task<string> ResetAsync(bool o)
         {
             return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
+        }
+        void TimeoutClose()
+        {
+            DateTime start_time = DateTime.Now;
+            int retry = 3;
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    if ((DateTime.Now - start_time).TotalMilliseconds > 8 * 1000)
+                    {
+                        if (GetStatus()==3)
+                        {
+                            string rc = await CloseAsync();
+                            if (string.IsNullOrEmpty(rc))
+                                break;
+                        }
+                        if (--retry < 1)
+                        {
+                            break;
+                        }
+                    }
+                    await Task.Delay(100);
+                }
+            });
         }
     }
 }

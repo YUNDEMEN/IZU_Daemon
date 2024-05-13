@@ -1,5 +1,6 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
+using System.Xml.Linq;
 using Wonder.Infrastructure;
 
 namespace IZU.DeviceFactories
@@ -56,6 +57,7 @@ namespace IZU.DeviceFactories
             var closing = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
             var closed = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
             var closeState = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
+            Console.WriteLine($"R05={opening}, R07={opened}, R04={openState}, R06={closing}, R08={closed}, R03={closeState}");
             if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
                 return null;
             else
@@ -224,6 +226,7 @@ namespace IZU.DeviceFactories
                 string ret = await WriteBool(address_tup.W07, true);
                 if (!string.IsNullOrEmpty(ret))
                     return ret;
+                TimeoutClose();
                 return await ConditionWriteAsync(address_tup.R05, address_tup.W07, false);
             }
             else
@@ -232,6 +235,18 @@ namespace IZU.DeviceFactories
 
         public async Task<string> CloseAsync()
         {
+            /*
+             防止夹车逻辑：
+            如果收到天车开门指令，则在DoorAtions中添加一条门对应天车的记录
+            收到天车关门指令，则移除DoorActions中门对应天车的记录
+
+            在关门的时候调用函数判断该门是否能关闭
+             Tasks.DoorActions.CanClose(DOORNAME)
+             */
+            //if (!Tasks.DoorActions.CanClose(DeviceEntity.Name))
+            //    return $"cannot close door, oht ({Tasks.DoorActions.Ohts(DeviceEntity.Name)}) will pass through {DeviceEntity.Name}";
+
+
             // 是否处于自动运行状态
             Ref<bool> @ref = new();
             string state = await GetBool(address_tup.R02, @ref);
@@ -306,5 +321,36 @@ namespace IZU.DeviceFactories
         {
             return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
         }
+
+        void TimeoutClose()
+        {
+            return;
+            DateTime start_time = DateTime.Now;
+            int retry = 3;
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    if ((DateTime.Now - start_time).TotalMilliseconds > 8 * 1000)
+                    {
+                        if (GetStatus() == 3)
+                        {
+                            string rc = await CloseAsync();
+                            if (string.IsNullOrEmpty(rc))
+                            {
+                                //Tasks.DoorActions.Remove(DeviceEntity, oht.ToInt32(0));
+                                break;
+                            }
+                        }
+                        if (--retry < 1)
+                        {
+                            break;
+                        }
+                    }
+                    await Task.Delay(100);
+                }
+            });
+        }
+
     }
 }

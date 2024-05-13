@@ -2,6 +2,7 @@
 using IZU.DeviceFactories;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
+using System.Collections.Concurrent;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
 
@@ -20,7 +21,7 @@ namespace IZU.Tasks
         private ReplySocket replySocket;
         public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService)//, ISendDeviceToOhtTask sendDeviceToOhtTask)
             : base(logger)
-        {          
+        {
             _s7NetService = s7NetService;
             HeartsBeating.New(5000, HeartbeatingAction!);
             //_sendDeviceToOhtTask = sendDeviceToOhtTask;
@@ -44,7 +45,7 @@ namespace IZU.Tasks
         {
             lastExecuteTime = DateTime.Now.ToString();
             byte[] buffer = replySocket.Receive();
-            if(buffer != null)
+            if (buffer != null)
             {
                 string operation_feedback = System.Text.Encoding.UTF8.GetString(buffer);
                 operation_feedback = await CommandHandler(operation_feedback);
@@ -77,7 +78,7 @@ namespace IZU.Tasks
         /// <returns></returns>
         public async Task<string> CommandHandler(string data)
         {
-            _logger.LogDebug($"command received :{data}");
+            _logger.LogInformation($"command received :{data}");
             int arrowIndex = data.IndexOf(">>>");
             if (arrowIndex < 0)
             {
@@ -95,7 +96,7 @@ namespace IZU.Tasks
             IDictionary<string, string> args = ToKeyed(argstr);
             switch (operCode)
             {
-                case "Open"://Open>>>oht:0;type:3;door:ad01
+                case "Open"://Open>>>oht:0;door:ad01
                 case "Close"://Close>>>oht:0;type:3;door:ad01
                     {
                         args.TryGetValue("oht", out string? oht);
@@ -113,7 +114,7 @@ namespace IZU.Tasks
                             _logger.LogWarning($"device {name} is not existed (command [{data}])");
                             return "NULL";
                         }
-                     
+
                         IOperatable? deviceObject = null;
                         switch (device.DeviceType)
                         {
@@ -135,18 +136,50 @@ namespace IZU.Tasks
                             return "NULL";
                         }
 
-                        string result= operCode switch
+                        string result = string.Empty;
+                        switch (operCode)
                         {
-                            "Open" => await deviceObject!.OpenAsync(),
-                            "Close" => await deviceObject!.CloseAsync(),
-                            _ => $"no such command : {operCode}",
-                        };
+                            case "Open":
+                                {
+                                    if (deviceObject.GetStatus() == 0)
+                                    {
+                                        result = await deviceObject!.OpenAsync();
+                                        if (string.IsNullOrEmpty(result))
+                                            Tasks.DoorActions.Add(name, oht.ToInt32(0));
+                                    }
+                                    break;
+                                }
+                            case "Close":
+                                {
+                                    if (deviceObject.GetStatus() == 3)
+                                    {
+                                        result = await deviceObject!.CloseAsync();
+                                    }
+                                    break;
+                                }
+                        }
                         if (!string.IsNullOrEmpty(result))
                         {
                             _logger.LogWarning(result);
                         }
                         int status = deviceObject.GetStatus() ?? 0;
                         return $"{ToName(status)}";
+                    }
+                case "State"://State>>>door:ad01
+                    {
+                        args.TryGetValue("door", out string? name);
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            _logger.LogWarning($"device={name} is incorrect");
+                            return "NULL";
+                        }
+                        var device = _s7NetService.GetDevice(name);
+                        if (device == null)
+                        {
+                            _logger.LogWarning($"device {name} is not existed (command [{data}])");
+                            return "NULL";
+                        }
+                        return ToName(DeviceFactory.CheckAuodoorStatus(device));
                     }
                 default:
                     {
@@ -155,7 +188,7 @@ namespace IZU.Tasks
                     }
             }
         }
-        string ToName(int status)
+        string ToName(int? status)
         {
             switch (status)
             {
@@ -218,5 +251,51 @@ namespace IZU.Tasks
             };
         }
         */
+    }
+
+
+    public static class DoorActions
+    {
+        static ConcurrentDictionary<string, List<int>> openedoors;
+        static DoorActions()
+        {
+            openedoors = new ConcurrentDictionary<string, List<int>>();
+        }
+        public static void Add(string key, int @value)
+        {
+            if (!openedoors.ContainsKey(key))
+                openedoors[key] = new List<int>(new int[] { @value });
+
+            if (!openedoors[key].Contains(@value))
+            {
+                openedoors[key].Add(@value);
+            }
+        }
+        public static void Remove(string key, int @value)
+        {
+            if (!openedoors.ContainsKey(key)) return;
+            openedoors[key].Remove(@value);
+        }
+
+        public static bool CanClose(string name)
+        {
+            if (!openedoors.ContainsKey(name))
+                return true;
+
+            if (openedoors[name].Count == 0)
+                return true;
+
+            return false;
+        }
+
+        public static string Ohts(string name)
+        {
+            if (!openedoors.ContainsKey(name))
+                return string.Empty;
+            if (openedoors[name].Count == 0) 
+                return string.Empty;
+
+            return string.Join(", ", openedoors[name]);
+        }
     }
 }
