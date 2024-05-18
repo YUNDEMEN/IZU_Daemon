@@ -243,6 +243,27 @@ namespace IZU.Service
             _ = _cDic.TryGetValue(deviceName.ToUpper(), out var device);
             return device;
         }
+        public IEnumerable<DeviceEntity>  GetDevicesByType(DeviceTypes deviceType)
+        {
+            return from x in _cDic where x.Value.DeviceType == deviceType select x.Value;
+        }
+
+        public string SetDevice(string deviceName, string addressAlias, string @value)
+        {
+            if (!_cDic.TryGetValue(deviceName.ToUpper(), out DeviceEntity deviceEntity))
+                return "device not found";
+            var addrAlias = deviceEntity.Variables.FirstOrDefault(t => t.ActionType == addressAlias.ToUpper());
+            if (addrAlias == null)
+            {
+                return "address alias not found";
+            }
+            if(!bool.TryParse(@value, out bool val))
+            {
+                return "value should be true/false";
+            }
+            addrAlias.Value = val;
+            return string.Empty;
+        }
 
         public List<VariableEntity> GetDeviceVariables(string deviceName)
         {

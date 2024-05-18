@@ -31,6 +31,8 @@ namespace IZU.Base
 
         public static string MulticastIP { get; set; } = string.Empty;
 
+        public static string OSOChannel { get; set; } = "tcp://127.0.0.1:8024";
+
         /// <summary>
         /// 接受OHT控制设备指令端口
         /// </summary>
@@ -164,6 +166,7 @@ namespace IZU.Base
             printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
             printer.AppendLine($"multicast(json) port:{IZUConfig.PortMulticastFullDataServer}");
             printer.AppendLine($"multicast(json) interval:{IZUConfig.IntervalMulticastFullDataServer} ms");
+            printer.AppendLine($"oso channel:{IZUConfig.OSOChannel}");
             printer.AppendLine($"ws push interval:{IZUConfig.PublishMillionSeconds} ms");
             printer.AppendLine($"variables:{IZUConfig.DeviceTableFrom}");
             return printer.ToString();
