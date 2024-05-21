@@ -17,14 +17,12 @@ namespace IZU.Tasks
     public class CommandServer : LongRunningTask
     {
         private readonly IS7NetService _s7NetService;
-        //private readonly ISendDeviceToOhtTask _sendDeviceToOhtTask;
         private ReplySocket replySocket;
-        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService)//, ISendDeviceToOhtTask sendDeviceToOhtTask)
+        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService)
             : base(logger)
         {
             _s7NetService = s7NetService;
             HeartsBeating.New(5000, HeartbeatingAction!);
-            //_sendDeviceToOhtTask = sendDeviceToOhtTask;
         }
         void HeartbeatingAction()
         {
@@ -72,7 +70,7 @@ namespace IZU.Tasks
             return kd;
         }
         /// <summary>
-        /// 开门指令
+        /// 开门/关门指令
         /// </summary>
         /// <param name="data">接受指令( 格式：operation>>>arg1:value1;arg2:value2 )</param>
         /// <returns></returns>
@@ -141,20 +139,14 @@ namespace IZU.Tasks
                         {
                             case "Open":
                                 {
-                                    if (deviceObject.GetStatus() == 0)
-                                    {
-                                        result = await deviceObject!.OpenAsync();
-                                        if (string.IsNullOrEmpty(result))
-                                            Tasks.DoorActions.Add(name, oht.ToInt32(0));
-                                    }
+                                    result = await deviceObject!.OpenAsync();
+                                    if (string.IsNullOrEmpty(result))
+                                        Tasks.DoorActions.Add(name, oht.ToInt32(0));
                                     break;
                                 }
                             case "Close":
                                 {
-                                    if (deviceObject.GetStatus() == 3)
-                                    {
-                                        result = await deviceObject!.CloseAsync();
-                                    }
+                                    result = await deviceObject!.CloseAsync();
                                     break;
                                 }
                         }
@@ -162,7 +154,8 @@ namespace IZU.Tasks
                         {
                             _logger.LogWarning(result);
                         }
-                        int status = deviceObject.GetStatus() ?? 0;
+                        int status = deviceObject.GetStatus() ?? -1;
+                        //Console.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}]  send {device.Name} status={status} to oht{oht} ");
                         return $"{ToName(status)}";
                     }
                 case "State"://State>>>door:ad01
@@ -179,7 +172,8 @@ namespace IZU.Tasks
                             _logger.LogWarning($"device {name} is not existed (command [{data}])");
                             return "NULL";
                         }
-                        return ToName(DeviceFactory.CheckAuodoorStatus(device));
+                        int status = DeviceFactory.CheckAuodoorStatus(device) ?? -1;
+                        return ToName(status);
                     }
                 default:
                     {
@@ -188,21 +182,16 @@ namespace IZU.Tasks
                     }
             }
         }
-        string ToName(int? status)
+        string ToName(int status)
         {
-            switch (status)
+            return status switch
             {
-                case 3:
-                    return "Open";
-                case 2:
-                    return "Opening";
-                case 1:
-                    return "Closing";
-                case 0:
-                    return "Close";
-                default:
-                    return "NULL";
-            }
+                3 => "Open",
+                2 => "Opening",
+                1 => "Closing",
+                0 => "Close",
+                _ => "NULL",
+            };
         }
         /*
         async Task<string> TransmitOperationAsync(DeviceOperations @operations, string data)
