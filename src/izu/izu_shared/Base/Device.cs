@@ -60,7 +60,7 @@ namespace IZU.Base
             string result = string.Empty;
             while (true)
             {
-                if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(2))
                 {
                     result = "read timeout in 5 seconds";
                     break;

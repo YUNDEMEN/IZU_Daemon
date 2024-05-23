@@ -236,5 +236,4 @@ app.Map("/", async (context) =>
     block.Append("</div>");
     await context.Response.WriteAsync(block.ToString());
 });
-
 await app.RunAsync();

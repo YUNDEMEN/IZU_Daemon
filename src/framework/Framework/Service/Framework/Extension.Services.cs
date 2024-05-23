@@ -19,7 +19,8 @@ namespace Wonder.Service.Framework
             {
                 try
                 {
-                    var mod = AppDomain.CurrentDomain.Load(File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}izu.config.mod.dll"));
+                    var mod = AppDomain.CurrentDomain.Load(File.ReadAllBytes($"{modFile.FullName}"));
+                    logger.LogInformation($"{modFile.Name} loaded ({modFile.FullName})");
                 }
                 catch (Exception ex)
                 {
@@ -40,6 +41,7 @@ namespace Wonder.Service.Framework
                     MyService : IMyService
                注： 服务的接口命名规则为  I（大写的i） + 服务类称
              */
+            List<TypeService> autoRun = new();
             foreach (var type in specTypies)
             {
                 var regist = type.Implementation.GetCustomAttribute<RegistAttribute>();
@@ -62,6 +64,12 @@ namespace Wonder.Service.Framework
                 {
                     services.AddTransient(type.Service!, type.Implementation);
                     logger.LogDebug($"AddTransient type={type.Service!}, impl={type.Implementation}");
+                }
+
+                if(regist.RunType== RunTypes.Automatic)
+                {
+                    logger.LogInformation($"RunAs Automatic : Service type={type.Service!}, impl={type.Implementation}");
+                    autoRun.Add(type!);
                 }
             }
 
@@ -101,7 +109,20 @@ namespace Wonder.Service.Framework
                     AddHostedService.MakeGenericMethod(new Type[] { type.Implementation }).Invoke(null, new object?[] { services });
                 }
             }
+
+           var provider= services.BuildServiceProvider();
+            foreach (var item in autoRun)
+            {
+                if (item!.Service == null) continue;
+                provider.GetService(item!.Service);
+            }
+
             return services;
+        }
+
+        public static void ContructServices(IServiceProvider serviceProvider)
+        {
+            //serviceProvider.GetServices
         }
     }
 }

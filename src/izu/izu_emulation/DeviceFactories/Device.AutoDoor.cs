@@ -83,6 +83,12 @@ namespace IZU.DeviceFactories
             //simulation
             await WriteBool(address_tup.R10, true);
             await WriteBool(address_tup.R01, true);
+
+            RunAfter(2000, async () =>
+            {
+                await WriteBool(address_tup.R10, true);
+            });
+
             return await ConditionWriteAsync(address_tup.R10, address_tup.W09, false);
         }
 

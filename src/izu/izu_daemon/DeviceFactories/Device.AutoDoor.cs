@@ -81,10 +81,21 @@ namespace IZU.DeviceFactories
             if (!string.IsNullOrEmpty(w1) || !string.IsNullOrEmpty(w2) || !string.IsNullOrEmpty(w3) || !string.IsNullOrEmpty(w4) || !string.IsNullOrEmpty(w5) || !string.IsNullOrEmpty(w6) || !string.IsNullOrEmpty(w7) || !string.IsNullOrEmpty(w8) || !string.IsNullOrEmpty(w9))
                 return "Failed to reset related parameters during initialization!";
 
+
             string ret = await WriteBool(address_tup.W09, true);
             if (!string.IsNullOrEmpty(ret))
                 return ret;
-            return await ConditionWriteAsync(address_tup.R10, address_tup.W09, false);
+
+
+            ret = await ConditionWriteAsync(address_tup.R10, address_tup.W09, false, true);
+            if (!string.IsNullOrEmpty(ret))
+            {
+                string rc = await WriteBool(address_tup.W09, false);
+                if (!string.IsNullOrEmpty(ret))
+                    return $"reset W09 failed, {rc}";
+            }
+
+            return string.Empty;
         }
 
         public async Task<string> StartAsync()
