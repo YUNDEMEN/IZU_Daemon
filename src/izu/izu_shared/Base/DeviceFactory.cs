@@ -174,27 +174,23 @@
         /// <returns></returns>
         public static int CheckHIDStatus(DeviceEntity deviceEntity)
         {
-            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value}", out bool fireAlarm);
-            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value}", out bool error);
-            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value}", out bool emerg);
-            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value}", out bool loseEnergy);
-            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value}", out bool highTemp);
+            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R10")?.Value}", out bool fireAlarm);//火警信号
+            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value}", out bool error);//PSP故障报警状态
+            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R11")?.Value}", out bool emerg);//紧急停止返回信号
+            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value}", out bool loseEnergy);//电柜失电状态信号
+            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value}", out bool highTemp);//PSP温度异常过高
+            bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value}", out bool stop);//PSP停止状态信号
 
-            if (// 火灾
- /* R10=true*/fireAlarm)
-                return 4;
-            else if (//高温失电
-/* R06=true*/loseEnergy
-/* R04=true*/&& highTemp)
-                return 3;
-            else if (//急停失电
-/* R06=true*/loseEnergy
-/* R11=true*/&& emerg)
-                return 2;
-            else if (//故障失电
-/* R06=true*/loseEnergy
-/* R08=true*/&& error)
+            if (fireAlarm)//火灾
                 return 1;
+            else if (highTemp)//高温失电
+                return 2;
+            else if (stop)//逆变器停止
+                return 3;
+            else if (error)//失电
+                return 4;
+            else if (loseEnergy)//故障失电
+                return 5;
             return 0;
         }
     }

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net7.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\izu\izu_shared\Base\Enums.cs" Link="ReletiveClasses\Enums.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="S7netplus" Version="0.20.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <PackageReference Include="TinyCsvParser" Version="2.7.0" />
+  </ItemGroup>
+
+</Project>

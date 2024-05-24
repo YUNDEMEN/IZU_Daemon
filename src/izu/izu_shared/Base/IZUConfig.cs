@@ -108,6 +108,7 @@ namespace IZU.Base
                 PortNanoDataServer = Int32.Parse(configJson!["PortNanoDataServer"]!.ToString());
                 IntervalNanoDataServer = Int32.Parse(configJson!["IntervalNanoDataServer"]!.ToString());
                 izuId = Int32.Parse(configJson!["izuId"]!.ToString());
+                OSOChannel= configJson!["oso_cmd"]!.ToString();
             }
             catch (Exception ex)
             {
