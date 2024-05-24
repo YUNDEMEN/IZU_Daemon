@@ -49,9 +49,13 @@ namespace IZU.Base
         /// </summary>
         public DeviceTypes DeviceType { get; set; }
         /// <summary>
-        /// 从设备读取数据刷新时间 (million seconds)
+        /// 心跳检测刷新率 (million seconds)
         /// </summary>
-        public int PullDataFromDeviceTimeInterval { get; set; }
+        public int HeartbeatTimeInterval { get; set; }
+        /// <summary>
+        /// 数据刷新率 (million seconds)
+        /// </summary>
+        public int PullDataFromDeviceTimeInterval { get; set; } = 100;
         /// <summary>
         /// plc服务器
         /// </summary>
@@ -73,7 +77,7 @@ namespace IZU.Base
                 //	throw new RowNotInTableException($"Server IP address missing!");
                 _logger.LogWarning($"server IP address is not found in {name} ({FromFile})! default IP address is 127.0.0.1");
 
-            PullDataFromDeviceTimeInterval = item!.RefreshInterval;
+            HeartbeatTimeInterval = item!.RefreshInterval;
             DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
 
             //如果设备的变量都被禁用了，则直接不启用 plc 连接服务

@@ -26,7 +26,7 @@ namespace IZU.Base.dto
 
     public class izu_status
     {
-        public error error { get; set; }
+        public error error { get; set; } = new error();
         public bool offline { get; set; }
     }
 }

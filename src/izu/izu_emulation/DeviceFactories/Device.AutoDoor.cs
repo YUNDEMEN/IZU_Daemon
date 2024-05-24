@@ -50,62 +50,7 @@ namespace IZU.DeviceFactories
         /// <returns></returns>
         public int? GetStatus()
         {
-            var opening = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
-            var opened = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
-            var openState = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-            var closing = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
-            var closed = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
-            var closeState = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
-            if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
-                return null;
-            else
-            {
-                if (// 关到位
-/* R06=false*/(bool)closing == false
-/* R08=true*/&& (bool)closed
-/* R03=true*/&& (bool)closeState
-/* R05=false*/&& (bool)opening == false
-/* R07=false*/&& (bool)opened == false
-/* R04=false*/&& (bool)openState == false)
-                    return 0;
-
-
-
-                else if (// 正在关
-/* R06=true*/ (bool)closing
-/* R08=false*/&& (bool)closed == false
-/* R03=false*/&& (bool)closeState == false
-/* R05=false*/&& (bool)opening == false
-/* R07=false*/&& (bool)opened == false
-/* R04=false*/&& (bool)openState == false)
-                    return 1;
-
-
-
-                else if (// 正在开
-/* R06=false*/(bool)closing == false
-/* R08=false*/&& (bool)closed == false
-/* R03=false*/&& (bool)closeState == false
-/* R05=true*/&& (bool)opening
-/* R07=false*/&& (bool)opened == false
-/* R04=false*/&& (bool)openState == false)
-                    return 2;
-
-
-
-                else if (// 开到位
-/* R06=false*/(bool)closing == false
-/* R08=false*/&& (bool)closed == false
-/* R03=false*/&& (bool)closeState == false
-/* R05=false*/&& (bool)opening == false
-/* R07=true*/&& (bool)opened
-/* R04=true*/&& (bool)openState)
-                    return 3;
-
-
-                else
-                    return null;
-            }
+            return DeviceFactory.CheckAuodoorStatus((DeviceEntity)_deviceEntity);
         }
 
         public async Task<string> InitialAsync()
@@ -138,6 +83,12 @@ namespace IZU.DeviceFactories
             //simulation
             await WriteBool(address_tup.R10, true);
             await WriteBool(address_tup.R01, true);
+
+            RunAfter(2000, async () =>
+            {
+                await WriteBool(address_tup.R10, true);
+            });
+
             return await ConditionWriteAsync(address_tup.R10, address_tup.W09, false);
         }
 
@@ -289,7 +240,7 @@ namespace IZU.DeviceFactories
                     await WriteBool(address_tup.R04, true);
                 });
                 //simulation
-
+                TimeoutClose();
                 return await ConditionWriteAsync(address_tup.R05, address_tup.W07, false, true);
             }
             else
@@ -300,6 +251,18 @@ namespace IZU.DeviceFactories
 
         public async Task<string> CloseAsync()
         {
+            /*
+             防止夹车逻辑：
+            如果收到天车开门指令，则在DoorAtions中添加一条门对应天车的记录
+            收到天车关门指令，则移除DoorActions中门对应天车的记录
+
+            在关门的时候调用函数判断该门是否能关闭
+             Tasks.DoorActions.CanClose(DOORNAME)
+             */
+            if (!Tasks.DoorActions.CanClose(DeviceEntity.Name))
+                return $"cannot close door, oht ({Tasks.DoorActions.Ohts(DeviceEntity.Name)}) will pass through {DeviceEntity.Name}";
+
+
             Ref<bool> @ref = new();
             string state = await GetBool(address_tup.R02, @ref);
             if (!string.IsNullOrEmpty(state)) return state;
@@ -397,6 +360,31 @@ namespace IZU.DeviceFactories
         public async Task<string> ResetAsync(bool o)
         {
             return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
+        }
+        void TimeoutClose()
+        {
+            DateTime start_time = DateTime.Now;
+            int retry = 3;
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    if ((DateTime.Now - start_time).TotalMilliseconds > 8 * 1000)
+                    {
+                        if (GetStatus()==3)
+                        {
+                            string rc = await CloseAsync();
+                            if (string.IsNullOrEmpty(rc))
+                                break;
+                        }
+                        if (--retry < 1)
+                        {
+                            break;
+                        }
+                    }
+                    await Task.Delay(100);
+                }
+            });
         }
     }
 }

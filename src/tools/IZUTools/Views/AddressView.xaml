@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="IZUTools.Views.AddressView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:IZUTools.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <DataGrid ItemsSource="{Binding DeviceDataCollection}" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" SelectionMode="Single"
+                  AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="DeviceName" Binding="{Binding DeviceName}"/>
+                <DataGridTextColumn Header="DeviceType" Binding="{Binding DeviceType}"/>
+                <DataGridTextColumn Header="Address" Binding="{Binding Address}"/>
+                <DataGridTextColumn Header="R/W" Binding="{Binding FunctionType}"/> 
+                <DataGridTextColumn Header="Alias" Binding="{Binding ActionType}"/>
+                <DataGridTextColumn Header="Data Type" Binding="{Binding VariableType}"/>
+                <DataGridTextColumn Header="Disabled" Binding="{Binding Disabled}"/>
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

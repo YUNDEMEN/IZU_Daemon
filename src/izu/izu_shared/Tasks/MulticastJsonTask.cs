@@ -52,18 +52,33 @@ namespace IZU.Tasks
             JArray currentArray = new();
             try
             {
-                var msg = _s7NetService.GetAllDevices();
+                List<DeviceEntity> msg = _s7NetService.GetAllDevices();
                 if (msg.Count == 0) return root;
                 string izuNo = msg.FirstOrDefault(p => p.DeviceType == DeviceTypes.IZU)!.Name;
-                foreach (var it in msg)
+                foreach (DeviceEntity it in msg)
                 {
                     JObject currentObject = new();
 
                     currentObject = new() { ["name"] = it.Name };
                     currentObject["type"] = it.DeviceType.ToString();
                     currentObject["izuNo"] = izuNo;
-                    if (it.DeviceType == DeviceTypes.AUTODOOR)
-                        currentObject["doorState"] = DeviceFactory.CheckAuodoorStatus(it) == null ? null : DeviceFactory.CheckAuodoorStatus(it)!.ToString();
+                    switch (it.DeviceType)
+                    {
+                        case DeviceTypes.NONE:
+                            break;
+                        case DeviceTypes.IZU:
+                            break;
+                        case DeviceTypes.HID:
+                            currentObject["status"] = DeviceFactory.CheckHIDStatus(it);
+                            break;
+                        case DeviceTypes.AUTODOOR:
+                            currentObject["doorState"] = DeviceFactory.CheckAuodoorStatus(it) == null ? null : DeviceFactory.CheckAuodoorStatus(it)!.ToString();
+                            break;
+                        case DeviceTypes.FIREDOOR:
+                            break;
+                        default:
+                            break;
+                    }
                     var list2 = from x in it.Variables where x.ActionType.StartsWith('R') select new { k = x.ActionType.ToLower(), v = x.Value };
                     foreach (var item in list2)
                     {
@@ -78,7 +93,6 @@ namespace IZU.Tasks
             {
                 //_logger.LogWarning($"websocket server publish error: {ex.Message}");
             }
-            string ss = JsonConvert.SerializeObject(root);
             return root;
         }
 

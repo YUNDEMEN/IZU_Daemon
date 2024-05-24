@@ -6,7 +6,7 @@
     {
 
     }
-    [Regist(RegisterTypes.Singleton)]
+    [Regist(RegisterTypes.Singleton, RunTypes.Automatic)]
     public class ConfigService : IConfigService
     {
         private readonly ILogger<ConfigService> logger;

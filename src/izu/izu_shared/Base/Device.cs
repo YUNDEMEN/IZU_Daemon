@@ -1,5 +1,4 @@
-﻿using IZU.Base;
-using IZU.Interfaces;
+﻿using IZU.Interfaces;
 using Wonder.Infrastructure;
 
 namespace IZU.Base
@@ -61,7 +60,7 @@ namespace IZU.Base
             string result = string.Empty;
             while (true)
             {
-                if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(2))
                 {
                     result = "read timeout in 5 seconds";
                     break;
@@ -126,5 +125,6 @@ namespace IZU.Base
                 finally { }
             });
         }
+
     }
 }

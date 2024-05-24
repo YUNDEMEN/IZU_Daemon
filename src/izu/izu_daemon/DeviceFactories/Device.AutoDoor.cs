@@ -1,5 +1,6 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
+using System.Xml.Linq;
 using Wonder.Infrastructure;
 
 namespace IZU.DeviceFactories
@@ -50,62 +51,7 @@ namespace IZU.DeviceFactories
         /// <returns></returns>
         public int? GetStatus()
         {
-            var opening = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R05")?.Value;
-            var opened = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value;
-            var openState = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value;
-            var closing = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value;
-            var closed = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value;
-            var closeState = _deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value;
-            if (opening == null || opened == null || openState == null || closing == null || closed == null || closeState == null)
-                return null;
-            else
-            {
-                if (// 关到位
-/* R06=false*/(bool)closing == false
-/* R08=true*/&& (bool)closed
-/* R03=true*/&& (bool)closeState
-/* R05=false*/&& (bool)opening == false
-/* R07=false*/&& (bool)opened == false
-/* R04=false*/&& (bool)openState == false)
-                    return 0;
-
-
-
-                else if (// 正在关
-/* R06=true*/ (bool)closing
-/* R08=false*/&& (bool)closed == false
-/* R03=false*/&& (bool)closeState == false
-/* R05=false*/&& (bool)opening == false
-/* R07=false*/&& (bool)opened == false
-/* R04=false*/&& (bool)openState == false)
-                    return 1;
-
-
-
-                else if (// 正在开
-/* R06=false*/(bool)closing == false
-/* R08=false*/&& (bool)closed == false
-/* R03=false*/&& (bool)closeState == false
-/* R05=true*/&& (bool)opening
-/* R07=false*/&& (bool)opened == false
-/* R04=false*/&& (bool)openState == false)
-                    return 2;
-
-
-
-                else if (// 开到位
-/* R06=false*/(bool)closing == false
-/* R08=false*/&& (bool)closed == false
-/* R03=false*/&& (bool)closeState == false
-/* R05=false*/&& (bool)opening == false
-/* R07=true*/&& (bool)opened
-/* R04=true*/&& (bool)openState)
-                    return 3;
-
-
-                else
-                    return null;
-            }
+            return DeviceFactory.CheckAuodoorStatus((DeviceEntity)_deviceEntity);
         }
 
         public async Task<string> InitialAsync()
@@ -135,10 +81,21 @@ namespace IZU.DeviceFactories
             if (!string.IsNullOrEmpty(w1) || !string.IsNullOrEmpty(w2) || !string.IsNullOrEmpty(w3) || !string.IsNullOrEmpty(w4) || !string.IsNullOrEmpty(w5) || !string.IsNullOrEmpty(w6) || !string.IsNullOrEmpty(w7) || !string.IsNullOrEmpty(w8) || !string.IsNullOrEmpty(w9))
                 return "Failed to reset related parameters during initialization!";
 
+
             string ret = await WriteBool(address_tup.W09, true);
             if (!string.IsNullOrEmpty(ret))
                 return ret;
-            return await ConditionWriteAsync(address_tup.R10, address_tup.W09, false);
+
+
+            ret = await ConditionWriteAsync(address_tup.R10, address_tup.W09, false, true);
+            if (!string.IsNullOrEmpty(ret))
+            {
+                string rc = await WriteBool(address_tup.W09, false);
+                if (!string.IsNullOrEmpty(ret))
+                    return $"reset W09 failed, {rc}";
+            }
+
+            return string.Empty;
         }
 
         public async Task<string> StartAsync()
@@ -224,6 +181,7 @@ namespace IZU.DeviceFactories
                 string ret = await WriteBool(address_tup.W07, true);
                 if (!string.IsNullOrEmpty(ret))
                     return ret;
+                TimeoutClose();
                 return await ConditionWriteAsync(address_tup.R05, address_tup.W07, false);
             }
             else
@@ -232,6 +190,18 @@ namespace IZU.DeviceFactories
 
         public async Task<string> CloseAsync()
         {
+            /*
+             防止夹车逻辑：
+            如果收到天车开门指令，则在DoorAtions中添加一条门对应天车的记录
+            收到天车关门指令，则移除DoorActions中门对应天车的记录
+
+            在关门的时候调用函数判断该门是否能关闭
+             Tasks.DoorActions.CanClose(DOORNAME)
+             */
+            //if (!Tasks.DoorActions.CanClose(DeviceEntity.Name))
+            //    return $"cannot close door, oht ({Tasks.DoorActions.Ohts(DeviceEntity.Name)}) will pass through {DeviceEntity.Name}";
+
+
             // 是否处于自动运行状态
             Ref<bool> @ref = new();
             string state = await GetBool(address_tup.R02, @ref);
@@ -306,5 +276,36 @@ namespace IZU.DeviceFactories
         {
             return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
         }
+
+        void TimeoutClose()
+        {
+            return;
+            DateTime start_time = DateTime.Now;
+            int retry = 3;
+            Task.Factory.StartNew(async () =>
+            {
+                while (true)
+                {
+                    if ((DateTime.Now - start_time).TotalMilliseconds > 8 * 1000)
+                    {
+                        if (GetStatus() == 3)
+                        {
+                            string rc = await CloseAsync();
+                            if (string.IsNullOrEmpty(rc))
+                            {
+                                //Tasks.DoorActions.Remove(DeviceEntity, oht.ToInt32(0));
+                                break;
+                            }
+                        }
+                        if (--retry < 1)
+                        {
+                            break;
+                        }
+                    }
+                    await Task.Delay(100);
+                }
+            });
+        }
+
     }
 }

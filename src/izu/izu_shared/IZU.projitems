@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Base\WebsocketServerClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\WonderMulticast.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\WonderResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Set.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Log.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\Command.Show.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TelnetCommandBase.cs" />
@@ -42,6 +43,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IS7NetService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IWebsocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\IZUService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\AlarmReportServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tasks\AnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Tasks\WebSocketService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\MainBackgroundService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\S7NetService.cs" />

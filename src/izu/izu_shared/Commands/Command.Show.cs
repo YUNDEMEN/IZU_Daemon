@@ -135,4 +135,22 @@ namespace IZU.Commands
             }
         }
     }
+
+    public class TeCommand : TelnetCommandBase
+    {
+        public TeCommand(ITelnetCommandService commandService)
+            : base("system", commandService)
+        {
+            var optInfo = new Option<bool>(new string[] { "--restart", "-r" }, () => false, "重启服务");
+            Add(optInfo);
+            this.SetHandler(Restart, optInfo);
+        }
+        void Restart(bool restart)
+        {
+            if(restart)
+            {
+                Environment.Exit(101);
+            }
+        }
+    }
 }

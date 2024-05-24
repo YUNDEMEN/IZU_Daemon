@@ -52,7 +52,7 @@ namespace IZU.Base
         private S7.Net.Types.DataItem _w_sendback_address;
         private S7.Net.Types.DataItem _w_online_address;
         private S7.Net.Types.DataItem _w_onlinestate_address;
-        private int _heart_beat_interval_millionsec = 100;
+        private int _heart_beat_interval_millionsec = 1000;
         private int _refresh_interval_millionsec = 100;
 
         private TaskServiceStatus _serviceStatus;
@@ -155,6 +155,7 @@ namespace IZU.Base
                                 }
                                 catch (Exception ex)
                                 {
+                                    _serviceStatus = TaskServiceStatus.Connecting;
                                     _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                     //Console.WriteLine("heartbeat detecting status:  disconnected");
                                 }
@@ -213,6 +214,7 @@ namespace IZU.Base
                                 }
                                 catch (Exception ex)
                                 {
+                                    _serviceStatus = TaskServiceStatus.Connecting;
                                     _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                     //Console.WriteLine("heartbeat detecting status:  disconnected");
                                 }
@@ -261,6 +263,7 @@ namespace IZU.Base
                                 }
                                 catch (Exception ex)
                                 {
+                                    _serviceStatus = TaskServiceStatus.Connecting;
                                     _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                     //Console.WriteLine("heartbeat detecting status:  disconnected");
                                 }
@@ -309,6 +312,7 @@ namespace IZU.Base
                                 }
                                 catch (Exception ex)
                                 {
+                                    _serviceStatus = TaskServiceStatus.Connecting;
                                     _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                                     //Console.WriteLine("heartbeat detecting status:  disconnected");
                                 }
@@ -356,11 +360,10 @@ namespace IZU.Base
                         {
                             _ = await _server.ReadMultipleVarsAsync(_dataItems);
                             _dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
-                            //_logger.LogDebug("{0} server {1} heartbeat detecting status:  normal", _deviceName, _serverIP?.ToString());
                         }
                         catch (Exception ex)
                         {
-                            //_serviceStatus = TaskServiceStatus.Connecting;
+                            _serviceStatus = TaskServiceStatus.Connecting;
                             //_logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                         }
                     }
@@ -369,7 +372,7 @@ namespace IZU.Base
                 }
             }, TaskCreationOptions.LongRunning);
         }
-        public PlcServer(ILoggerFactory loggerFactory, DeviceTypes deviceType, string deviceName, string ip, int refreshTimeInterval, IDictionary<string, string> addresses)
+        public PlcServer(ILoggerFactory loggerFactory, DeviceTypes deviceType, string deviceName, string ip, int heartbeatTimeInterval, IDictionary<string, string> addresses)
         {
             _logger = loggerFactory.CreateLogger<PlcServer>();
             _deviceName = deviceName;
@@ -381,7 +384,7 @@ namespace IZU.Base
             else
                 throw new FormatException($"{_deviceName} server IP address format is Incorrect: {ip}");
 
-            _heart_beat_interval_millionsec = refreshTimeInterval;
+            _heart_beat_interval_millionsec = heartbeatTimeInterval;
             _dataItems = new();
 
             InitialAddresses(deviceType, addresses);

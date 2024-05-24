@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Extensions.Parse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\DatetimeJsonConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\Ref.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RunTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegistAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\RegiserTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\Extension.Services.cs" />
@@ -35,8 +36,5 @@
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Infrastructure\xPrint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\WonderTelnetService.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Service\Framework\" />
   </ItemGroup>
 </Project>
