@@ -7,18 +7,31 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <DataGrid ItemsSource="{Binding DeviceDataCollection}" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" SelectionMode="Single"
-                  AutoGenerateColumns="False">
+        <DataGrid ItemsSource="{Binding DeviceDataCollection}" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" SelectionMode="Single" AutoGenerateColumns="False" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FFA7A7A7">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="DeviceName" Binding="{Binding DeviceName}"/>
                 <DataGridTextColumn Header="DeviceType" Binding="{Binding DeviceType}"/>
                 <DataGridTextColumn Header="Address" Binding="{Binding Address}"/>
-                <DataGridTextColumn Header="R/W" Binding="{Binding FunctionType}"/> 
+                <DataGridTextColumn Header="R/W" Binding="{Binding FunctionType}"/>
                 <DataGridTextColumn Header="Alias" Binding="{Binding ActionType}"/>
                 <DataGridTextColumn Header="Data Type" Binding="{Binding VariableType}"/>
                 <DataGridTextColumn Header="Disabled" Binding="{Binding Disabled}"/>
                 <DataGridTextColumn Header="Description" Binding="{Binding Description}"/>
             </DataGrid.Columns>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding FunctionType}" Value="W">
+                            <Setter Property="Background" Value="#FFECBD67"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="写入"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
         </DataGrid>
     </Grid>
 </UserControl>

@@ -22,6 +22,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\TypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\ILongRunningTask.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\Framework\LongRunningTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Tcp\Buffer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Tcp\TcpClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Tcp\TcpServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Service\Tcp\TcpSession.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ClientBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\ClientTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Service\TelnetService\TelnetLogProvider.cs" />

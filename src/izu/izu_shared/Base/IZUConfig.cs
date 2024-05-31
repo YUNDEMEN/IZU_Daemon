@@ -50,11 +50,11 @@ namespace IZU.Base
         /// 单点发送设备数据
         /// 用于本地上位机客户端程序
         /// </summary>
-        public static int PortNanoDataServer;
+        public static int PortDataSend;
         /// <summary>
         /// 单点发送设备数据频率（ms）
         /// </summary>
-        public static int IntervalNanoDataServer;
+        public static int IntervalDataSend;
         /// <summary>
         /// izu_daemon的ipPort
         /// </summary>
@@ -92,11 +92,11 @@ namespace IZU.Base
                 if (configJson["IntervalMulticastFullDataServer"] == null)
                     return "IntervalMulticastFullDataServer node not found!";
 
-                if (configJson["PortNanoDataServer"] == null)
-                    return "PortNanoDataServer node not found!";
+                if (configJson["PortDataSend"] == null)
+                    return "PortDataSend node not found!";
 
-                if (configJson["IntervalNanoDataServer"] == null)
-                    return "IntervalNanoDataServer node not found!";
+                if (configJson["IntervalDataSend"] == null)
+                    return "IntervalDataSend node not found!";
 
                 MulticastIP = configJson["multicast_ip"]!.ToString();
                 BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
@@ -105,8 +105,8 @@ namespace IZU.Base
                 PortNanoCommandServer = Int32.Parse(configJson!["PortNanoCommandServer"]!.ToString());
                 PortMulticastFullDataServer = Int32.Parse(configJson!["PortMulticastFullDataServer"]!.ToString());
                 IntervalMulticastFullDataServer = Int32.Parse(configJson!["IntervalMulticastFullDataServer"]!.ToString());
-                PortNanoDataServer = Int32.Parse(configJson!["PortNanoDataServer"]!.ToString());
-                IntervalNanoDataServer = Int32.Parse(configJson!["IntervalNanoDataServer"]!.ToString());
+                PortDataSend = Int32.Parse(configJson!["PortDataSend"]!.ToString());
+                IntervalDataSend = Int32.Parse(configJson!["IntervalDataSend"]!.ToString());
                 izuId = Int32.Parse(configJson!["izuId"]!.ToString());
                 OSOChannel= configJson!["oso_cmd"]!.ToString();
             }
@@ -162,7 +162,7 @@ namespace IZU.Base
             printer.AppendLine($"izu id:{IZUConfig.izuId}");
             printer.AppendLine($"izu backend:{IZUConfig.BackendIZUBaseUrl}");
             printer.AppendLine($"map version:{IZUConfig.MapVersion}");
-            printer.AppendLine($"data port:{IZUConfig.PortNanoDataServer}");
+            printer.AppendLine($"data port:{IZUConfig.PortDataSend}");
             printer.AppendLine($"command port:{IZUConfig.PortNanoCommandServer}");
             printer.AppendLine($"multicast ip:{IZUConfig.MulticastIP}");
             printer.AppendLine($"multicast(json) port:{IZUConfig.PortMulticastFullDataServer}");
