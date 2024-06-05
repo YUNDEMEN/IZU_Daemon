@@ -19,15 +19,16 @@ void ErrorReport(string fileName, string? content)
     Console.WriteLine("[{0:yyyy-MM-dd HH:mm:ss}]: {1}", DateTime.Now, content);
     File.AppendAllText(Path.Combine(dir.FullName, fileName), content);
     Console.ForegroundColor = ConsoleColor.White;
-    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-    {
+
+#if Linux
+        // linux action
+#elif OSX
+        // mac os action
+#elif Windows
         //这段代码在Linux运行中报错，所以要在windows环境下才执行
         //Console.WriteLine("按任意键继续...");
         //Console.ReadKey();
-    }
-    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-    {
-    }
+#endif
     Environment.Exit(0);
 }
 
