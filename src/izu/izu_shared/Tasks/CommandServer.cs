@@ -5,6 +5,7 @@ using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IZU.Tasks
 {
@@ -47,6 +48,8 @@ namespace IZU.Tasks
             {
                 string operation_feedback = System.Text.Encoding.UTF8.GetString(buffer);
                 operation_feedback = await CommandHandler(operation_feedback);
+
+                _logger.LogInformation($"sendback :{operation_feedback}");
                 replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation_feedback));
             }
             else

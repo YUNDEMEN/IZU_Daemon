@@ -1,6 +1,5 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
-using System.Xml.Linq;
 using Wonder.Infrastructure;
 
 namespace IZU.DeviceFactories
@@ -181,7 +180,6 @@ namespace IZU.DeviceFactories
                 string ret = await WriteBool(address_tup.W07, true);
                 if (!string.IsNullOrEmpty(ret))
                     return ret;
-                TimeoutClose();
                 return await ConditionWriteAsync(address_tup.R05, address_tup.W07, false);
             }
             else

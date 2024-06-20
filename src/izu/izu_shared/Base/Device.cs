@@ -62,7 +62,7 @@ namespace IZU.Base
             {
                 if (DateTime.Now - startTime > TimeSpan.FromSeconds(2))
                 {
-                    result = "read timeout in 5 seconds";
+                    result = "read timeout in 2 seconds";
                     break;
                 }
 

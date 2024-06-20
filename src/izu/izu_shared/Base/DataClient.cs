@@ -25,7 +25,7 @@ namespace IZU.Base
 
         protected override void OnDisconnected()
         {
-            Console.WriteLine($"data client disconnected a session with Id {Id}");
+            //Console.WriteLine($"data client disconnected a session with Id {Id}");
 
             _ = Task.Factory.StartNew(async () =>
             {
