@@ -5,7 +5,6 @@ using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IZU.Tasks
 {
@@ -149,6 +148,9 @@ namespace IZU.Tasks
                                 }
                             case "Close":
                                 {
+                                    Tasks.DoorActions.Remove(name, oht.ToInt32(0));
+                                    if (!Tasks.DoorActions.CanClose(name))
+                                        break;
                                     result = await deviceObject!.CloseAsync();
                                     break;
                                 }

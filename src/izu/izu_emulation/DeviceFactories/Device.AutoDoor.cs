@@ -259,8 +259,8 @@ namespace IZU.DeviceFactories
             在关门的时候调用函数判断该门是否能关闭
              Tasks.DoorActions.CanClose(DOORNAME)
              */
-            if (!Tasks.DoorActions.CanClose(DeviceEntity.Name))
-                return $"cannot close door, oht ({Tasks.DoorActions.Ohts(DeviceEntity.Name)}) will pass through {DeviceEntity.Name}";
+            //if (!Tasks.DoorActions.CanClose(DeviceEntity.Name))
+            //    return $"cannot close door, oht ({Tasks.DoorActions.Ohts(DeviceEntity.Name)}) will pass through {DeviceEntity.Name}";
 
 
             Ref<bool> @ref = new();
