@@ -1,7 +1,9 @@
 ﻿using IZU.Interfaces;
+using Microsoft.AspNetCore.Hosting.Server;
 using S7.Net;
 using S7.Net.Types;
 using System.Net;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IZU.Base
 {
@@ -505,6 +507,25 @@ namespace IZU.Base
                 return exStr;
             }
         }
+        public async Task<string> WriteShort(string address, short intValue)
+        {
+            if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
+            {
+                _logger.LogWarning($"operation write/short failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                return $"server {IP} disconnected!";
+            }
+            try
+            {
+                await _server.WriteAsync(address, intValue);
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                string exStr = $"operation write/short failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
+                _logger.LogWarning(exStr);
+                return exStr;
+            }
+        }
 
 
         private async Task<object?> GetValue(string dataPath)
@@ -516,7 +537,14 @@ namespace IZU.Base
             switch (data.VarType)
             {
                 case VarType.Bit:
-                    result = await _server.ReadAsync(dataPath);
+                    try
+                    {
+                        result = await _server.ReadAsync(dataPath);
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
                     break;
                 case VarType.Byte:
                     result = await _server.ReadAsync(dataPath);

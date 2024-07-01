@@ -8,7 +8,8 @@ namespace IZU.Interfaces
 		string ConnectionStatus { get; }
 		void Config(List<VariableEntity> variableEntities);
 		Task<string> WriteBool(string address, bool boolValue);
-		Task<bool?> GetBool(string dataPath);
+        Task<string> WriteShort(string address, short intValue);
+        Task<bool?> GetBool(string dataPath);
         void Stop();
 		void Refresh(int refreshTimeInterval);
     }

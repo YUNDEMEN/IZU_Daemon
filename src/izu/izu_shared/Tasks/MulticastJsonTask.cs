@@ -54,7 +54,9 @@ namespace IZU.Tasks
             {
                 List<DeviceEntity> msg = _s7NetService.GetAllDevices();
                 if (msg.Count == 0) return root;
-                string izuNo = msg.FirstOrDefault(p => p.DeviceType == DeviceTypes.IZU)!.Name;
+                
+                DeviceEntity? izu= msg.FirstOrDefault(p => p.DeviceType == DeviceTypes.IZU);
+                string izuNo = izu is null ? "0" : izu!.Name;
                 foreach (DeviceEntity it in msg)
                 {
                     JObject currentObject = new();

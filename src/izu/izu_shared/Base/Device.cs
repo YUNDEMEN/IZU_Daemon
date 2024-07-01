@@ -31,6 +31,14 @@ namespace IZU.Base
                 return "device server not exist!";
             return await _deviceEntity.Server.WriteBool(address, value);
         }
+        public async Task<string> WriteShort(string address, short value)
+        {
+            if (_deviceEntity == null)
+                return "device not exist!";
+            if (_deviceEntity.Server == null)
+                return "device server not exist!";
+            return await _deviceEntity.Server.WriteShort(address, value);
+        }
 
         public async Task<string> GetBool(string address, Ref<bool> addressObj)
         {
@@ -60,14 +68,47 @@ namespace IZU.Base
             string result = string.Empty;
             while (true)
             {
-                if (DateTime.Now - startTime > TimeSpan.FromSeconds(2))
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
                 {
-                    result = "read timeout in 2 seconds";
+                    result = "read timeout in 5 seconds";
                     break;
                 }
 
                 bool? cond = await _deviceEntity!.Server!.GetBool(address_condition);
                 if ((bool)cond != condValue)
+                {
+                    await Task.Delay(10);
+                    continue;
+                }
+                else if ((bool)cond == condValue)
+                {
+                    break;
+                }
+            }
+            if (string.IsNullOrWhiteSpace(result))
+                await _deviceEntity.Server!.WriteBool(address_write, value);
+            else
+            {
+                _logger.LogWarning("{0}, access address {1} failed，{2}", _deviceEntity.Name, address_condition, result);
+            }
+            return result;
+        }
+
+
+        protected async Task<string> ConditionWriteAsync(string address_condition, bool condValue, string address_write, bool value)
+        {
+            DateTime startTime = DateTime.Now;
+            string result = string.Empty;
+            while (true)
+            {
+                if (DateTime.Now - startTime > TimeSpan.FromSeconds(5))
+                {
+                    result = "read timeout in 5 seconds";
+                    break;
+                }
+
+                bool? cond = await _deviceEntity!.Server!.GetBool(address_condition);
+                if (cond is null ||(bool)cond != condValue)
                 {
                     await Task.Delay(10);
                     continue;

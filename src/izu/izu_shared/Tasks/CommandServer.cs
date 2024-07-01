@@ -177,8 +177,47 @@ namespace IZU.Tasks
                             _logger.LogWarning($"device {name} is not existed (command [{data}])");
                             return "NULL";
                         }
+
                         int status = DeviceFactory.CheckAuodoorStatus(device) ?? -1;
                         return ToName(status);
+                    }
+                case "Reset":
+                    {
+                        args.TryGetValue("door", out string? name);
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            _logger.LogWarning($"device={name} is incorrect");
+                            return "NULL";
+                        }
+                        var device = _s7NetService.GetDevice(name);
+                        if (device == null)
+                        {
+                            _logger.LogWarning($"device {name} is not existed (command [{data}])");
+                            return "NULL";
+                        }
+
+                        IAutoDoor? autoDoor = null;
+                        switch (device.DeviceType)
+                        {
+                            case DeviceTypes.NONE:
+                                break;
+                            case DeviceTypes.IZU:
+                                break;
+                            case DeviceTypes.HID:
+                                break;
+                            case DeviceTypes.AUTODOOR:
+                                autoDoor = new AutoDoor(device);
+                                break;
+                            case DeviceTypes.FIREDOOR:
+                                break;
+                        }
+                        if (autoDoor == null)
+                        {
+                            _logger.LogWarning($"unknown device {name} (command [{data}])");
+                            return "NULL";
+                        }
+
+                        return await autoDoor.ResetAsync(true);
                     }
                 default:
                     {
@@ -195,9 +234,16 @@ namespace IZU.Tasks
                 2 => "Opening",
                 1 => "Closing",
                 0 => "Close",
-                _ => "NULL",
+                _ => GetNull($"status={status}"),
             };
         }
+
+        string GetNull(string log)
+        {
+            _logger.LogWarning($"black way: {log}");
+            return "NULL";
+        }
+
         /*
         async Task<string> TransmitOperationAsync(DeviceOperations @operations, string data)
         {

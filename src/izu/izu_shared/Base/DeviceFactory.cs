@@ -51,7 +51,7 @@
             bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R06")?.Value}", out bool closing);
             bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R07")?.Value}", out bool opened);
             bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R08")?.Value}", out bool closed);
-#if DEBUG
+#if DEBUGs
             bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R03")?.Value}", out bool isclosed);
             bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R04")?.Value}", out bool isopened);
             Console.WriteLine($"关闭={isclosed}  开启={isopened}  开门中={opening}  关门中={closing}  开门完成={opened}  关门完成={closed}");
