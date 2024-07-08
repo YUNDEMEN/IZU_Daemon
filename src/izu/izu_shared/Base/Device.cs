@@ -39,6 +39,14 @@ namespace IZU.Base
                 return "device server not exist!";
             return await _deviceEntity.Server.WriteShort(address, value);
         }
+        public async Task<string> WriteFloat(string address, float value)
+        {
+            if (_deviceEntity == null)
+                return "device not exist!";
+            if (_deviceEntity.Server == null)
+                return "device server not exist!";
+            return await _deviceEntity.Server.WriteFloat(address, value);
+        }
 
         public async Task<string> GetBool(string address, Ref<bool> addressObj)
         {

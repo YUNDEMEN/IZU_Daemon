@@ -360,13 +360,17 @@ namespace IZU.Base
                     {
                         try
                         {
-                            _ = await _server.ReadMultipleVarsAsync(_dataItems);
-                            _dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
+                            var grouped = _dataItems.GroupBy(t => t.DB);
+                            foreach (var item in grouped)
+                            {
+                                _ = await _server.ReadMultipleVarsAsync(item.ToList());
+                                _dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
+                            }
                         }
                         catch (Exception ex)
                         {
                             _serviceStatus = TaskServiceStatus.Connecting;
-                            //_logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
+                            _logger.LogDebug("{0} server {1} heartbeat detecting status:  disconnected ({2})", _deviceName, _serverIP?.ToString(), ex.Message);
                         }
                     }
 
@@ -526,7 +530,26 @@ namespace IZU.Base
                 return exStr;
             }
         }
-
+        public async Task<string> WriteFloat(string address, float floatValue)
+        {
+            if (!_server.IsConnected && _serviceStatus != TaskServiceStatus.Connected)
+            {
+                _logger.LogWarning($"operation write/float failed, server: {_serverIP} address: {address} error: server {IP} disconnected!");
+                return $"server {IP} disconnected!";
+            }
+            try
+            {
+                await _server.WriteAsync(address, floatValue);
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                string exStr = $"operation write/float failed, server: {_serverIP}  address: {address}  error:{ex.Message}";
+                _logger.LogWarning(exStr);
+                return exStr;
+            }
+        }
+        
 
         private async Task<object?> GetValue(string dataPath)
         {

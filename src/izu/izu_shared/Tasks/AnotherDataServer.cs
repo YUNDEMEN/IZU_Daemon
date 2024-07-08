@@ -1,14 +1,13 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
 using Newtonsoft.Json.Linq;
-using NNanomsg.Protocols;
 using System.Text;
 using Wonder.Service.Framework;
 
 namespace IZU.Tasks
 {
 
-    [Regist(RegisterTypes.LongRunningTask)]
+    [Regist(RegisterTypes.LongRunningTask | RegisterTypes.Singleton)]
     public class AnotherDataServer : LongRunningTask, IAnotherDataServer
     {
         private readonly IS7NetService _s7NetService;
@@ -21,12 +20,15 @@ namespace IZU.Tasks
         }
         public override void Start()
         {
+            if (string.IsNullOrEmpty(IZUConfig.RemoteDataServerIP))
+                return;
+
             ExecutionDelay = IZUConfig.IntervalDataSend;
             if (dataClient != null)
             {
                 dataClient.DisconnectAndStop();
             }
-            dataClient = new DataClient(IZUConfig.ServerIP, IZUConfig.PortDataSend);
+            dataClient = new DataClient(IZUConfig.RemoteDataServerIP, IZUConfig.PortDataSend);
             dataClient.ConnectAsync();
             base.Start();
         }

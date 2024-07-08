@@ -120,7 +120,7 @@ namespace IZU.Base
         }
         public async Task<string> WriteBool(string address, bool boolValue)
         {
-            var db=_variable.FirstOrDefault(t => t.Address == address);
+            var db = _variable.FirstOrDefault(t => t.Address == address);
             if (db == null)
             {
                 _logger.LogWarning($"{nameof(WriteBool)} address is not existed");
@@ -166,6 +166,18 @@ namespace IZU.Base
             return string.Empty;
         }
         public async Task<string> WriteInt(string address, int intValue)
+        {
+            return string.Empty;
+        }
+        public async Task<string> WriteShort(string address, short intValue)
+        {
+            return string.Empty;
+        }
+        public async Task<string> WriteFloat(string address, float floatValue)
+        {
+            return string.Empty;
+        }
+        public async Task<string> WriteInt16(string address, Int16 intValue)
         {
             return string.Empty;
         }

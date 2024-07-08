@@ -305,5 +305,29 @@ namespace IZU.DeviceFactories
             });
         }
 
+        public Task<string> Enable(bool enabled)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> JogSpeed(short speed)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> AutoSpeed(short speed)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> OpenedPosition(short pos)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> ClosedPosition(short pos)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

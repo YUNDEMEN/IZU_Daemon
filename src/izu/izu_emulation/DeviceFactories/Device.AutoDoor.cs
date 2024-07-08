@@ -361,6 +361,30 @@ namespace IZU.DeviceFactories
         {
             return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
         }
+        public Task<string> Enable(bool enabled)
+        {
+            return Task.FromResult("NULL");
+        }
+
+        public Task<string> JogSpeed(short speed)
+        {
+            return Task.FromResult("NULL");
+        }
+
+        public Task<string> AutoSpeed(short speed)
+        {
+            return Task.FromResult("NULL");
+        }
+
+        public Task<string> OpenedPosition(short pos)
+        {
+            return Task.FromResult("NULL");
+        }
+
+        public Task<string> ClosedPosition(short pos)
+        {
+            return Task.FromResult("NULL");
+        }
         void TimeoutClose()
         {
             DateTime start_time = DateTime.Now;

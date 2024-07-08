@@ -9,6 +9,7 @@ namespace IZU.Interfaces
 		void Config(List<VariableEntity> variableEntities);
 		Task<string> WriteBool(string address, bool boolValue);
         Task<string> WriteShort(string address, short intValue);
+        Task<string> WriteFloat(string address, float intValue);
         Task<bool?> GetBool(string dataPath);
         void Stop();
 		void Refresh(int refreshTimeInterval);

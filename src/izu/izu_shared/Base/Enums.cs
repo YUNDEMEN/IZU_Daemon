@@ -5,6 +5,7 @@
         NONE,
         R,
         W,
+        RW
     }
     public enum VariableTypes
     {

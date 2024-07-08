@@ -6,11 +6,17 @@ namespace IZU.DeviceFactories
 {
     public class AutoDoor : Device, IAutoDoor
     {
-        public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
+        public readonly (string RW01, string RW02, string RW03, string RW04, string RW05, string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14,string R15, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
 
         public AutoDoor() { }
         public AutoDoor(DeviceBase deviceEntity) : base(deviceEntity)
         {
+            address_tup.RW01 = GetActionType("RW01");  //        使能
+            address_tup.RW02 = GetActionType("RW02");  //        手动速度
+            address_tup.RW03 = GetActionType("RW03");  //        自动速度
+            address_tup.RW04 = GetActionType("RW04");  //        开点位
+            address_tup.RW05 = GetActionType("RW05");  //        关点位
+
             address_tup.R00 = GetActionType("R00");  //        上电完成
             address_tup.R01 = GetActionType("R01");  //        系统待机状态
             address_tup.R02 = GetActionType("R02");  //        系统自动运行状态
@@ -26,6 +32,7 @@ namespace IZU.DeviceFactories
             address_tup.R12 = GetActionType("R12");  //        故障复位返回信号
             address_tup.R13 = GetActionType("R13");  //        紧急停止返回信号
             address_tup.R14 = GetActionType("R14");  //        自动/手动模式返回信号
+            address_tup.R15 = GetActionType("R15");  //        当前位置
             address_tup.W01 = GetActionType("W01");  //        启动运行
             address_tup.W02 = GetActionType("W02");  //        停止运行
             address_tup.W03 = GetActionType("W03");  //        开门按钮
@@ -131,7 +138,7 @@ namespace IZU.DeviceFactories
             string ret = await WriteBool(address_tup.W07, true);
             if (!string.IsNullOrEmpty(ret))
                 return ret;
-            _ = ConditionWriteAsync(address_tup.R07, true, address_tup.W07, false);
+            _ = ConditionWriteAsync(address_tup.R04, true, address_tup.W07, false);
             return string.Empty;
         }
 
@@ -161,7 +168,7 @@ namespace IZU.DeviceFactories
             string ret = await WriteBool(address_tup.W08, true);
             if (!string.IsNullOrEmpty(ret))
                 return ret;
-            _ = ConditionWriteAsync(address_tup.R08, true, address_tup.W08, false);
+            _ = ConditionWriteAsync(address_tup.R03, true, address_tup.W08, false);
             return string.Empty;
         }
 
@@ -205,6 +212,27 @@ namespace IZU.DeviceFactories
             string w9 = await WriteBool(address_tup.W09, false);
             string w10 = await WriteBool(address_tup.W10, false);
             return await DelayWriteAsync(address_tup.W06, true, address_tup.W06, false, 2000);
+        }
+
+        public async Task<string> Enable(bool enabled)
+        {
+            return await WriteBool(address_tup.RW01, enabled);
+        }
+        public async Task<string> JogSpeed(short speed)
+        {
+            return await WriteShort(address_tup.RW02, speed);
+        }
+        public async Task<string> AutoSpeed(short speed)
+        {
+            return await WriteShort(address_tup.RW03, speed);
+        }
+        public async Task<string> OpenedPosition(short pos)
+        {
+            return await WriteShort(address_tup.RW04, pos);
+        }
+        public async Task<string> ClosedPosition(short pos)
+        {
+            return await WriteShort(address_tup.RW05, pos);
         }
 
         void TimeoutClose()

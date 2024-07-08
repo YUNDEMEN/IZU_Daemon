@@ -15,6 +15,10 @@ namespace IZU.Base
         /// </summary>
         public static string Server { get { return $"{ServerIP}:{ServerPort}"; } }
         public static string ServerIP { get; set; } = "127.0.0.1";
+        /// <summary>
+        /// 远程数据中心服务
+        /// </summary>
+        public static string RemoteDataServerIP { get; set; } = string.Empty;
         public static int ServerPort { get; set; } = 8031;
         public static string BackendIZUBaseUrl { get; set; } = string.Empty;
         /// <summary>

@@ -3,33 +3,27 @@ using IZU.DeviceFactories;
 using IZU.Interfaces;
 using NNanomsg.Protocols;
 using System.Collections.Concurrent;
+using System.Net;
+using System.Reflection.Metadata.Ecma335;
+using System.Xml.Linq;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IZU.Tasks
 {
-    /// <summary>
-    /// NANO REPLY SERVER
-    /// PORT 8231
-    /// REMOTE COMMAND SERVER
-    /// </summary>
     [Regist(RegisterTypes.LongRunningTask)]
     public class CommandServer : LongRunningTask
     {
+        private readonly IAnotherDataServer _anotherDataServer;
         private readonly IS7NetService _s7NetService;
-        private ReplySocket replySocket;
-        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService)
+        private ReplySocket? replySocket;
+        public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService, IAnotherDataServer anotherDataServer)
             : base(logger)
         {
+            _anotherDataServer = anotherDataServer;
             _s7NetService = s7NetService;
             HeartsBeating.New(5000, HeartbeatingAction!);
-        }
-        void HeartbeatingAction()
-        {
-            if (IsFaulted)
-            {
-                Start();
-            }
         }
         public override void Start()
         {
@@ -76,7 +70,7 @@ namespace IZU.Tasks
         /// </summary>
         /// <param name="data">接受指令( 格式：operation>>>arg1:value1;arg2:value2 )</param>
         /// <returns></returns>
-        public async Task<string> CommandHandler(string data)
+        async Task<string> CommandHandler(string data)
         {
             _logger.LogInformation($"command received :{data}");
             int arrowIndex = data.IndexOf(">>>");
@@ -94,138 +88,449 @@ namespace IZU.Tasks
 
             string argstr = data[(arrowIndex + 3)..];
             IDictionary<string, string> args = ToKeyed(argstr);
-            switch (operCode)
+            return operCode switch
             {
-                case "Open"://Open>>>oht:0;door:ad01
-                case "Close"://Close>>>oht:0;type:3;door:ad01
-                    {
-                        args.TryGetValue("oht", out string? oht);
-                        args.TryGetValue("door", out string? name);
-
-                        if (string.IsNullOrEmpty(oht) || string.IsNullOrEmpty(name))
-                        {
-                            _logger.LogWarning($"oht={oht} or device={name} is incorrect");
-                            return "NULL";
-                        }
-
-                        var device = _s7NetService.GetDevice(name);
-                        if (device == null)
-                        {
-                            _logger.LogWarning($"device {name} is not existed (command [{data}])");
-                            return "NULL";
-                        }
-
-                        IOperatable? deviceObject = null;
-                        switch (device.DeviceType)
-                        {
-                            case DeviceTypes.NONE:
-                                break;
-                            case DeviceTypes.IZU:
-                                break;
-                            case DeviceTypes.HID:
-                                break;
-                            case DeviceTypes.AUTODOOR:
-                                deviceObject = new AutoDoor(device);
-                                break;
-                            case DeviceTypes.FIREDOOR:
-                                break;
-                        }
-                        if (deviceObject == null)
-                        {
-                            _logger.LogWarning($"unknown device {name} (command [{data}])");
-                            return "NULL";
-                        }
-
-                        string result = string.Empty;
-                        switch (operCode)
-                        {
-                            case "Open":
-                                {
-                                    result = await deviceObject!.OpenAsync();
-                                    if (string.IsNullOrEmpty(result))
-                                        Tasks.DoorActions.Add(name, oht.ToInt32(0));
-                                    break;
-                                }
-                            case "Close":
-                                {
-                                    Tasks.DoorActions.Remove(name, oht.ToInt32(0));
-                                    if (!Tasks.DoorActions.CanClose(name))
-                                        break;
-                                    result = await deviceObject!.CloseAsync();
-                                    break;
-                                }
-                        }
-                        if (!string.IsNullOrEmpty(result))
-                        {
-                            _logger.LogWarning(result);
-                        }
-                        int status = deviceObject.GetStatus() ?? -1;
-                        //Console.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}]  send {device.Name} status={status} to oht{oht} ");
-                        return $"{ToName(status)}";
-                    }
-                case "State"://State>>>door:ad01
-                    {
-                        args.TryGetValue("door", out string? name);
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            _logger.LogWarning($"device={name} is incorrect");
-                            return "NULL";
-                        }
-                        var device = _s7NetService.GetDevice(name);
-                        if (device == null)
-                        {
-                            _logger.LogWarning($"device {name} is not existed (command [{data}])");
-                            return "NULL";
-                        }
-
-                        int status = DeviceFactory.CheckAuodoorStatus(device) ?? -1;
-                        return ToName(status);
-                    }
-                case "Reset":
-                    {
-                        args.TryGetValue("door", out string? name);
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            _logger.LogWarning($"device={name} is incorrect");
-                            return "NULL";
-                        }
-                        var device = _s7NetService.GetDevice(name);
-                        if (device == null)
-                        {
-                            _logger.LogWarning($"device {name} is not existed (command [{data}])");
-                            return "NULL";
-                        }
-
-                        IAutoDoor? autoDoor = null;
-                        switch (device.DeviceType)
-                        {
-                            case DeviceTypes.NONE:
-                                break;
-                            case DeviceTypes.IZU:
-                                break;
-                            case DeviceTypes.HID:
-                                break;
-                            case DeviceTypes.AUTODOOR:
-                                autoDoor = new AutoDoor(device);
-                                break;
-                            case DeviceTypes.FIREDOOR:
-                                break;
-                        }
-                        if (autoDoor == null)
-                        {
-                            _logger.LogWarning($"unknown device {name} (command [{data}])");
-                            return "NULL";
-                        }
-
-                        return await autoDoor.ResetAsync(true);
-                    }
-                default:
-                    {
-                        _logger.LogWarning($"unkown command [{operCode}]");
-                        return "NULL";
-                    }
-            }
+                "Online" => Online(args),
+                "Info" => Info(),
+                "State" => State(args),
+                "Error" => Error(args),
+                "Open" => await OpenAsync(args),
+                "Close" => await CloseAsync(args),
+                "Reset" => await ResetAsync(args),
+                "JogOpen" => JogOpen(args),
+                "JogClose" => JogClose(args),
+                "SetEnable" => await SetEnableAsync(args),
+                "SetJogSpeed" => await SetJogSpeedAsync(args),
+                "SetAutoSpeed" => await SetAutoSpeedAsync(args),
+                "SetPositionOpen" => await SetOpenedPositionAsync(args),
+                "SetPositionClose" => await SetClosedPositionAsync(args),
+                _ => ToNull($"unkown command [{operCode}]")
+            };
         }
+        #region Switch Functions
+        string Online(IDictionary<string, string> args)
+        {
+            args.TryGetValue("ip", out string? ip);
+            if (string.IsNullOrEmpty(ip))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            if(!IPAddress.TryParse(ip,out IPAddress? address))
+            {
+                _logger.LogWarning($"address is incorrect");
+                return "NULL";
+            }
+            IZUConfig.RemoteDataServerIP = address.ToString();
+            _anotherDataServer.Start();
+            return string.Empty;
+        }
+        string Info()
+        {
+            var devices = _s7NetService.GetAllDeviceNames();
+            return string.Join(",", devices);
+        }
+        async Task<string> OpenAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("oht", out string? oht);
+            args.TryGetValue("door", out string? name);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            IOperatable? deviceObject = null;
+            switch (device.DeviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    break;
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
+                    deviceObject = new AutoDoor(device);
+                    break;
+                case DeviceTypes.FIREDOOR:
+                    break;
+            }
+            if (deviceObject == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+
+            string result = await deviceObject!.OpenAsync();
+            if (string.IsNullOrEmpty(result) && !string.IsNullOrEmpty(oht))
+                Tasks.DoorActions.Add(name, oht.ToInt32(0));
+            if (!string.IsNullOrEmpty(result))
+            {
+                _logger.LogWarning(result);
+            }
+            int status = deviceObject.GetStatus() ?? -1;
+            //Console.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}]  send {device.Name} status={status} to oht{oht} ");
+            return $"{ToName(status)}";
+        }
+        async Task<string> CloseAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("oht", out string? oht);
+            args.TryGetValue("door", out string? name);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            IOperatable? deviceObject = null;
+            switch (device.DeviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    break;
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
+                    deviceObject = new AutoDoor(device);
+                    break;
+                case DeviceTypes.FIREDOOR:
+                    break;
+            }
+            if (deviceObject == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+
+
+            string result = string.Empty;
+            Tasks.DoorActions.Remove(name, oht.ToInt32(0));
+            if (Tasks.DoorActions.CanClose(name))
+            {
+                result = await deviceObject!.CloseAsync();
+            }      
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                _logger.LogWarning(result);
+            }
+            int status = deviceObject.GetStatus() ?? -1;
+            //Console.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}]  send {device.Name} status={status} to oht{oht} ");
+            return $"{ToName(status)}";
+        }
+        string State(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            int status = DeviceFactory.CheckAuodoorStatus(device) ?? -1;
+            return ToName(status);
+        }
+        async Task<string> ResetAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            IAutoDoor? autoDoor = null;
+            switch (device.DeviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    break;
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
+                    autoDoor = new AutoDoor(device);
+                    break;
+                case DeviceTypes.FIREDOOR:
+                    break;
+            }
+            if (autoDoor == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+
+            return await autoDoor.ResetAsync(true);
+        }
+        string Error(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+            var v = device.Variables.FirstOrDefault(t => t.ActionType == "R09");
+            int.TryParse($"{v?.Value}", out int code);
+            return Convert.ToString(code, 2);
+        }
+        string JogOpen(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            args.TryGetValue("jog", out string? jog);
+            if (!bool.TryParse(jog, out bool jogFlag))
+            {
+                _logger.LogWarning($"jog should be true/false");
+                return "NULL";
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            IOperatable? deviceObject = null;
+            switch (device.DeviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    break;
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
+                    deviceObject = new AutoDoor(device);
+                    break;
+                case DeviceTypes.FIREDOOR:
+                    break;
+            }
+            deviceObject.OpenManualAsync(jogFlag);
+            return "";
+        }
+        string JogClose(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            args.TryGetValue("jog", out string? jog);
+            if (!bool.TryParse(jog, out bool jogFlag))
+            {
+                _logger.LogWarning($"jog should be true/false");
+                return "NULL";
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            IOperatable? deviceObject = null;
+            switch (device.DeviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    break;
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
+                    deviceObject = new AutoDoor(device);
+                    break;
+                case DeviceTypes.FIREDOOR:
+                    break;
+            }
+            deviceObject.CloseManualAsync(jogFlag);
+            return "";
+        }
+        async Task<string> SetEnableAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            args.TryGetValue("value", out string? @value);
+            if (string.IsNullOrEmpty(@value))
+            {
+                _logger.LogWarning($"value is missing");
+                return "NULL";
+            }
+            if(!bool.TryParse(value,out bool enabled))
+            {
+                _logger.LogWarning($"value should be true/false: {value}");
+                return "NULL";
+            }
+
+            IAutoDoor? autoDoor = FindAutoDoor(name);
+            if (autoDoor == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+            return await autoDoor.Enable(enabled);
+        }
+        async Task<string> SetJogSpeedAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            args.TryGetValue("value", out string? @value);
+            if (string.IsNullOrEmpty(@value))
+            {
+                _logger.LogWarning($"value is missing");
+                return "NULL";
+            }
+            if (!short.TryParse(value, out short jogspeed))
+            {
+                _logger.LogWarning($"value should be Int16/short: {value}");
+                return "NULL";
+            }
+
+            IAutoDoor? autoDoor = FindAutoDoor(name);
+            if (autoDoor == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+            return await autoDoor.JogSpeed(jogspeed);
+        }
+        async Task<string> SetAutoSpeedAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            args.TryGetValue("value", out string? @value);
+            if (string.IsNullOrEmpty(@value))
+            {
+                _logger.LogWarning($"value is missing");
+                return "NULL";
+            }
+            if (!short.TryParse(value, out short jogspeed))
+            {
+                _logger.LogWarning($"value should be Int16/short: {value}");
+                return "NULL";
+            }
+
+            IAutoDoor? autoDoor = FindAutoDoor(name);
+            if (autoDoor == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+            return await autoDoor.AutoSpeed(jogspeed);
+        }
+        async Task<string> SetOpenedPositionAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            args.TryGetValue("value", out string? @value);
+            if (string.IsNullOrEmpty(@value))
+            {
+                _logger.LogWarning($"value is missing");
+                return "NULL";
+            }
+            if (!short.TryParse(value, out short position))
+            {
+                _logger.LogWarning($"value should be Int16/short: {value}");
+                return "NULL";
+            }
+
+            IAutoDoor? autoDoor = FindAutoDoor(name);
+            if (autoDoor == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+            return await autoDoor.OpenedPosition(position);
+        }
+        async Task<string> SetClosedPositionAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            args.TryGetValue("value", out string? @value);
+            if (string.IsNullOrEmpty(@value))
+            {
+                _logger.LogWarning($"value is missing");
+                return "NULL";
+            }
+            if (!short.TryParse(value, out short position))
+            {
+                _logger.LogWarning($"value should be Int16/short: {value}");
+                return "NULL";
+            }
+
+            IAutoDoor? autoDoor = FindAutoDoor(name);
+            if (autoDoor == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return "NULL";
+            }
+            return await autoDoor.ClosedPosition(position);
+        }
+
+        #endregion
         string ToName(int status)
         {
             return status switch
@@ -234,14 +539,51 @@ namespace IZU.Tasks
                 2 => "Opening",
                 1 => "Closing",
                 0 => "Close",
-                _ => GetNull($"status={status}"),
+                _ => ToNull($"status={status}"),
             };
         }
-
-        string GetNull(string log)
+        string ToNull(string log)
         {
             _logger.LogWarning($"black way: {log}");
             return "NULL";
+        }
+        IAutoDoor? FindAutoDoor(string name)
+        {
+            var device = _s7NetService.GetDevice(name);
+            if (device == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return null;
+            }
+            IAutoDoor? autoDoor = null;
+            switch (device.DeviceType)
+            {
+                case DeviceTypes.NONE:
+                    break;
+                case DeviceTypes.IZU:
+                    break;
+                case DeviceTypes.HID:
+                    break;
+                case DeviceTypes.AUTODOOR:
+                    autoDoor = new AutoDoor(device);
+                    break;
+                case DeviceTypes.FIREDOOR:
+                    break;
+            }
+            if (autoDoor == null)
+            {
+                _logger.LogWarning($"unknown device {name}");
+                return null;
+            }
+            return autoDoor;
+        }
+
+        void HeartbeatingAction()
+        {
+            if (IsFaulted)
+            {
+                Start();
+            }
         }
 
         /*
@@ -332,7 +674,7 @@ namespace IZU.Tasks
         {
             if (!openedoors.ContainsKey(name))
                 return string.Empty;
-            if (openedoors[name].Count == 0) 
+            if (openedoors[name].Count == 0)
                 return string.Empty;
 
             return string.Join(", ", openedoors[name]);
