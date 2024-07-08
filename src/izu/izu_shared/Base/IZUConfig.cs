@@ -16,7 +16,10 @@ namespace IZU.Base
         public static string Server { get { return $"{ServerIP}:{ServerPort}"; } }
         public static string ServerIP { get; set; } = "127.0.0.1";
         /// <summary>
-        /// 远程数据中心服务
+        /// 远程数据中心服务IP地址
+        /// 当接收到远程服务[Online]命令时, 
+        /// 通过传入的远程地址连接至服务器,
+        /// 将数据推送是远程数据中心服务
         /// </summary>
         public static string RemoteDataServerIP { get; set; } = string.Empty;
         public static int ServerPort { get; set; } = 8031;

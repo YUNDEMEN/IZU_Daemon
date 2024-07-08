@@ -4,11 +4,8 @@ using IZU.Interfaces;
 using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Reflection.Metadata.Ecma335;
-using System.Xml.Linq;
 using Wonder.Infrastructure;
 using Wonder.Service.Framework;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IZU.Tasks
 {
@@ -66,9 +63,17 @@ namespace IZU.Tasks
             return kd;
         }
         /// <summary>
-        /// 开门/关门指令
+        /// 分发并执行接收到的指令
         /// </summary>
-        /// <param name="data">接受指令( 格式：operation>>>arg1:value1;arg2:value2 )</param>
+        /// <param name="data"> 
+        /// <code>
+        /// 接受指令( 格式：operation>>>arg1:value1;arg2:value2 ) 
+        /// operation: 指令名称
+        /// >>>: 分隔符
+        /// arg1:value1;arg2:value2: 参数
+        /// 参数体使用分号(;)间隔, 参数名和参数值使用冒号(:)间隔
+        /// </code>
+        /// </param>
         /// <returns></returns>
         async Task<string> CommandHandler(string data)
         {
@@ -90,6 +95,7 @@ namespace IZU.Tasks
             IDictionary<string, string> args = ToKeyed(argstr);
             return operCode switch
             {
+                "Delay" => await Delay(),
                 "Online" => Online(args),
                 "Info" => Info(),
                 "State" => State(args),
@@ -107,6 +113,15 @@ namespace IZU.Tasks
                 _ => ToNull($"unkown command [{operCode}]")
             };
         }
+
+        async Task<string> Delay()
+        {
+            _logger.LogInformation("Begin Delay Command");
+            await Task.Delay(4000);
+            _logger.LogInformation("Delayed for 4 seconds");
+            return string.Empty;
+        }
+
         #region Switch Functions
         string Online(IDictionary<string, string> args)
         {
@@ -116,7 +131,7 @@ namespace IZU.Tasks
                 _logger.LogWarning($"device name is missing");
                 return "NULL";
             }
-            if(!IPAddress.TryParse(ip,out IPAddress? address))
+            if (!IPAddress.TryParse(ip, out IPAddress? address))
             {
                 _logger.LogWarning($"address is incorrect");
                 return "NULL";
@@ -225,7 +240,7 @@ namespace IZU.Tasks
             if (Tasks.DoorActions.CanClose(name))
             {
                 result = await deviceObject!.CloseAsync();
-            }      
+            }
 
             if (!string.IsNullOrEmpty(result))
             {
@@ -403,7 +418,7 @@ namespace IZU.Tasks
                 _logger.LogWarning($"value is missing");
                 return "NULL";
             }
-            if(!bool.TryParse(value,out bool enabled))
+            if (!bool.TryParse(value, out bool enabled))
             {
                 _logger.LogWarning($"value should be true/false: {value}");
                 return "NULL";
@@ -531,6 +546,7 @@ namespace IZU.Tasks
         }
 
         #endregion
+
         string ToName(int status)
         {
             return status switch

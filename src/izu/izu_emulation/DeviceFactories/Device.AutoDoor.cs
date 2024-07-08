@@ -6,11 +6,17 @@ namespace IZU.DeviceFactories
 {
     public class AutoDoor : Device, IAutoDoor
     {
-        public readonly (string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
+        public readonly (string RW01, string RW02, string RW03, string RW04, string RW05, string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14, string R15, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
 
         public AutoDoor() { }
         public AutoDoor(DeviceBase deviceEntity) : base(deviceEntity)
         {
+            address_tup.RW01 = GetActionType("RW01");  //        使能
+            address_tup.RW02 = GetActionType("RW02");  //        手动速度
+            address_tup.RW03 = GetActionType("RW03");  //        自动速度
+            address_tup.RW04 = GetActionType("RW04");  //        开点位
+            address_tup.RW05 = GetActionType("RW05");  //        关点位
+
             address_tup.R00 = GetActionType("R00");  //        上电完成
             address_tup.R01 = GetActionType("R01");  //        系统待机状态
             address_tup.R02 = GetActionType("R02");  //        系统自动运行状态
