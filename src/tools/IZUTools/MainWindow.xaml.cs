@@ -35,7 +35,7 @@ namespace IZUTools
             ofd.Multiselect = true;
             if (!(bool)ofd.ShowDialog())
                 return;
-            
+            DeviceDataCollection.Clear();
             foreach (var file in ofd.FileNames)
             {
                 CsvParserOptions csvParserOptions = new(true, ',');

@@ -7,16 +7,16 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <DataGrid ItemsSource="{Binding DeviceDataCollection}" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" SelectionMode="Single" AutoGenerateColumns="False" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FFA7A7A7">
+        <DataGrid ItemsSource="{Binding DeviceDataCollection}" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" SelectionMode="Single" AutoGenerateColumns="False" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#FFA7A7A7" FontSize="16">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="DeviceName" Binding="{Binding DeviceName}"/>
-                <DataGridTextColumn Header="DeviceType" Binding="{Binding DeviceType}"/>
-                <DataGridTextColumn Header="Address" Binding="{Binding Address}"/>
-                <DataGridTextColumn Header="R/W" Binding="{Binding FunctionType}"/>
-                <DataGridTextColumn Header="Alias" Binding="{Binding ActionType}"/>
-                <DataGridTextColumn Header="Data Type" Binding="{Binding VariableType}"/>
-                <DataGridTextColumn Header="Disabled" Binding="{Binding Disabled}"/>
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}"/>
+                <DataGridTextColumn Header="DeviceName" Binding="{Binding DeviceName}" Width="200"/>
+                <DataGridTextColumn Header="DeviceType" Binding="{Binding DeviceType}" Width="200"/>
+                <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="200"/>
+                <DataGridTextColumn Header="R/W" Binding="{Binding FunctionType}" Width="100"/>
+                <DataGridTextColumn Header="Alias" Binding="{Binding ActionType}" Width="200"/>
+                <DataGridTextColumn Header="Data Type" Binding="{Binding VariableType}" Width="200"/>
+                <DataGridTextColumn Header="Disabled" Binding="{Binding Disabled}" Width="200"/>
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="200"/>
             </DataGrid.Columns>
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">

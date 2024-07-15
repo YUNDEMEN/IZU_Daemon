@@ -4,7 +4,7 @@ using IZU.Interfaces;
 using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using System.Net;
-using Wonder.Infrastructure;
+using System.Xml.Linq;
 using Wonder.Service.Framework;
 
 namespace IZU.Tasks
@@ -24,6 +24,9 @@ namespace IZU.Tasks
         }
         public override void Start()
         {
+            var ds = _s7NetService.GetAllDeviceNames();
+            DoorMan.Init(ds);
+
             replySocket = new ReplySocket();
             replySocket.Options.SendTimeout = TimeSpan.FromSeconds(2);
             replySocket.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
@@ -102,6 +105,7 @@ namespace IZU.Tasks
                 "Error" => Error(args),
                 "Open" => await OpenAsync(args),
                 "Close" => await CloseAsync(args),
+                "Stop" => await StopAsync(args),
                 "Reset" => await ResetAsync(args),
                 "JogOpen" => JogOpen(args),
                 "JogClose" => JogClose(args),
@@ -145,6 +149,125 @@ namespace IZU.Tasks
             var devices = _s7NetService.GetAllDeviceNames();
             return string.Join(",", devices);
         }
+
+        //ConcurrentDictionary<string, string> _doorState = new ConcurrentDictionary<string, string>();
+
+        async Task<string> OpenAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("oht", out string? oht);
+            if (string.IsNullOrEmpty(oht))
+                oht = string.Empty;
+            args.TryGetValue("door", out string? name);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+
+            IAutoDoor? door = FindAutoDoor(name);
+            if (door == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            string result = await door.OpenAsync();
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                _logger.LogWarning(result);
+            }
+            else
+            {
+                //尝试将当前天车与门锁定
+                //一旦锁定, 再门关闭前无法再次锁定
+                //只有门关闭后, 才释放
+                bool locked = DoorMan.TryLock(name, oht);
+                if (locked)
+                {
+                    _logger.LogError($"[{DoorMan.GetLock(name)}] binded {name}");
+                }
+            }
+            //当有车子过门时, 后面的车子都不能过门, 必须等待前车过完后, 门关到位, 再发开门指令过门
+            int status = -1;
+            //检查门是否被当前天车占用
+            if (DoorMan.CheckLock(name, oht))
+            {//如果是, 则返回门状态
+                status = door.GetStatus() ?? -1;
+            }
+            else//如果否, 则返回关闭状态
+                status = 0;
+            return $"{ToName(status)}";
+        }
+        async Task<string> CloseAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("oht", out string? oht);
+            if (string.IsNullOrEmpty(oht))
+                oht = string.Empty;
+            args.TryGetValue("door", out string? name);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+
+            IAutoDoor? door = FindAutoDoor(name); 
+            if (door == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+            string result = string.Empty;
+            result = await door.CloseAsync();
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                _logger.LogWarning(result);
+            }
+            else
+            {
+                ReleaseDoor(name, oht);
+            }
+            int status = door.GetStatus() ?? -1;
+            return $"{ToName(status)}";
+        }
+
+        IDictionary<string,Task> releaseTasks = new Dictionary<string,Task>();
+        void ReleaseDoor(string doorName, string oht)
+        {
+            Task ret = Task.Factory.StartNew(async () =>
+            {
+                IAutoDoor? door = FindAutoDoor(doorName);
+                if (door == null) return;
+                //_logger.LogInformation($"loop for checking {doorName} status");
+                while (true)
+                {
+                    int status = door.GetStatus() ?? -1;
+                    if (status == 1 || status == 0)
+                    {
+                        //门正在关或者关到位后, 自动解锁
+                        DoorMan.Release(doorName);
+                        _logger.LogError($"{oht} released {doorName} (status={status})");
+                        break;
+                    }
+                    await Task.Delay(200);
+                }
+            });
+
+            ret.ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    _logger.LogError($"{oht} failed to released {doorName}. {t.Exception}");
+                }
+            });
+        }
+
+        #region old logic
+
+#if false
         async Task<string> OpenAsync(IDictionary<string, string> args)
         {
             args.TryGetValue("oht", out string? oht);
@@ -237,10 +360,14 @@ namespace IZU.Tasks
 
             string result = string.Empty;
             Tasks.DoorActions.Remove(name, oht.ToInt32(0));
+            _logger.LogInformation($"remove key={name}, item={oht}");
             if (Tasks.DoorActions.CanClose(name))
             {
                 result = await deviceObject!.CloseAsync();
+                _logger.LogInformation($"door {name} closed");
             }
+            else
+                _logger.LogInformation($"door {name} closed");
 
             if (!string.IsNullOrEmpty(result))
             {
@@ -250,6 +377,9 @@ namespace IZU.Tasks
             //Console.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}]  send {device.Name} status={status} to oht{oht} ");
             return $"{ToName(status)}";
         }
+#endif
+
+        #endregion
         string State(IDictionary<string, string> args)
         {
             args.TryGetValue("door", out string? name);
@@ -269,6 +399,24 @@ namespace IZU.Tasks
             return ToName(status);
         }
         async Task<string> ResetAsync(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            IAutoDoor? door = FindAutoDoor(name);
+            if (door == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+            var ds = _s7NetService.GetAllDeviceNames();
+            DoorMan.Init(ds);
+            return await door.ResetAsync(true);
+        }
+        async Task<string> StopAsync(IDictionary<string, string> args)
         {
             args.TryGetValue("door", out string? name);
             if (string.IsNullOrEmpty(name))
@@ -304,7 +452,7 @@ namespace IZU.Tasks
                 return "NULL";
             }
 
-            return await autoDoor.ResetAsync(true);
+            return await autoDoor.StopAsync();
         }
         string Error(IDictionary<string, string> args)
         {
@@ -649,6 +797,44 @@ namespace IZU.Tasks
             };
         }
         */
+    }
+
+    /// <summary>
+    /// 单车过门逻辑
+    /// </summary>
+    public static class DoorMan
+    {
+        static ConcurrentDictionary<string, string> _doorState = new ConcurrentDictionary<string, string>();
+        public static void Init(List<string> doors)
+        {
+            foreach (var dn in doors)
+            {
+                _doorState[dn] = string.Empty;
+            }
+        }
+
+        public static bool CheckLock(string doorName, string oht)
+        {
+            return _doorState[doorName] == oht;
+        }
+
+        public static bool TryLock(string doorName, string oht)
+        {
+            if (string.IsNullOrEmpty(_doorState[doorName]))
+            {
+                _doorState[doorName] = oht;
+                return true;
+            }
+            else return false;
+        }
+        public static string GetLock(string doorName)
+        {
+            return _doorState[doorName];
+        }
+        public static void Release(string doorName)
+        {
+            _doorState[doorName] = string.Empty;
+        }
     }
 
 

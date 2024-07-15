@@ -1,0 +1,167 @@
+﻿<ui:Page
+    x:Class="OHTC.Tools.ControlPages.GetDoorInfoView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:app="clr-namespace:OHTC.Tools"
+    xmlns:sc="clr-namespace:SamplesCommon"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1000"
+    Foreground="{DynamicResource SystemControlPageTextBaseHighBrush}">
+    <Page.Resources>
+        <app:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
+        <Style TargetType="HeaderedContentControl">
+            <Setter Property="Margin" Value="0,0,0,28" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <TextBlock
+                            Text="{Binding}"
+                            Style="{StaticResource BaseTextBlockStyle}"
+                            Margin="0,0,0,16" />
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ui:SimpleStackPanel">
+            <Setter Property="Spacing" Value="12" />
+        </Style>
+        <ui:Flyout
+            x:Key="ExampleFlyout"
+            x:Shared="False"
+            Placement="Bottom">
+            <ui:Flyout.FlyoutPresenterStyle>
+                <Style TargetType="ui:FlyoutPresenter">
+                    <Setter Property="Width" Value="296" />
+                    <Setter Property="Height" Value="64" />
+                    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
+                </Style>
+            </ui:Flyout.FlyoutPresenterStyle>
+            <TextBlock
+                Text="This is a flyout with placeholder text that wraps to a second line." />
+        </ui:Flyout>
+    </Page.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid TextElement.FontSize="16" Margin="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.ColumnSpan="3" Text="OHT Command Test" Margin="0,0,0,20" Opacity="0.6" FontSize="18" FontWeight="Bold"/>
+            <ui:SimpleStackPanel Grid.Row="1">
+                <DockPanel>
+                    <TextBlock Text="IZU Backend" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
+                    <TextBox x:Name="tb_izu_back_port" Width="100" HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="8032" DockPanel.Dock="Right" Margin="10,0,0,0"/>
+                    <TextBox x:Name="tb_izu_back_addr" Margin="10,0,0,0" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
+                </DockPanel>
+                <DockPanel>
+                    <TextBlock Text="Point" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
+                    <TextBox x:Name="tb_point" Margin="10,0,0,0"/>
+                </DockPanel>
+                <Button Content="Get" Width="80" Click="Get_Click" HorizontalAlignment="Right" Margin="0,0,0,0"/>
+            </ui:SimpleStackPanel>
+            <ui:SimpleStackPanel Grid.Row="1" Grid.Column="3">
+                <DockPanel Margin="0,0,0,0">
+                    <TextBlock Text="IZU Server" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
+                    <Button Content="Connect" Width="80" DockPanel.Dock="Right" Visibility="Hidden"/>
+                    <TextBox x:Name="tb_izu_port1" Width="100" HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="8231" DockPanel.Dock="Right" Margin="10,0,0,0"/>
+                    <TextBox x:Name="tb_izu_addr1" Margin="10,0,0,0" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
+                </DockPanel>
+                <DockPanel>
+                    <TextBlock Text="Open" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
+                    <Button Content="Send" Width="80" Click="SendOpen_Click" DockPanel.Dock="Right"/>
+                    <TextBox x:Name="tb_cmd_open" Margin="10,0,10,0"/>
+                </DockPanel>
+                <DockPanel>
+                    <TextBlock Text="Close" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
+                    <Button Content="Send" Width="80" Click="SendClose_Click" DockPanel.Dock="Right"/>
+                    <TextBox x:Name="tb_cmd_close" Margin="10,0,10,0"/>
+                </DockPanel>
+            </ui:SimpleStackPanel>
+        </Grid>
+        <Border Grid.Row="1" Height="1" VerticalAlignment="Center">
+            <Border.Background>
+                <RadialGradientBrush>
+                    <GradientStop Color="Transparent" Offset="1"/>
+                    <GradientStop Color="#FF01A8FF" Offset="0"/>
+                    <GradientStop Color="#CC4F809A" Offset="0.309"/>
+                </RadialGradientBrush>
+            </Border.Background>
+        </Border>
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Auto Door Operation" Margin="0,0,0,20" FontSize="18" Opacity="0.6" FontWeight="Bold"/>
+            <ui:SimpleStackPanel  Grid.Row="1" VerticalAlignment="Center">
+                <DockPanel>
+                    <TextBox x:Name="tb_local_addr" Width="180" ui:ControlHelper.Header="Local IP Address"
+                             HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
+                    <TextBox x:Name="tb_izu_addr" Width="180" ui:ControlHelper.Header="IZU IP Address"
+                             HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="127.0.0.1" Margin="10,0,0,0"/>
+                    <TextBox x:Name="tb_izu_port" Width="100" ui:ControlHelper.Header="Port"
+                             HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="8231" Margin="10,0,0,0"/>
+                    <Button Content=" Connect " DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10,0,0,0" Click="GetDevices_Click"/>
+                </DockPanel>
+                <Grid>
+                    <DockPanel>
+                        <ComboBox x:Name="cb_device" ui:ControlHelper.Header="Devices" MinWidth="300"/>
+                        <Button Content=" Open " VerticalAlignment="Bottom" Click="Open_Click" Margin="20,0,0,1"/>
+                        <Button Content=" Close " VerticalAlignment="Bottom" Click="Close_Click" Margin="30,0,0,1"/>
+                    </DockPanel>
+                    <DockPanel HorizontalAlignment="Right">
+                        <TextBox ui:ControlHelper.Header="Error Code" ui:ControlHelper.PlaceholderText="Binary" HorizontalAlignment="Right" Width="200" x:Name="tb_err"/>
+                        <Button Content=" Get " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="GetError_Click"/>
+                    </DockPanel>
+                </Grid>
+                <DockPanel HorizontalAlignment="Right">
+                    <ui:AppBarButton Label="Reset" HorizontalAlignment="Right" Click="Reset_Click">
+                        <ui:AppBarButton.Icon>
+                            <ui:FontIcon Glyph="&#xE1CA;" />
+                        </ui:AppBarButton.Icon>
+                    </ui:AppBarButton>
+                    <ui:AppBarButton Label="Stop" HorizontalAlignment="Right" Click="Stop_Click" Margin="10,0,10,0">
+                        <ui:AppBarButton.Icon>
+                            <ui:FontIcon Glyph="&#xE17A;" />
+                        </ui:AppBarButton.Icon>
+                    </ui:AppBarButton>
+                    <ui:AppBarButton Label="Settings" HorizontalAlignment="Right" Click="Settings_Click" Margin="10,0,0,0">
+                        <ui:AppBarButton.Icon>
+                            <ui:FontIcon Glyph="&#xE15E;" />
+                        </ui:AppBarButton.Icon>
+                    </ui:AppBarButton>                </DockPanel>
+            </ui:SimpleStackPanel>
+        </Grid>
+        <DockPanel Grid.Row="4" Grid.ColumnSpan="3" Margin="0,0,0,0">
+            <ListBox x:Name="lb" ItemContainerStyle="{StaticResource ListBoxItemCommandStyle}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Height="30" TextElement.FontSize="14" CornerRadius="2">
+                            <Grid>
+                                <TextBlock Grid.Column="1" Text="{Binding}" HorizontalAlignment="Left" VerticalAlignment="Center" FontFamily="Verdana"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+    </Grid>
+</ui:Page>

@@ -1,0 +1,43 @@
+[
+  {
+    "ohtid": "127159",
+    "mode": "carry",
+    "StartTaskIndex": 1,
+    "tasks": [
+      {
+        "fromStation": "RSTB-07",
+        "toStation": "RSTB-05"
+      },
+      {
+        "fromStation": "RSTB-05",
+        "toStation": "RSTB-07"
+      }
+    ]
+  },
+  {
+    "ohtid": "127155",
+    "mode": "carry",
+    "StartTaskIndex": 0,
+    "tasks": [
+      {
+        "fromStation": "LP01",
+        "toStation": "LP02"
+      },
+      {
+        "fromStation": "LP02",
+        "toStation": "LP01"
+      }
+    ]
+  },
+  {
+    "ohtid": "127157",
+    "mode": "move",
+    "StartTaskIndex": 0,
+    "tasks": [
+      {
+        "fromStation": "4",
+        "toStation": "4"
+      }
+    ]
+  }
+]

@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A39079DA-3D89-43A4-907B-C65F67F9256D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IZUTools", "src\tools\IZUTools\IZUTools.csproj", "{05B36468-7FB0-4125-A6E0-6FBCF03A3DCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tools", "src\tools\IZU\Tools.csproj", "{5F47603D-9ED3-4C7E-AAE5-239A1A472DD4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,16 +15,16 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{05B36468-7FB0-4125-A6E0-6FBCF03A3DCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05B36468-7FB0-4125-A6E0-6FBCF03A3DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05B36468-7FB0-4125-A6E0-6FBCF03A3DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05B36468-7FB0-4125-A6E0-6FBCF03A3DCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F47603D-9ED3-4C7E-AAE5-239A1A472DD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F47603D-9ED3-4C7E-AAE5-239A1A472DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F47603D-9ED3-4C7E-AAE5-239A1A472DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F47603D-9ED3-4C7E-AAE5-239A1A472DD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{05B36468-7FB0-4125-A6E0-6FBCF03A3DCB} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
+		{5F47603D-9ED3-4C7E-AAE5-239A1A472DD4} = {A39079DA-3D89-43A4-907B-C65F67F9256D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2554CA3E-D21D-484F-A098-88259F8BB4FF}
