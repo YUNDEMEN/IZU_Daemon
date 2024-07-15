@@ -141,6 +141,12 @@ namespace IZU.Tasks
                 return "NULL";
             }
             IZUConfig.RemoteDataServerIP = address.ToString();
+
+            if (args.TryGetValue("port", out string? _port) && int.TryParse(_port, out int port))
+            {
+                IZUConfig.PortDataSend = port;
+            }
+
             _anotherDataServer.Start();
             return string.Empty;
         }

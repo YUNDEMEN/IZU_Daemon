@@ -347,7 +347,6 @@ namespace OHTC.Tools.OHTCommand
                         {
                             WriteLine($"oht {OHTId} checked failed: command is not exist ({cmd})");
                             return false;
-
                         }
                         JObject data = (JObject)arr.First();
                         flag = $"{data["end_time"]}".Trim().ToLower();

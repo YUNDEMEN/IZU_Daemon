@@ -1,9 +1,11 @@
-﻿using NNanomsg.Protocols;
+﻿using Newtonsoft.Json.Linq;
+using NNanomsg.Protocols;
 using System.ComponentModel;
 using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace OHTC.Tools.ControlPages
@@ -60,6 +62,7 @@ namespace OHTC.Tools.ControlPages
         public GetDoorInfoView()
         {
             InitializeComponent();
+            Loaded += GetDoorInfoView_Loaded;
             Unloaded += delegate
             {
                 if (dataServer != null)
@@ -70,8 +73,68 @@ namespace OHTC.Tools.ControlPages
 
             var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
             var ip = addressList.FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.ToString();
-            tb_local_addr.Text = ip;
+            ConfigSetting.data_server_address = ip;
         }
+
+        private void GetDoorInfoView_Loaded(object sender, RoutedEventArgs e)
+        {
+            _ = Task.Factory.StartNew(async () =>
+            {
+                ConfigSetting.Load();
+                using (HttpClient httpClient = new())
+                {
+                    try
+                    {
+                        string flag = string.Empty;
+                        httpClient.Timeout = TimeSpan.FromSeconds(2);
+                        httpClient.BaseAddress = new Uri($"http://{ConfigSetting.izu_backend}:8030");
+                        httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                        HttpResponseMessage response = await httpClient.GetAsync($"/v1.0/izu/list");
+                        if (response.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                        {
+                            /*
+                               {"data":[{"wspub_interval":"100","ip":"192.168.127.101:8031","id":3,"create_time":"2023-12-21 10:43:36","update_time":"2023-12-29 13:59:50","status":"enabled"}],"ok":true,"message":null,"totalItems":null,"pageNum":0,"pageSize":0}
+                            */
+                            string result = await response.Content.ReadAsStringAsync();
+                            JObject json = JObject.Parse(result);
+                            if (json["ok"] != null && !(bool)json["ok"]!)
+                            {
+                                LogResult("IZU Backend", $"failed to read izu list: ok={json["ok"]}");
+                                return;
+                            }
+                            if (json["data"] == null)
+                            {
+                                LogResult("IZU Backend", $"failed to read izu list: data is null");
+                                return;
+                            }
+                            JArray arr = json["data"] as JArray;
+                            if (!arr.HasValues)
+                            {
+                                LogResult("IZU Backend", $"failed to read izu list: data is empty");
+                                return;
+                            }
+                            await Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, () =>
+                            {
+                                var list = from x in arr select x["ip"];
+                                foreach (var item in list)
+                                {
+                                    if (item == null) continue;
+                                    if (!IPEndPoint.TryParse(item.ToString(), out var ipend))
+                                        continue;
+
+                                    cb_izu_addr.Items.Add($"{ipend.Address.ToString()}:8231");
+                                }
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogResult("IZU Backend", $"failed to read izu list: {ex.Message}");
+                    }
+                }
+            });
+        }
+
         void LogResult(string tag, string resultText)
         {
             Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, () =>
@@ -89,36 +152,19 @@ namespace OHTC.Tools.ControlPages
 
         private void Get_Click(object sender, RoutedEventArgs e)
         {
-            string ipAddressPort = string.Empty;
-            string address = "127.0.0.1";
-            int port = 8032;
-
-            if (!string.IsNullOrEmpty(tb_izu_back_addr.Text))
-            {
-                address = tb_izu_back_addr.Text;
-            }
-            if (!string.IsNullOrEmpty(tb_izu_back_port.Text))
-            {
-                int.TryParse(tb_izu_back_port.Text, out port);
-            }
-            if (!IPEndPoint.TryParse($"{address}:{port}", out var ipend))
-            {
-                LogResult("IZU Server", "IP Address and Port is incorrect");
-                return;
-            }
-            ipAddressPort = ipend.ToString();
             if (string.IsNullOrEmpty(tb_point.Text.Trim()))
                 return;
-
             //QQQ:VER_1,SRC_0:DES_0,Q1:IP_192.168.127.101:PORT_8231:DOOR_AD01,XXX
             string msg = $"QQQ:VER_1,SRC_0:DES_0,Q1:IZUPOINT_{tb_point.Text.Trim()},XXX";
-            string result = SendCommand(msg, ipAddressPort);
+            string result = SendCommand(msg, ConfigSetting.IZUBackend.ToString());
             if (string.IsNullOrEmpty(result))
                 return;
-            tb_izu_addr1.Text = string.Empty;
-            tb_izu_port1.Text = string.Empty;
-            tb_cmd_open.Text = string.Empty;
-            tb_cmd_close.Text = string.Empty;
+
+            //ConfigSetting.
+            bt_send_open.IsEnabled = false;
+            bt_send_open.Tag = string.Empty;
+            bt_send_close.IsEnabled = false;
+            bt_send_close.Tag = string.Empty;
             if (!OMessageHelper.TryParse(result, out var oMessage))
                 LogResult("izu backend", $"{oMessage.Error}. {result}");
             else
@@ -128,47 +174,35 @@ namespace OHTC.Tools.ControlPages
                     LogResult("izu backend", "");
                 if (!oMessage.Args.TryGetValue("PORT", out string? _port))
                     LogResult("izu backend", "");
-                tb_izu_addr1.Text = ip;
-                tb_izu_port1.Text = _port.ToString();
                 if (!oMessage.Args.TryGetValue("DOOR", out string? door))
                     LogResult("izu backend", "");
+                if (IPAddress.TryParse(ip, out IPAddress? izuAddr))
+                {
+                    if (int.TryParse(_port, out int port))
+                        ConfigSetting.SetIZU(ip, port);
+                }
+                bt_send_open.Tag = $"Open>>>door:{door}";
+                bt_send_close.Tag = $"Close>>>door:{door}";
 
-                tb_cmd_open.Text = $"Open>>>door:{door}";
-                tb_cmd_close.Text = $"Close>>>door:{door}";
+                bt_send_open.IsEnabled = true;
+                bt_send_close.IsEnabled = true;
             }
         }
         private void SendOpen_Click(object sender, RoutedEventArgs e)
         {
-
-            if (!IPEndPoint.TryParse($"{tb_izu_addr1.Text}:{tb_izu_port1.Text}", out IPEndPoint? endP))
-            {
-                LogResult("IZU Server", "IP Address and Port is incorrect");
-                return;
-            }
-            if (string.IsNullOrEmpty(tb_cmd_open.Text.Trim()))
-                return;
-
-            SendCommand(tb_cmd_open.Text.Trim(), endP.ToString());
+            SendCommand(bt_send_open.Tag.ToString().Trim(), ConfigSetting.IZU.ToString());
         }
         private void SendClose_Click(object sender, RoutedEventArgs e)
         {
-            if (!IPEndPoint.TryParse($"{tb_izu_addr1.Text}:{tb_izu_port1.Text}", out IPEndPoint? endP))
-            {
-                LogResult("IZU Server", "IP Address and Port is incorrect");
-                return;
-            }
-            if (string.IsNullOrEmpty(tb_cmd_close.Text.Trim()))
-                return;
-
-            SendCommand(tb_cmd_close.Text.Trim(), endP.ToString());
+            SendCommand(bt_send_close.Tag.ToString().Trim(), ConfigSetting.IZU.ToString());
         }
-        private void GetDevices_Click(object sender, RoutedEventArgs e)
+        private void Connect_IZU_Click(object sender, RoutedEventArgs e)
         {
             string result = SendCommand("Info>>>");
             string[] devices = result.Split(',');
             cb_device.ItemsSource = devices;
 
-            _ = SendCommand($"Online>>>ip:{tb_local_addr.Text}");
+            _ = SendCommand($"Online>>>ip:{ConfigSetting.data_server_address};port:{ConfigSetting.data_server_port}");
         }
         private void GetError_Click(object sender, RoutedEventArgs e)
         {
@@ -188,7 +222,7 @@ namespace OHTC.Tools.ControlPages
                 return;
             SendCommand($"Stop>>>door:{SelectedDoorName}");
         }
-        
+
         private void Open_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(SelectedDoorName))
@@ -285,18 +319,13 @@ namespace OHTC.Tools.ControlPages
 
             if (string.IsNullOrEmpty(ipEnd))
             {
-                string address = "127.0.0.1";
-                int port = 8231;
+                string ipendpoint = "127.0.0.1:8231";
 
-                if (!string.IsNullOrEmpty(tb_izu_addr.Text))
+                if (!string.IsNullOrEmpty(cb_izu_addr.Text))
                 {
-                    address = tb_izu_addr.Text;
+                    ipendpoint = cb_izu_addr.Text;
                 }
-                if (!string.IsNullOrEmpty(tb_izu_port.Text))
-                {
-                    int.TryParse(tb_izu_port.Text, out port);
-                }
-                if (!IPEndPoint.TryParse($"{address}:{port}", out var ipend))
+                if (!IPEndPoint.TryParse($"{ipendpoint}", out var ipend))
                 {
                     LogResult("IZU Server", "IP Address and Port is incorrect");
                     return string.Empty;
@@ -382,7 +411,7 @@ namespace OHTC.Tools.ControlPages
                 string version = funcArr[0];
                 string src_des = funcArr[1];
                 oMessage.FunctionName = funcArr[2];
-                if(oMessage.FunctionName.Trim().ToUpper() == "NULL")
+                if (oMessage.FunctionName.Trim().ToUpper() == "NULL")
                 {
                     oMessage.Error = "internal server error";
                     return false;
@@ -414,6 +443,111 @@ namespace OHTC.Tools.ControlPages
         public static string Build(string body, string version = "VER_1", string src = "0", string des = "0")
         {
             return $"QQQ:{version},SRC_{src}:DES_{des},{body},XXX";
+        }
+    }
+
+
+
+    public static class ConfigSetting
+    {
+        /// <summary>
+        /// 本机数据服务IP地址
+        /// 不能为localhost 或者 127.0.0.1
+        /// 用于启动 TCP Server 
+        /// 启动后 izu 会自动连接上此服务, 推送服务数据
+        /// </summary>
+        public static string data_server_address = "127.0.0.1";
+        /// <summary>
+        /// 本机数据服务端口
+        /// </summary>
+        public static int data_server_port = 8131;
+
+        /// <summary>
+        /// izu backend IP地址
+        /// </summary>
+        public static string izu_backend = "127.0.0.1";
+        /// <summary>
+        /// izu backend TCP通讯端口
+        /// </summary>
+        public static int izu_backend_port = 8032;
+
+
+        /// <summary>
+        /// izu IP地址
+        /// </summary>
+        public static string izu_server = "127.0.0.1";
+        /// <summary>
+        /// izu TCP通讯端口
+        /// </summary>
+        public static int izu_server_port = 8231;
+
+        public static IPEndPoint SetIZU(string ip, int port)
+        {
+            izu_server_port = port;
+
+            if (IPAddress.TryParse(ip, out IPAddress? addr))
+            {
+                izu_server = ip;
+                return new IPEndPoint(addr, izu_server_port);
+            }
+
+            return new IPEndPoint(IPAddress.Any, izu_server_port);
+        }
+
+        public static IPEndPoint IZUBackend
+        {
+            get
+            {
+                if (IPAddress.TryParse(izu_backend, out IPAddress? ip))
+                    return new IPEndPoint(ip, izu_backend_port);
+                else
+                    return new IPEndPoint(IPAddress.Any, izu_backend_port);
+            }
+        }
+        public static IPEndPoint IZU
+        {
+            get
+            {
+                if (IPAddress.TryParse(izu_server, out IPAddress? ip))
+                    return new IPEndPoint(ip, izu_server_port);
+                else
+                    return new IPEndPoint(IPAddress.Any, izu_server_port);
+            }
+        }
+
+        static IPAddress? ToIP(this string ip)
+        {
+            if (IPAddress.TryParse(ip, out IPAddress? addr))
+            {
+                return addr;
+            }
+            return null;
+        }
+        public static void Save()
+        {
+            StringBuilder text = new StringBuilder();
+            text.AppendLine($"{data_server_address}:{data_server_port}");
+            text.AppendLine($"{izu_backend}:{izu_backend_port}");
+            System.IO.File.WriteAllText("ip.config", text.ToString());
+        }
+
+        public static void Load()
+        {
+            if (!System.IO.File.Exists("ip.config"))
+                return;
+            string[] lines = System.IO.File.ReadAllLines("ip.config");
+
+            if (IPEndPoint.TryParse(lines[0], out IPEndPoint? ipend))
+            {
+                data_server_address = ipend.Address.ToString();
+                data_server_port = ipend.Port;
+            }
+
+            if (IPEndPoint.TryParse(lines[1], out IPEndPoint? ipend1))
+            {
+                izu_backend = ipend1.Address.ToString();
+                izu_backend_port = ipend1.Port;
+            }
         }
     }
 }

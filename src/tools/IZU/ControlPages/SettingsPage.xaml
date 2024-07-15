@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:sc="clr-namespace:SamplesCommon"
-    mc:Ignorable="d">
+    mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000">
 
     <Page.Resources>
         <sc:AppThemeConverter x:Key="AppThemeConverter" />
@@ -14,7 +14,29 @@
 
     <ScrollViewer>
         <Grid Margin="24,0">
-            <GroupBox Header="Theme Mode">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="10"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <GroupBox Header="IP Settings" Padding="0">
+                <Grid>
+                    <StackPanel MinWidth="400" HorizontalAlignment="Left" TextElement.FontSize="16">
+                        <DockPanel>
+                            <TextBlock Text="IZU Backend" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
+                            <TextBox x:Name="tb_izu_back_port" Width="100" HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="8032" DockPanel.Dock="Right" Margin="10,0,0,0"/>
+                            <TextBox x:Name="tb_izu_back_addr" Margin="10,0,0,0" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
+                        </DockPanel>
+                        <DockPanel Margin="0,10,0,0">
+                            <TextBlock Text="Local IP" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
+                            <TextBox x:Name="tb_local_port" Width="100" HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="8132" DockPanel.Dock="Right" Margin="10,0,0,0"/>
+                            <TextBox x:Name="tb_local_addr" Margin="10,0,0,0" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
+                        </DockPanel>
+                    </StackPanel>
+                    <Button Content=" Apply " VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="Apply_Clicked"/>
+                </Grid>
+            </GroupBox>
+            <GroupBox Grid.Row="2" Header="Theme Mode">
                 <ui:RadioButtons SelectedItem="{Binding Source={x:Static ui:ThemeManager.Current}, Path=ApplicationTheme, Converter={StaticResource AppThemeConverter}}">
                     <ui:RadioButtons.ItemsSource>
                         <sc:AppThemes />
