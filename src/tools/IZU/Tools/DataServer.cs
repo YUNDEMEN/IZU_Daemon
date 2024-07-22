@@ -1,32 +1,43 @@
 ﻿using Newtonsoft.Json.Linq;
 using OHTC.Tools.ControlPages;
-using SamplesCommon;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Windows;
 using System.Windows.Threading;
 
 namespace OHTC.Tools
 {
     class DataServer : TcpServer
     {
-        IAutoDoorOption doorOption { get; set; }
+        public static DataServer Instance { get; set; }
         public event EventHandler<DataSession> OnSessionCreated = delegate { };
         public DataServer(IPAddress address, int port) : base(address, port)
         {
         }
 
-        public void SetDoorOption(IAutoDoorOption doorOption)
+        public static DataServer Create(IPAddress address, int port, bool forceCreate = false)
         {
-            this.doorOption = doorOption;
+            if (forceCreate || Instance == null)
+            {
+                Instance = new DataServer(address, port);
+                string error = string.Empty;
+                Instance.Start(ref error);
+            }
+            return Instance;
+        }
+
+        IAutoDoorOption option;
+        public void SetOptions(IAutoDoorOption option)
+        {
+            this.option = option;
         }
 
         protected override TcpSession CreateSession()
         {
-            DataSession session = new(this, doorOption);
+            DataSession session = new(this);
+            session.SetOption(option);
             OnSessionCreated(this, session);
             return session;
         }
@@ -45,8 +56,12 @@ namespace OHTC.Tools
     class DataSession : TcpSession
     {
         private readonly System.Text.Encoding GB2312 = System.Text.Encoding.GetEncoding("GB2312");
-        private readonly IAutoDoorOption doorOption;
-        public DataSession(TcpServer server, IAutoDoorOption doorOption) : base(server)
+        private IAutoDoorOption doorOption;
+        public DataSession(TcpServer server) : base(server)
+        {
+        }
+
+        public void SetOption(IAutoDoorOption doorOption)
         {
             this.doorOption = doorOption;
         }
@@ -67,7 +82,9 @@ namespace OHTC.Tools
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            doorOption.CurrentDispatcher.BeginInvoke(DispatcherPriority.Normal, () => {
+            if (doorOption == null) return;
+            doorOption.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+            {
                 if (string.IsNullOrWhiteSpace(doorOption.SelectedDoorName))
                     return;
 
@@ -300,57 +317,65 @@ namespace OHTC.Tools
         /// Start the server
         /// </summary>
         /// <returns>'true' if the server was successfully started, 'false' if the server failed to start</returns>
-        public virtual bool Start()
+        public virtual bool Start(ref string error)
         {
-            Debug.Assert(!IsStarted, "TCP server is already started!");
-            if (IsStarted)
+            try
+            {
+                Debug.Assert(!IsStarted, "TCP server is already started!");
+                if (IsStarted)
+                    return false;
+
+                // Setup acceptor event arg
+                _acceptorEventArg = new SocketAsyncEventArgs();
+                _acceptorEventArg.Completed += OnAsyncCompleted;
+
+                // Create a new acceptor socket
+                _acceptorSocket = CreateSocket();
+
+                // Update the acceptor socket disposed flag
+                IsSocketDisposed = false;
+
+                // Apply the option: reuse address
+                _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, OptionReuseAddress);
+                // Apply the option: exclusive address use
+                _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, OptionExclusiveAddressUse);
+                // Apply the option: dual mode (this option must be applied before listening)
+                if (_acceptorSocket.AddressFamily == AddressFamily.InterNetworkV6)
+                    _acceptorSocket.DualMode = OptionDualMode;
+
+                // Bind the acceptor socket to the endpoint
+                _acceptorSocket.Bind(Endpoint);
+                // Refresh the endpoint property based on the actual endpoint created
+                Endpoint = _acceptorSocket.LocalEndPoint;
+
+                // Call the server starting handler
+                OnStarting();
+
+                // Start listen to the acceptor socket with the given accepting backlog size
+                _acceptorSocket.Listen(OptionAcceptorBacklog);
+
+                // Reset statistic
+                _bytesPending = 0;
+                _bytesSent = 0;
+                _bytesReceived = 0;
+
+                // Update the started flag
+                IsStarted = true;
+
+                // Call the server started handler
+                OnStarted();
+
+                // Perform the first server accept
+                IsAccepting = true;
+                StartAccept(_acceptorEventArg);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
                 return false;
-
-            // Setup acceptor event arg
-            _acceptorEventArg = new SocketAsyncEventArgs();
-            _acceptorEventArg.Completed += OnAsyncCompleted;
-
-            // Create a new acceptor socket
-            _acceptorSocket = CreateSocket();
-
-            // Update the acceptor socket disposed flag
-            IsSocketDisposed = false;
-
-            // Apply the option: reuse address
-            _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, OptionReuseAddress);
-            // Apply the option: exclusive address use
-            _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, OptionExclusiveAddressUse);
-            // Apply the option: dual mode (this option must be applied before listening)
-            if (_acceptorSocket.AddressFamily == AddressFamily.InterNetworkV6)
-                _acceptorSocket.DualMode = OptionDualMode;
-
-            // Bind the acceptor socket to the endpoint
-            _acceptorSocket.Bind(Endpoint);
-            // Refresh the endpoint property based on the actual endpoint created
-            Endpoint = _acceptorSocket.LocalEndPoint;
-
-            // Call the server starting handler
-            OnStarting();
-
-            // Start listen to the acceptor socket with the given accepting backlog size
-            _acceptorSocket.Listen(OptionAcceptorBacklog);
-
-            // Reset statistic
-            _bytesPending = 0;
-            _bytesSent = 0;
-            _bytesReceived = 0;
-
-            // Update the started flag
-            IsStarted = true;
-
-            // Call the server started handler
-            OnStarted();
-
-            // Perform the first server accept
-            IsAccepting = true;
-            StartAccept(_acceptorEventArg);
-
-            return true;
+            }
         }
 
         /// <summary>
@@ -411,8 +436,8 @@ namespace OHTC.Tools
 
             while (IsStarted)
                 Thread.Yield();
-
-            return Start();
+            string error = string.Empty;
+            return Start(ref error);
         }
 
         #endregion

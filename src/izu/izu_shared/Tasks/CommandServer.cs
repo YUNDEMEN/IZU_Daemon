@@ -4,7 +4,6 @@ using IZU.Interfaces;
 using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Xml.Linq;
 using Wonder.Service.Framework;
 
 namespace IZU.Tasks
@@ -101,6 +100,7 @@ namespace IZU.Tasks
                 "Delay" => await Delay(),
                 "Online" => Online(args),
                 "Info" => Info(),
+                "Init" => await Init(args),
                 "State" => State(args),
                 "Error" => Error(args),
                 "Open" => await OpenAsync(args),
@@ -156,7 +156,24 @@ namespace IZU.Tasks
             return string.Join(",", devices);
         }
 
-        //ConcurrentDictionary<string, string> _doorState = new ConcurrentDictionary<string, string>();
+        async Task<string> Init(IDictionary<string, string> args)
+        {
+            args.TryGetValue("door", out string? name);
+
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning($"device name is missing");
+                return "NULL";
+            }
+            IAutoDoor? door = FindAutoDoor(name);
+            if (door == null)
+            {
+                _logger.LogWarning($"device {name} is not existed");
+                return "NULL";
+            }
+
+            return await door.InitialAsync();
+        }
 
         async Task<string> OpenAsync(IDictionary<string, string> args)
         {
@@ -178,25 +195,22 @@ namespace IZU.Tasks
                 return "NULL";
             }
 
+            int status = -1;
             string result = await door.OpenAsync();
-
             if (!string.IsNullOrEmpty(result))
             {
                 _logger.LogWarning(result);
             }
-            else
-            {
-                //尝试将当前天车与门锁定
-                //一旦锁定, 再门关闭前无法再次锁定
-                //只有门关闭后, 才释放
-                bool locked = DoorMan.TryLock(name, oht);
-                if (locked)
-                {
-                    _logger.LogError($"[{DoorMan.GetLock(name)}] binded {name}");
-                }
+
+            //尝试将当前天车与门锁定
+            //一旦锁定, 再门关闭前无法再次锁定
+            //只有门关闭后, 才释放
+            bool locked = DoorMan.TryLock(name, oht);
+            if (locked)
+            {//锁定后, 下次不能锁定
+                _logger.LogError($"[{DoorMan.GetLock(name)}] binded {name}");
             }
-            //当有车子过门时, 后面的车子都不能过门, 必须等待前车过完后, 门关到位, 再发开门指令过门
-            int status = -1;
+
             //检查门是否被当前天车占用
             if (DoorMan.CheckLock(name, oht))
             {//如果是, 则返回门状态
@@ -204,6 +218,7 @@ namespace IZU.Tasks
             }
             else//如果否, 则返回关闭状态
                 status = 0;
+            await Task.Delay(50);
             return $"{ToName(status)}";
         }
         async Task<string> CloseAsync(IDictionary<string, string> args)
@@ -219,7 +234,7 @@ namespace IZU.Tasks
                 return "NULL";
             }
 
-            IAutoDoor? door = FindAutoDoor(name); 
+            IAutoDoor? door = FindAutoDoor(name);
             if (door == null)
             {
                 _logger.LogWarning($"device {name} is not existed");
@@ -240,17 +255,16 @@ namespace IZU.Tasks
             return $"{ToName(status)}";
         }
 
-        IDictionary<string,Task> releaseTasks = new Dictionary<string,Task>();
         void ReleaseDoor(string doorName, string oht)
         {
             Task ret = Task.Factory.StartNew(async () =>
             {
                 IAutoDoor? door = FindAutoDoor(doorName);
                 if (door == null) return;
-                //_logger.LogInformation($"loop for checking {doorName} status");
+                //_logger.LogError($"task begin: {oht} released {doorName}");
                 while (true)
                 {
-                    int status = door.GetStatus() ?? -1;
+                    int status = door.GetStatus(_logger) ?? -1;
                     if (status == 1 || status == 0)
                     {
                         //门正在关或者关到位后, 自动解锁
@@ -258,134 +272,16 @@ namespace IZU.Tasks
                         _logger.LogError($"{oht} released {doorName} (status={status})");
                         break;
                     }
+                    else
+                    {
+                        _logger.LogError($"failed to release {oht} {doorName} (status={status})");
+                    }
                     await Task.Delay(200);
                 }
-            });
-
-            ret.ContinueWith(t =>
-            {
-                if (t.IsFaulted)
-                {
-                    _logger.LogError($"{oht} failed to released {doorName}. {t.Exception}");
-                }
+                //_logger.LogError($"task end:{oht} released {doorName}");
             });
         }
 
-        #region old logic
-
-#if false
-        async Task<string> OpenAsync(IDictionary<string, string> args)
-        {
-            args.TryGetValue("oht", out string? oht);
-            args.TryGetValue("door", out string? name);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                _logger.LogWarning($"device name is missing");
-                return "NULL";
-            }
-
-            var device = _s7NetService.GetDevice(name);
-            if (device == null)
-            {
-                _logger.LogWarning($"device {name} is not existed");
-                return "NULL";
-            }
-
-            IOperatable? deviceObject = null;
-            switch (device.DeviceType)
-            {
-                case DeviceTypes.NONE:
-                    break;
-                case DeviceTypes.IZU:
-                    break;
-                case DeviceTypes.HID:
-                    break;
-                case DeviceTypes.AUTODOOR:
-                    deviceObject = new AutoDoor(device);
-                    break;
-                case DeviceTypes.FIREDOOR:
-                    break;
-            }
-            if (deviceObject == null)
-            {
-                _logger.LogWarning($"unknown device {name}");
-                return "NULL";
-            }
-
-            string result = await deviceObject!.OpenAsync();
-            if (string.IsNullOrEmpty(result) && !string.IsNullOrEmpty(oht))
-                Tasks.DoorActions.Add(name, oht.ToInt32(0));
-            if (!string.IsNullOrEmpty(result))
-            {
-                _logger.LogWarning(result);
-            }
-            int status = deviceObject.GetStatus() ?? -1;
-            //Console.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}]  send {device.Name} status={status} to oht{oht} ");
-            return $"{ToName(status)}";
-        }
-        async Task<string> CloseAsync(IDictionary<string, string> args)
-        {
-            args.TryGetValue("oht", out string? oht);
-            args.TryGetValue("door", out string? name);
-
-            if (string.IsNullOrEmpty(name))
-            {
-                _logger.LogWarning($"device name is missing");
-                return "NULL";
-            }
-
-            var device = _s7NetService.GetDevice(name);
-            if (device == null)
-            {
-                _logger.LogWarning($"device {name} is not existed");
-                return "NULL";
-            }
-
-            IOperatable? deviceObject = null;
-            switch (device.DeviceType)
-            {
-                case DeviceTypes.NONE:
-                    break;
-                case DeviceTypes.IZU:
-                    break;
-                case DeviceTypes.HID:
-                    break;
-                case DeviceTypes.AUTODOOR:
-                    deviceObject = new AutoDoor(device);
-                    break;
-                case DeviceTypes.FIREDOOR:
-                    break;
-            }
-            if (deviceObject == null)
-            {
-                _logger.LogWarning($"unknown device {name}");
-                return "NULL";
-            }
-
-
-            string result = string.Empty;
-            Tasks.DoorActions.Remove(name, oht.ToInt32(0));
-            _logger.LogInformation($"remove key={name}, item={oht}");
-            if (Tasks.DoorActions.CanClose(name))
-            {
-                result = await deviceObject!.CloseAsync();
-                _logger.LogInformation($"door {name} closed");
-            }
-            else
-                _logger.LogInformation($"door {name} closed");
-
-            if (!string.IsNullOrEmpty(result))
-            {
-                _logger.LogWarning(result);
-            }
-            int status = deviceObject.GetStatus() ?? -1;
-            //Console.WriteLine($"[{DateTime.Now:HH:mm:ss:fff}]  send {device.Name} status={status} to oht{oht} ");
-            return $"{ToName(status)}";
-        }
-#endif
-
-        #endregion
         string State(IDictionary<string, string> args)
         {
             args.TryGetValue("door", out string? name);
@@ -402,7 +298,7 @@ namespace IZU.Tasks
             }
 
             int status = DeviceFactory.CheckAuodoorStatus(device) ?? -1;
-            return ToName(status);
+            return ToName(status) + $"({DoorMan.GetLock(name)})";
         }
         async Task<string> ResetAsync(IDictionary<string, string> args)
         {

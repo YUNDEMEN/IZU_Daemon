@@ -72,6 +72,7 @@
                     <Button Content="Get" Width="80" Click="Get_Click" DockPanel.Dock="Right" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
                     <TextBox x:Name="tb_point" ui:ControlHelper.Header="Point" Margin="0,0,0,0"/>
                 </DockPanel>
+                <Button Content="CycleLoad/Unload" Click="Button_Click" />
             </ui:SimpleStackPanel>
         </Grid>
         <Border Grid.Row="1" Height="1" VerticalAlignment="Center">
@@ -95,6 +96,8 @@
                         <ComboBox x:Name="cb_izu_addr" Width="300" ui:ControlHelper.Header="IZU IP Address" IsEditable="True"
                              HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
                         <Button Content=" Connect " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="Connect_IZU_Click"/>
+                        <Button Content=" State " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="State_Click"/>
+                        <TextBlock x:Name="txt_state" Text="--" Margin="10,0,0,6" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="14"/>
                     </DockPanel>
                     <DockPanel HorizontalAlignment="Right">
                         <TextBox ui:ControlHelper.Header="Error Code" ui:ControlHelper.PlaceholderText="Binary" HorizontalAlignment="Right" Width="200" x:Name="tb_err"/>
@@ -108,12 +111,17 @@
                         <Button Content=" Close " VerticalAlignment="Bottom" Click="Close_Click" Margin="30,0,0,1"/>
                     </DockPanel>
                     <DockPanel HorizontalAlignment="Right">
-                        <ui:AppBarButton Label="Reset" HorizontalAlignment="Right" Click="Reset_Click">
+                        <ui:AppBarButton Label="Init" HorizontalAlignment="Right" Click="Init_Click">
+                            <ui:AppBarButton.Icon>
+                                <ui:FontIcon Glyph="&#xE117;" />
+                            </ui:AppBarButton.Icon>
+                        </ui:AppBarButton>
+                        <ui:AppBarButton Label="Reset" HorizontalAlignment="Right" Click="Reset_Click" Margin="10,0,0,0">
                             <ui:AppBarButton.Icon>
                                 <ui:FontIcon Glyph="&#xE1CA;" />
                             </ui:AppBarButton.Icon>
                         </ui:AppBarButton>
-                        <ui:AppBarButton Label="Stop" HorizontalAlignment="Right" Click="Stop_Click" Margin="10,0,10,0">
+                        <ui:AppBarButton Label="Stop" HorizontalAlignment="Right" Click="Stop_Click" Margin="10,0,0,0">
                             <ui:AppBarButton.Icon>
                                 <ui:FontIcon Glyph="&#xE17A;" />
                             </ui:AppBarButton.Icon>
@@ -125,6 +133,7 @@
                         </ui:AppBarButton>
                     </DockPanel>
                 </Grid>
+                
             </ui:SimpleStackPanel>
         </Grid>
         <DockPanel Grid.Row="4" Grid.ColumnSpan="3" Margin="0,0,0,0">

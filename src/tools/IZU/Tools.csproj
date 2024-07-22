@@ -6,8 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Assets\10186530.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\8008249.ico</ApplicationIcon>
     <RootNamespace>OHTC.Tools</RootNamespace>
+    <AssemblyName>IZU-Tools</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,17 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="10186530.png" />
-    <None Remove="Assets\10186530.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Page Remove="ControlPages\Cycle-DummyView.xaml" />
     <Page Remove="ControlPages\CycleConfigView.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Assets\10186530.ico" />
   </ItemGroup>
 
   <ItemGroup>

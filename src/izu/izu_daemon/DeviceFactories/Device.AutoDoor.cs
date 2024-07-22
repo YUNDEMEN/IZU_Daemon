@@ -55,9 +55,9 @@ namespace IZU.DeviceFactories
         /// </code>
         /// </summary>
         /// <returns></returns>
-        public int? GetStatus()
+        public int? GetStatus(ILogger? logger = null)
         {
-            return DeviceFactory.CheckAuodoorStatus((DeviceEntity)_deviceEntity);
+            return DeviceFactory.CheckAuodoorStatus((DeviceEntity)_deviceEntity, logger);
         }
 
 
@@ -126,8 +126,15 @@ namespace IZU.DeviceFactories
             Ref<bool> @ref = new();
 
             // 防止重复操作
+            Ref<bool> @r05 = new();
+            string state = await GetBool(address_tup.R05, @r05);
+            if (!string.IsNullOrEmpty(state)) return state;
+            if (@r05.Value)
+                return "door is opening!";
+
+            // 防止重复操作
             Ref<bool> @r07 = new();
-            string state = await GetBool(address_tup.R07, @r07);
+            state = await GetBool(address_tup.R07, @r07);
             if (!string.IsNullOrEmpty(state)) return state;
             if (@r07.Value)
                 return "door is opened!";

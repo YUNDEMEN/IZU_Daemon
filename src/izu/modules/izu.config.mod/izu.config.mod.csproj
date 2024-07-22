@@ -16,6 +16,7 @@
     </Reference>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /y &quot;.\bin\debug\net7.0\izu.*.mod.dll&quot;  &quot;..\..\izu_emulation\bin\Debug\net7.0&quot;" />
+    <Exec Command="xcopy /y /F &quot;.\bin\debug\net7.0\izu.*.mod.dll&quot;  /D &quot;..\..\izu_emulation\bin\Debug\net7.0&quot;" />
+    <Exec Command="xcopy /y /F &quot;.\bin\debug\net7.0\izu.*.mod.dll&quot;  /D &quot;..\..\izu_daemon\bin\Debug\net7.0\win-x64&quot;" />
   </Target>
 </Project>

@@ -1,8 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
 using NNanomsg.Protocols;
 using System.ComponentModel;
+using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -31,7 +35,6 @@ namespace OHTC.Tools.ControlPages
     }
     public partial class GetDoorInfoView : INotifyPropertyChanged, IAutoDoorOption
     {
-        DataServer dataServer;
         public event PropertyChangedEventHandler? PropertyChanged = delegate { };
         protected void FirePropertyChanged(string propName)
         {
@@ -63,18 +66,10 @@ namespace OHTC.Tools.ControlPages
         {
             InitializeComponent();
             Loaded += GetDoorInfoView_Loaded;
-            Unloaded += delegate
-            {
-                if (dataServer != null)
-                    dataServer.Stop();
-            };
 
-            RunServer();
-
-            var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
-            var ip = addressList.FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.ToString();
-            ConfigSetting.data_server_address = ip;
+            DataServer.Instance.SetOptions(this);
         }
+
 
         private void GetDoorInfoView_Loaded(object sender, RoutedEventArgs e)
         {
@@ -143,12 +138,6 @@ namespace OHTC.Tools.ControlPages
                 lb.Items.Insert(0, $"{lb.Items.Count + 1}.  [{tag}] {resultText}");
             });
         }
-        void RunServer()
-        {
-            dataServer = new DataServer(IPAddress.Any, 8131);
-            dataServer.SetDoorOption(this);
-            dataServer.Start();
-        }
 
         private void Get_Click(object sender, RoutedEventArgs e)
         {
@@ -210,6 +199,13 @@ namespace OHTC.Tools.ControlPages
                 return;
             tb_err.Text = SendCommand($"Error>>>door:{SelectedDoorName}");
         }
+
+        private void Init_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(SelectedDoorName))
+                return;
+            SendCommand($"Init>>>door:{SelectedDoorName}");
+        }
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(SelectedDoorName))
@@ -235,8 +231,11 @@ namespace OHTC.Tools.ControlPages
                 return;
             SendCommand($"Close>>>door:{SelectedDoorName}");
         }
-
-
+        private void State_Click(object sender, RoutedEventArgs e)
+        {
+            string state = SendCommand($"State>>>door:{SelectedDoorName}");
+            txt_state.Text = $"{SelectedDoorName}={state}";
+        }
 
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
@@ -244,7 +243,7 @@ namespace OHTC.Tools.ControlPages
             wind.Title = $"{wind.Title} - {SelectedDoorName}";
             wind.Owner = Application.Current.MainWindow;
             wind.SetOption(this);
-            wind.ShowDialog();
+            wind.Show();
         }
         private void Delay_Click(object sender, RoutedEventArgs e)
         {
@@ -357,6 +356,26 @@ namespace OHTC.Tools.ControlPages
             }
         }
 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            using (TcpClient client = new TcpClient("192.168.127.153", 12346))
+            {
+                var stream = client.GetStream();
+
+                String orig = "G0_111-0";
+
+                string s = $"QQQ:VER_1,SRC_0:DES_0,G1_111-0,XXX";
+                byte[] cmd = Encoding.ASCII.GetBytes(s);
+                try
+                {
+                    stream?.Write(cmd, 0, cmd.Length);
+                
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+        }
     }
 
 
@@ -445,9 +464,6 @@ namespace OHTC.Tools.ControlPages
             return $"QQQ:{version},SRC_{src}:DES_{des},{body},XXX";
         }
     }
-
-
-
     public static class ConfigSetting
     {
         /// <summary>

@@ -22,7 +22,7 @@
                 return null;
             }
         }
-        
+
         /// <summary>
         /// 获取自动门状态（0关到位 1正在关 2正在开 3开到位）
         /// <code>
@@ -34,10 +34,10 @@
         /// </summary>
         /// <param name="deviceEntity"></param>
         /// <returns></returns>
-        public static int? CheckAuodoorStatus(DeviceEntity deviceEntity)
+        public static int? CheckAuodoorStatus(DeviceEntity deviceEntity, ILogger? logger = null)
         {
             bool.TryParse($"{deviceEntity.Variables.FirstOrDefault(p => p.ActionType == "R02")?.Value}", out bool autoRunning);
-            if(!autoRunning) return null;
+            if (!autoRunning) return null;
 
             //开门   正在开=True    正在关=False    开到位=False    关到位=True
             //问题 : 在开门时,   瞬间关到位变为true
@@ -59,10 +59,8 @@
             if (// 关到位
  /* R06=false*/closing == false
  /* R08=true*/&& closed
- /* R03=true&& closeState*/
  /* R05=false*/&& opening == false
- /* R07=false*/&& opened == false
- /* R04=false&& openState == false*/)
+ /* R07=false*/&& opened == false)
                 return 0;
 
 
@@ -70,10 +68,8 @@
             else if (// 正在关
 /* R06=true*/ closing
 /* R08=false*/&& closed == false
-/* R03=false&& closeState == false*/
 /* R05=false*/&& opening == false
-/* R07=false*/&& opened == false
-/* R04=false&& openState == false*/)
+/* R07=false*/&& opened == false)
                 return 1;
 
 
@@ -81,10 +77,8 @@
             else if (// 正在开
 /* R06=false*/closing == false
 /* R08=false*/&& closed == false
-/* R03=false&& closeState == false*/
 /* R05=true*/&& opening
-/* R07=false*/&& opened == false
-/* R04=false&& openState == false*/)
+/* R07=false*/&& opened == false)
                 return 2;
 
 
@@ -92,15 +86,17 @@
             else if (// 开到位
 /* R06=false*/closing == false
 /* R08=false*/&& closed == false
-/* R03=false&& closeState == false*/
 /* R05=false*/&& opening == false
-/* R07=true*/&& opened
-/* R04=true&& openState*/)
+/* R07=true*/&& opened)
                 return 3;
 
 
             else
-            {                
+            {
+                if (logger != null)
+                {
+                    logger.LogError($"closing={closing}, closed={closed}, opening={opening}, opened={opened}");
+                }
                 return null;
             }
         }

@@ -54,7 +54,7 @@ namespace IZU.DeviceFactories
         /// </code>
         /// </summary>
         /// <returns></returns>
-        public int? GetStatus()
+        public int? GetStatus(ILogger? logger = null)
         {
             return DeviceFactory.CheckAuodoorStatus((DeviceEntity)_deviceEntity);
         }
