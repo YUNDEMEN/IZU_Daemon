@@ -1,0 +1,203 @@
+﻿<ui:Page
+    x:Class="OHTC.Tools.ControlPages.OverView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:app="clr-namespace:OHTC.Tools"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sc="clr-namespace:SamplesCommon"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    d:DesignHeight="600"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <sc:ListBoxTemplateSelector x:Key="ListBoxTemplateSelector"/>
+        <app:BooleanReverseConverter x:Key="BooleanReverseConverter" />
+        <app:TrueColorConverter x:Key="TrueColorConverter"/>
+        <Style TargetType="ui:SimpleStackPanel">
+            <Setter Property="Spacing" Value="12" />
+        </Style>
+    </Page.Resources>
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <DockPanel DataContext="{Binding IZU}">
+            <TextBlock Grid.Row="0" Text="{Binding Name}" Margin="0,0,0,0" FontSize="26" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Ellipse Height="16" Width="16" Fill="{Binding IsHeartBeat,Converter={StaticResource TrueColorConverter},ConverterParameter=flash}"
+                     Stroke="#99424242" StrokeThickness="1" Margin="10,0,0,0" ToolTip="Connection" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" TextElement.FontSize="16" 
+                        ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                <Grid Margin="5" Background="Transparent" ToolTip="Power" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                    <Border Background="{Binding IsPowerSupply,Converter={StaticResource TrueColorConverter}}"
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
+                    <TextBlock Text="Power" Margin="10,5"/>
+                </Grid>
+                <Grid Margin="5" Background="Transparent" ToolTip="硬件通讯端口状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                    <Border Background="{Binding IsHardwareInterfaceNormal,Converter={StaticResource TrueColorConverter}}"
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
+                    <TextBlock Text="硬件通讯" Margin="10,5"/>
+                </Grid>
+                <Grid Margin="5" Background="Transparent" ToolTip="待机状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                    <Border Background="{Binding IsStandby,Converter={StaticResource TrueColorConverter}}"
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
+                    <TextBlock Text="待机状态" Margin="10,5"/>
+                </Grid>
+                <Grid Margin="5" Background="Transparent" ToolTip="运行状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                    <Border Background="{Binding IsAutoRunMode,Converter={StaticResource TrueColorConverter}}"
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
+                    <TextBlock Text="运行状态" Margin="10,5"/>
+                </Grid>
+                <Grid Margin="5" Background="Transparent" ToolTip="异常状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                    <Border Background="{Binding IsError,Converter={StaticResource TrueColorConverter},ConverterParameter=warn}"
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
+                    <TextBlock Text="异常状态" Margin="10,5"/>
+                </Grid>
+            </StackPanel>
+        </DockPanel>
+        <DockPanel Grid.Row="2">
+            <TextBlock Grid.Row="0" Text="AUTO DOOR" Margin="0,0,0,0" FontSize="16" Opacity="0.6" FontWeight="Bold" DockPanel.Dock="Top"/>
+            <ListBox Height="auto" 
+                ItemContainerStyle="{StaticResource ListBoxItemCommandStyle}" ItemsSource="{Binding AutoDoorCollection}" ItemTemplateSelector="{StaticResource ListBoxTemplateSelector}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Width="400">
+                            <StackPanel>
+                                <DockPanel>
+                                    <TextBlock Text="Name"/>
+                                    <TextBlock Text="{Binding Name}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsPowerSupply"/>
+                                    <TextBlock Text="{Binding IsPowerSupply}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsStandby"/>
+                                    <TextBlock Text="{Binding IsStandby}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsAutoRunMode"/>
+                                    <TextBlock Text="{Binding IsAutoRunMode}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsPowerSupply"/>
+                                    <TextBlock Text="{Binding IsPowerSupply}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsInit"/>
+                                    <TextBlock Text="{Binding IsInit}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsInitFinished"/>
+                                    <TextBlock Text="{Binding IsInitFinished}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="ErrorCode"/>
+                                    <TextBlock Text="{Binding ErrorCode}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsReset"/>
+                                    <TextBlock Text="{Binding IsReset}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="IsEMO"/>
+                                    <TextBlock Text="{Binding IsEMO}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="Status"/>
+                                    <TextBlock Text="{Binding Status}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="CurrentPosition"/>
+                                    <TextBlock Text="{Binding CurrentPosition}" Foreground="DarkBlue"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Margin="0,0,60,0"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
+        </DockPanel>
+        <DockPanel Grid.Row="4">
+            <TextBlock Grid.Row="0" Text="HID" Margin="0,0,0,0" FontSize="16" Opacity="0.6" FontWeight="Bold" DockPanel.Dock="Top"/>
+            <ListBox 
+                ItemContainerStyle="{StaticResource ListBoxItemCommandStyle}" ItemsSource="{Binding HIDCollection}" ItemTemplateSelector="{StaticResource ListBoxTemplateSelector}">
+                <ListBox.Resources>
+                    <DataTemplate x:Key="move">
+                        <Grid>
+                            <Border Height="260" Width="260" HorizontalAlignment="Left" BorderBrush="Gray" BorderThickness="1" Margin="10">
+                                <StackPanel Margin="10">
+                                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" FontFamily="Arial Black" FontSize="20" Margin="0,10,0,10">
+                                        <Run Text="{Binding OHTId}"/>
+                                        <Run Text="("/>
+                                        <Run Text="{Binding Status}"/>
+                                        <Run Text=")"/>
+                                    </TextBlock>
+                                    <TextBox x:Name="tb_from_station" Width="auto" Text="{Binding CurrentTask.FromStation}" ui:ControlHelper.Header="Departure Station" Margin="0,10,0,0" IsReadOnly="True"/>
+                                    <TextBox x:Name="tb_to_station" Width="auto" Text="{Binding CurrentTask.ToStation}" ui:ControlHelper.Header="Arrival Station" Margin="0,10,0,0" IsReadOnly="True"/>
+                                    <UniformGrid Rows="0" Columns="2" Margin="0,10,0,0">
+                                        <ui:AppBarButton Label="Stop" HorizontalAlignment="Left" Margin="0,0,0,0">
+                                            <ui:AppBarButton.Icon>
+                                                <ui:FontIcon Glyph="&#xE15b;" />
+                                            </ui:AppBarButton.Icon>
+                                        </ui:AppBarButton>
+                                        <ui:AppBarButton Label="Start" HorizontalAlignment="Right" Margin="0,0,0,0">
+                                            <ui:AppBarButton.Icon>
+                                                <ui:FontIcon Glyph="&#xE102;" />
+                                            </ui:AppBarButton.Icon>
+                                        </ui:AppBarButton>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                    <DataTemplate x:Key="load">
+                        <Grid>
+                            <Border Height="260" Width="260" HorizontalAlignment="Left" BorderBrush="Gray" BorderThickness="1" Margin="10">
+                                <StackPanel Margin="10">
+                                    <TextBlock VerticalAlignment="Center" FontWeight="Bold" FontFamily="Arial Black" FontSize="20" Margin="0,10,0,10">
+                                        <Run Text="{Binding OHTId}"/>
+                                        <Run Text="("/>
+                                        <Run Text="{Binding Status}"/>
+                                        <Run Text=")"/>
+                                    </TextBlock>
+                                    <TextBox Width="auto" Text="{Binding CurrentTask.IP}" ui:ControlHelper.Header="OHT IP" Margin="0,10,0,0" IsReadOnly="True"/>
+                                    <DockPanel Margin="0,10,0,0">
+                                        <TextBox Width="100" Text="{Binding CurrentTask.Duration}" ui:ControlHelper.Header="Duration" Margin="10,0,0,0" IsReadOnly="True" DockPanel.Dock="Right"/>
+                                        <TextBox Width="auto" Text="{Binding CurrentTask.FromStation}" ui:ControlHelper.Header="Station" Margin="0,0,0,0" IsReadOnly="True"/>
+                                    </DockPanel>
+                                    <UniformGrid Rows="0" Columns="2" Margin="0,10,0,0">
+                                        <ui:AppBarButton Label="Stop" HorizontalAlignment="Left" Margin="0,0,0,0">
+                                            <ui:AppBarButton.Icon>
+                                                <ui:FontIcon Glyph="&#xE15b;" />
+                                            </ui:AppBarButton.Icon>
+                                        </ui:AppBarButton>
+                                        <ui:AppBarButton Label="Start" HorizontalAlignment="Right" Margin="0,0,0,0">
+                                            <ui:AppBarButton.Icon>
+                                                <ui:FontIcon Glyph="&#xE102;" />
+                                            </ui:AppBarButton.Icon>
+                                        </ui:AppBarButton>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.Resources>
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Margin="0,0,60,0"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
+        </DockPanel>
+    </Grid>
+</ui:Page>

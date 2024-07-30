@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using NNanomsg.Protocols;
+using OHTC.Tools.Tools;
 using System.ComponentModel;
 using System.Globalization;
 using System.IO;
@@ -197,7 +198,8 @@ namespace OHTC.Tools.ControlPages
         {
             if (string.IsNullOrEmpty(SelectedDoorName))
                 return;
-            tb_err.Text = SendCommand($"Error>>>door:{SelectedDoorName}");
+            string err = SendCommand($"Error>>>door:{SelectedDoorName}").PadLeft(8, '0');
+            tb_err.Text = ErrText.GetErrText(err);
         }
 
         private void Init_Click(object sender, RoutedEventArgs e)
@@ -557,6 +559,13 @@ namespace OHTC.Tools.ControlPages
             {
                 data_server_address = ipend.Address.ToString();
                 data_server_port = ipend.Port;
+
+                if (string.IsNullOrEmpty(data_server_address))
+                {
+                    var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
+                    var ip = addressList.FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.ToString();
+                    data_server_address = ip;
+                }
             }
 
             if (IPEndPoint.TryParse(lines[1], out IPEndPoint? ipend1))

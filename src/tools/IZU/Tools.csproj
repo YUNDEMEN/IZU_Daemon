@@ -46,6 +46,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="err_text.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ip.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="oht_task.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

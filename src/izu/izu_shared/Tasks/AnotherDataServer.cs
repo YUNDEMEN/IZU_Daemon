@@ -64,7 +64,7 @@ namespace IZU.Tasks
                     currentObject = new() { ["name"] = it.Name };
                     if (it.DeviceType == DeviceTypes.AUTODOOR)
                         currentObject["status"] = DeviceFactory.CheckAuodoorStatus(it) == null ? null : DeviceFactory.CheckAuodoorStatus(it)!.ToString();
-                    var list = from x in it.Variables where x.ActionType.StartsWith('R') select new { k = x.ActionType.ToLower(), v = x.Value };
+                    var list = from x in it.Variables where x.ActionType.StartsWith('R')|| x.ActionType.StartsWith('T') select new { k = x.ActionType.ToLower(), v = x.Value };
                     foreach (var item in list)
                     {
                         currentObject[item.k] = new JValue(item.v);

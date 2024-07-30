@@ -77,7 +77,7 @@ namespace IZU.Base
                 //	throw new RowNotInTableException($"Server IP address missing!");
                 _logger.LogWarning($"server IP address is not found in {name} ({FromFile})! default IP address is 127.0.0.1");
 
-            HeartbeatTimeInterval = item!.RefreshInterval;
+            HeartbeatTimeInterval = item == null ? 1000 : item!.RefreshInterval;
             DeviceType = item == null ? DeviceTypes.NONE : item.DeviceType;
 
             //如果设备的变量都被禁用了，则直接不启用 plc 连接服务

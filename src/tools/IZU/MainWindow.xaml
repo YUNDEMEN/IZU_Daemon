@@ -56,6 +56,11 @@
             </ui:NavigationView.AutoSuggestBox>
 
             <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="OverView" Tag="{x:Type controlpages:IZUOverView}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:FontIcon Glyph="&#xE191;" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
                 <ui:NavigationViewItemHeader Content="Tools" />
                 <ui:NavigationViewItem Content="Auto Door" Tag="{x:Type controlpages:GetDoorInfoView}">
                     <ui:NavigationViewItem.Icon>

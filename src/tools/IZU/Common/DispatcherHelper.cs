@@ -13,14 +13,15 @@ namespace SamplesCommon
 
         public static void RunOnUIThread(this DispatcherObject d, Action action)
         {
-            var dispatcher = d.Dispatcher;
+            Dispatcher? dispatcher = d?.Dispatcher;
+            if (dispatcher == null) return;
             if (dispatcher.CheckAccess())
             {
                 action();
             }
             else
             {
-                dispatcher.BeginInvoke(action);
+                dispatcher.BeginInvoke(DispatcherPriority.Background, action);
             }
         }
     }

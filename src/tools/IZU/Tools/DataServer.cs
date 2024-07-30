@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
 using OHTC.Tools.ControlPages;
+using SamplesCommon;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Windows.Threading;
+using System.Windows;
 
 namespace OHTC.Tools
 {
@@ -82,35 +83,37 @@ namespace OHTC.Tools
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            if (doorOption == null) return;
-            doorOption.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, () =>
+            DispatcherHelper.RunOnUIThread(Application.Current, () =>
             {
-                if (string.IsNullOrWhiteSpace(doorOption.SelectedDoorName))
-                    return;
-
                 try
                 {
                     string data = GB2312.GetString(buffer, (int)offset, (int)size);
                     JObject json = JObject.Parse(data);
-                    if (json["autodoor"] == null)
+                    DevicePool.Instance.Update(json);
+
+                    if (doorOption == null)
+                        return;
+                    if (string.IsNullOrWhiteSpace(doorOption.SelectedDoorName))
                         return;
 
-                    JArray autoDoorNode = (JArray)json["autodoor"]!;
-                    foreach (JObject node in autoDoorNode)
+                    JArray autodoors = (JArray)json["autodoor"]!;
                     {
-                        string doorName = $"{node["name"]}";
-                        if (doorName != doorOption.SelectedDoorName)
-                            continue;
-                        float.TryParse($"{node["r15"]}", out float pos);
-                        doorOption.PositionCurrent = pos;
-                        short.TryParse($"{node["rw02"]}", out short speedJog);
-                        doorOption.SpeedJog = speedJog;
-                        short.TryParse($"{node["rw03"]}", out short speedAuto);
-                        doorOption.SpeedAuto = speedAuto;
-                        short.TryParse($"{node["rw04"]}", out short posOpen);
-                        doorOption.PositionOpened = posOpen;
-                        short.TryParse($"{node["rw05"]}", out short posClose);
-                        doorOption.PositionClosed = posClose;
+                        foreach (JObject node in autodoors)
+                        {
+                            string doorName = $"{node["name"]}";
+                            if (doorName != doorOption.SelectedDoorName)
+                                continue;
+                            float.TryParse($"{node["r15"]}", out float pos);
+                            doorOption.PositionCurrent = pos;
+                            short.TryParse($"{node["rw02"]}", out short speedJog);
+                            doorOption.SpeedJog = speedJog;
+                            short.TryParse($"{node["rw03"]}", out short speedAuto);
+                            doorOption.SpeedAuto = speedAuto;
+                            short.TryParse($"{node["rw04"]}", out short posOpen);
+                            doorOption.PositionOpened = posOpen;
+                            short.TryParse($"{node["rw05"]}", out short posClose);
+                            doorOption.PositionClosed = posClose;
+                        }
                     }
                 }
                 catch (Exception ex)

@@ -36,7 +36,7 @@ namespace OHTC.Tools
 
             if(ControlPages.ConfigSetting.data_server_address != addr.ToString() || ControlPages.ConfigSetting.data_server_port != port)
             {
-                DataServer.Create(IPAddress.Any, ControlPages.ConfigSetting.data_server_port, true);
+                DataServer.Create(addr, ControlPages.ConfigSetting.data_server_port, true);
             }
             ControlPages.ConfigSetting.data_server_address = addr.ToString();
             ControlPages.ConfigSetting.data_server_port = port;

@@ -94,13 +94,13 @@
                 <Grid>
                     <DockPanel>
                         <ComboBox x:Name="cb_izu_addr" Width="300" ui:ControlHelper.Header="IZU IP Address" IsEditable="True"
-                             HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
+                             HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="127.0.0.1:8231"/>
                         <Button Content=" Connect " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="Connect_IZU_Click"/>
                         <Button Content=" State " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="State_Click"/>
                         <TextBlock x:Name="txt_state" Text="--" Margin="10,0,0,6" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="14"/>
                     </DockPanel>
                     <DockPanel HorizontalAlignment="Right">
-                        <TextBox ui:ControlHelper.Header="Error Code" ui:ControlHelper.PlaceholderText="Binary" HorizontalAlignment="Right" Width="200" x:Name="tb_err"/>
+                        <TextBox ui:ControlHelper.Header="Error State" ui:ControlHelper.PlaceholderText="Binary" HorizontalAlignment="Right" Width="200" x:Name="tb_err"/>
                         <Button Content=" Get " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="GetError_Click"/>
                     </DockPanel>
                 </Grid>
