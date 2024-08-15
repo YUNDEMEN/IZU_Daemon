@@ -215,7 +215,8 @@ namespace IZU.Service
                         {
                             // Auto Door 故障报错状态
                             var R09 = list2.FirstOrDefault(p => p.ActionType == "R09")?.Value;
-                            if (R09 == null || ((bool)R09).ToString() == "True") status.error.autodoor.info.Add(new info() { ip = item.ServerIP, address = item.Address, description = item.Description });
+                            if (R09 == null || (UInt16)R09 > 0)
+                                status.error.autodoor.info.Add(new info() { ip = item.ServerIP, address = item.Address, description = item.Description });
                         }
                         break;
                     case DeviceTypes.HID:

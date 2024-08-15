@@ -3,6 +3,7 @@
     public interface IAnotherDataServer
     {
         void Start();
+        void UpdateDoorLock(string name, string oht);
     }
 
 }

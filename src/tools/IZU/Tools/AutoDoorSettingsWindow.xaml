@@ -89,14 +89,14 @@
                     <TextBlock Text="Speed (Auto Mode)" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" Width="150" TextAlignment="Right"/>
                     <TextBox x:Name="tb_speed_auto" ui:ControlHelper.PlaceholderText="1.00" Tag="Max 400 mm/s" Width="95" HorizontalAlignment="Left"/>
                     <TextBox IsReadOnly="True" Text="{Binding SpeedAuto,Mode=OneWay}" Width="95" Margin="10,0,0,0"/>
-                    <TextBlock Text="mm/s (1~400)" FontSize="14" VerticalAlignment="Center"  Margin="10,0,10,0" Width="110"/>
+                    <TextBlock Text="mm/s (1~450)" FontSize="14" VerticalAlignment="Center"  Margin="10,0,10,0" Width="110"/>
                     <Button Content=" Set " DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10,0,0,0" Width="80" Click="SetAutoSpeed"/>
                 </DockPanel>
                 <DockPanel Margin="0,20,0,0">
                     <TextBlock Text="Jog Speed" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" Width="150" TextAlignment="Right"/>
                     <TextBox x:Name="tb_speed_jog" ui:ControlHelper.PlaceholderText="1.00" Tag="Max 100 mm/s" Width="95" HorizontalAlignment="Left"/>
                     <TextBox IsReadOnly="True" Text="{Binding SpeedJog,Mode=OneWay}" Width="95" Margin="10,0,0,0"/>
-                    <TextBlock Text="mm/s (1~400)" FontSize="14" VerticalAlignment="Center"  Margin="10,0,10,0" Width="110"/>
+                    <TextBlock Text="mm/s (1~50)" FontSize="14" VerticalAlignment="Center"  Margin="10,0,10,0" Width="110"/>
                     <Button Content=" Set " DockPanel.Dock="Right" VerticalAlignment="Bottom" Margin="10,0,0,0" Width="80" Click="SetJogSpeed"/>
                 </DockPanel>
                 <DockPanel Margin="0,20,0,0">

@@ -1,8 +1,11 @@
 ﻿using IZU.Base;
 using IZU.Interfaces;
 using Newtonsoft.Json.Linq;
+using System.Collections.Concurrent;
+using System.Net;
 using System.Text;
 using Wonder.Service.Framework;
+using Wonder.Service.Tcp;
 
 namespace IZU.Tasks
 {
@@ -11,7 +14,7 @@ namespace IZU.Tasks
     public class AnotherDataServer : LongRunningTask, IAnotherDataServer
     {
         private readonly IS7NetService _s7NetService;
-        private DataClient? dataClient;
+        private DataServer? dataServer;
 
         public AnotherDataServer(ILogger<AnotherDataServer> logger, IS7NetService s7NetService)
             : base(logger)
@@ -20,28 +23,48 @@ namespace IZU.Tasks
         }
         public override void Start()
         {
-            if (string.IsNullOrEmpty(IZUConfig.RemoteDataServerIP))
-                return;
-
             ExecutionDelay = IZUConfig.IntervalDataSend;
-            if (dataClient != null)
+            if (!IPAddress.TryParse(IZUConfig.ServerIP, out IPAddress ipAddress))
             {
-                dataClient.DisconnectAndStop();
+                _logger.LogWarning($"[data server] ip address is incorrect, {IZUConfig.ServerIP}");
+                return;
             }
-            dataClient = new DataClient(IZUConfig.RemoteDataServerIP, IZUConfig.PortDataSend);
-            dataClient.ConnectAsync();
+            dataServer = new DataServer(ipAddress, IZUConfig.PortDataSend);
+            dataServer.OnSessionCreated += DataServer_OnSessionCreated;
+            string error = string.Empty;
+            try
+            {
+                dataServer.Start();
+                _logger.LogInformation($"[data server] listening on {ipAddress}:{IZUConfig.PortDataSend}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+
             base.Start();
         }
+        List<DataSession> DataSessions = new List<DataSession>();
+        private void DataServer_OnSessionCreated(object? sender, DataSession e)
+        {
+            DataSessions.Add(e);
+        }
+
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             lastExecuteTime = DateTime.Now.ToString();
-            if (dataClient.IsConnected)
+            foreach (var item in DataSessions)
             {
-                dataClient.SendAsync(Encoding.GetEncoding("GB2312").GetBytes(WsPublishDevices().ToString()));
-                await Task.CompletedTask;
+                item.SendAsync(Encoding.GetEncoding("GB2312").GetBytes(WsPublishDevices().ToString()));
             }
+            await Task.CompletedTask;
         }
+        ConcurrentDictionary<string,string> doorLocks = new ConcurrentDictionary<string,string>();
 
+        public void UpdateDoorLock(string name,string oht)
+        {
+            doorLocks[name] = oht;
+        }
         public JObject WsPublishDevices()
         {
             JObject root = new();
@@ -62,8 +85,26 @@ namespace IZU.Tasks
                         root[it.DeviceType.ToString().ToLower()] = currentArray;
                     }
                     currentObject = new() { ["name"] = it.Name };
-                    if (it.DeviceType == DeviceTypes.AUTODOOR)
-                        currentObject["status"] = DeviceFactory.CheckAuodoorStatus(it) == null ? null : DeviceFactory.CheckAuodoorStatus(it)!.ToString();
+                    currentObject["connection"] = it.Server.ConnectionStatus;
+                    switch (it.DeviceType)
+                    {
+                        case DeviceTypes.NONE:
+                            break;
+                        case DeviceTypes.IZU:
+                            currentObject["id"] = IZUConfig.izuId;
+                            break;
+                        case DeviceTypes.HID:
+                            break;
+                        case DeviceTypes.AUTODOOR:
+                            doorLocks.TryGetValue(it.Name, out string oht);
+                            currentObject["oht"] = oht;
+                            currentObject["status"] = DeviceFactory.CheckAuodoorStatus(it) == null ? null : DeviceFactory.CheckAuodoorStatus(it)!.ToString();
+                            break;
+                        case DeviceTypes.FIREDOOR:
+                            break;
+                        default:
+                            break;
+                    }
                     var list = from x in it.Variables where x.ActionType.StartsWith('R')|| x.ActionType.StartsWith('T') select new { k = x.ActionType.ToLower(), v = x.Value };
                     foreach (var item in list)
                     {

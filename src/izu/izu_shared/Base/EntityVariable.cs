@@ -60,10 +60,10 @@
              如果变更则保存变更信息到数据存储 
              每次重启服务都会记录一次变更信息
              */
-            if (ActionType != "R01")
+            if (ActionType != "R01" || ActionType != "R15")
             {
-                //string header =                                     "设备名称,       设备类型,        地址,           操作              旧值,         新值,           变量类型,          描述,                记录时间";
-                TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{FunctionType},{oldValue},{newValue},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                //string header =                    "设备名称,       设备类型,    地址,         RW,       旧值,       新值,       变量类型,      描述,            记录时间";
+                TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{FunctionType},{oldValue},{newValue},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss:fff}");
             }
             LastRefreshTime = DateTime.Now;
         }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using ControlzEx.Standard;
+using Newtonsoft.Json.Linq;
 using NNanomsg.Protocols;
 using OHTC.Tools.Tools;
 using System.ComponentModel;
@@ -27,11 +28,6 @@ namespace OHTC.Tools.ControlPages
         void JogOpenEnd();
         void JogCloseStart();
         void JogCloseEnd();
-        short PositionOpened { get; set; }
-        short PositionClosed { get; set; }
-        float PositionCurrent { get; set; }
-        short SpeedAuto { get; set; }
-        short SpeedJog { get; set; }
         string SelectedDoorName { get; }
     }
     public partial class GetDoorInfoView : INotifyPropertyChanged, IAutoDoorOption
@@ -41,34 +37,13 @@ namespace OHTC.Tools.ControlPages
         {
             PropertyChanged!(this, new PropertyChangedEventArgs(propName));
         }
-        #region Properties
-
-        private short positionOpened;
-        public short PositionOpened { get { return positionOpened; } set { positionOpened = value; FirePropertyChanged("PositionOpened"); } }
-
-        private short positionClosed;
-        public short PositionClosed { get { return positionClosed; } set { positionClosed = value; FirePropertyChanged("PositionClosed"); } }
-
-        private float positionCurrent;
-        public float PositionCurrent { get { return positionCurrent; } set { positionCurrent = value; FirePropertyChanged("PositionCurrent"); } }
-
-        private short speedAuto;
-        public short SpeedAuto { get { return speedAuto; } set { speedAuto = value; FirePropertyChanged("SpeedAuto"); } }
-
-        private short speedJog;
-        public short SpeedJog { get { return speedJog; } set { speedJog = value; FirePropertyChanged("SpeedJog"); } }
-
         public string SelectedDoorName { get { return $"{cb_device.SelectedItem}"; } }
 
         public Dispatcher CurrentDispatcher { get { return Dispatcher; } }
-
-        #endregion
         public GetDoorInfoView()
         {
             InitializeComponent();
             Loaded += GetDoorInfoView_Loaded;
-
-            DataServer.Instance.SetOptions(this);
         }
 
 
@@ -133,11 +108,7 @@ namespace OHTC.Tools.ControlPages
 
         void LogResult(string tag, string resultText)
         {
-            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, () =>
-            {
-
-                lb.Items.Insert(0, $"{lb.Items.Count + 1}.  [{tag}] {resultText}");
-            });
+            Logger.Instance.WriteLine(tag, resultText);
         }
 
         private void Get_Click(object sender, RoutedEventArgs e)
@@ -180,6 +151,7 @@ namespace OHTC.Tools.ControlPages
         }
         private void SendOpen_Click(object sender, RoutedEventArgs e)
         {
+            LogResult("OHT OPEN", $"{ConfigSetting.IZU} {bt_send_open.Tag}");
             SendCommand(bt_send_open.Tag.ToString().Trim(), ConfigSetting.IZU.ToString());
         }
         private void SendClose_Click(object sender, RoutedEventArgs e)
@@ -191,8 +163,6 @@ namespace OHTC.Tools.ControlPages
             string result = SendCommand("Info>>>");
             string[] devices = result.Split(',');
             cb_device.ItemsSource = devices;
-
-            _ = SendCommand($"Online>>>ip:{ConfigSetting.data_server_address};port:{ConfigSetting.data_server_port}");
         }
         private void GetError_Click(object sender, RoutedEventArgs e)
         {
@@ -235,16 +205,22 @@ namespace OHTC.Tools.ControlPages
         }
         private void State_Click(object sender, RoutedEventArgs e)
         {
-            string state = SendCommand($"State>>>door:{SelectedDoorName}");
-            txt_state.Text = $"{SelectedDoorName}={state}";
+            string state = SendCommand($"State>>>All");
+            txt_state.Text = $"{state}";
         }
 
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
+            if (!IPEndPoint.TryParse($"{cb_izu_addr.Text}", out var ipend))
+            {
+                LogResult("IZU Server", "IP Address and Port is incorrect");
+                return;
+            }
+
             AutoDoorSettingsWindow wind = new();
             wind.Title = $"{wind.Title} - {SelectedDoorName}";
             wind.Owner = Application.Current.MainWindow;
-            wind.SetOption(this);
+            wind.SetOption(this, ipend.Address.ToString());
             wind.Show();
         }
         private void Delay_Click(object sender, RoutedEventArgs e)
@@ -360,7 +336,7 @@ namespace OHTC.Tools.ControlPages
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            using (TcpClient client = new TcpClient("192.168.127.153", 12346))
+            using (System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient("192.168.127.153", 12346))
             {
                 var stream = client.GetStream();
 
@@ -468,6 +444,7 @@ namespace OHTC.Tools.ControlPages
     }
     public static class ConfigSetting
     {
+        public static event EventHandler ConfigUpdated = delegate { };
         /// <summary>
         /// 本机数据服务IP地址
         /// 不能为localhost 或者 127.0.0.1
@@ -544,9 +521,10 @@ namespace OHTC.Tools.ControlPages
         public static void Save()
         {
             StringBuilder text = new StringBuilder();
-            text.AppendLine($"{data_server_address}:{data_server_port}");
+            text.AppendLine($"127.0.0.1:{data_server_port}");
             text.AppendLine($"{izu_backend}:{izu_backend_port}");
             System.IO.File.WriteAllText("ip.config", text.ToString());
+            ConfigUpdated("", null);
         }
 
         public static void Load()
@@ -557,15 +535,14 @@ namespace OHTC.Tools.ControlPages
 
             if (IPEndPoint.TryParse(lines[0], out IPEndPoint? ipend))
             {
-                data_server_address = ipend.Address.ToString();
                 data_server_port = ipend.Port;
 
-                if (string.IsNullOrEmpty(data_server_address))
-                {
-                    var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
-                    var ip = addressList.FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.ToString();
-                    data_server_address = ip;
-                }
+                //if (string.IsNullOrEmpty(data_server_address))
+                //{
+                //    var addressList = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
+                //    var ip = addressList.FirstOrDefault(address => address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.ToString();
+                //    data_server_address = ip;
+                //}
             }
 
             if (IPEndPoint.TryParse(lines[1], out IPEndPoint? ipend1))

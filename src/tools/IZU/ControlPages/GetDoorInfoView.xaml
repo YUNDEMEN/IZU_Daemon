@@ -8,6 +8,7 @@
     xmlns:sc="clr-namespace:SamplesCommon"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    Margin="10,36,10,10"
     mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1000"
     Foreground="{DynamicResource SystemControlPageTextBaseHighBrush}">
     <Page.Resources>
@@ -46,13 +47,11 @@
         </ui:Flyout>
     </Page.Resources>
 
-    <Grid Margin="10">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="80"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid TextElement.FontSize="16" Margin="0">
             <Grid.RowDefinitions>
@@ -72,7 +71,10 @@
                     <Button Content="Get" Width="80" Click="Get_Click" DockPanel.Dock="Right" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
                     <TextBox x:Name="tb_point" ui:ControlHelper.Header="Point" Margin="0,0,0,0"/>
                 </DockPanel>
-                <Button Content="CycleLoad/Unload" Click="Button_Click" />
+                <DockPanel>
+                    <Button Content=" State " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="State_Click"/>
+                    <TextBlock x:Name="txt_state" Text="--" Margin="10,0,0,6" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="14"/>
+                </DockPanel>
             </ui:SimpleStackPanel>
         </Grid>
         <Border Grid.Row="1" Height="1" VerticalAlignment="Center">
@@ -96,8 +98,6 @@
                         <ComboBox x:Name="cb_izu_addr" Width="300" ui:ControlHelper.Header="IZU IP Address" IsEditable="True"
                              HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="127.0.0.1:8231"/>
                         <Button Content=" Connect " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="Connect_IZU_Click"/>
-                        <Button Content=" State " VerticalAlignment="Bottom" Margin="10,0,0,0" Click="State_Click"/>
-                        <TextBlock x:Name="txt_state" Text="--" Margin="10,0,0,6" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="14"/>
                     </DockPanel>
                     <DockPanel HorizontalAlignment="Right">
                         <TextBox ui:ControlHelper.Header="Error State" ui:ControlHelper.PlaceholderText="Binary" HorizontalAlignment="Right" Width="200" x:Name="tb_err"/>
@@ -111,9 +111,9 @@
                         <Button Content=" Close " VerticalAlignment="Bottom" Click="Close_Click" Margin="30,0,0,1"/>
                     </DockPanel>
                     <DockPanel HorizontalAlignment="Right">
-                        <ui:AppBarButton Label="Init" HorizontalAlignment="Right" Click="Init_Click">
+                        <ui:AppBarButton Label="Stop" HorizontalAlignment="Right" Click="Stop_Click" Margin="10,0,0,0">
                             <ui:AppBarButton.Icon>
-                                <ui:FontIcon Glyph="&#xE117;" />
+                                <ui:FontIcon Glyph="&#xE17A;" />
                             </ui:AppBarButton.Icon>
                         </ui:AppBarButton>
                         <ui:AppBarButton Label="Reset" HorizontalAlignment="Right" Click="Reset_Click" Margin="10,0,0,0">
@@ -121,9 +121,9 @@
                                 <ui:FontIcon Glyph="&#xE1CA;" />
                             </ui:AppBarButton.Icon>
                         </ui:AppBarButton>
-                        <ui:AppBarButton Label="Stop" HorizontalAlignment="Right" Click="Stop_Click" Margin="10,0,0,0">
+                        <ui:AppBarButton Label="Init" HorizontalAlignment="Right" Click="Init_Click">
                             <ui:AppBarButton.Icon>
-                                <ui:FontIcon Glyph="&#xE17A;" />
+                                <ui:FontIcon Glyph="&#xE117;" />
                             </ui:AppBarButton.Icon>
                         </ui:AppBarButton>
                         <ui:AppBarButton Label="Settings" HorizontalAlignment="Right" Click="Settings_Click" Margin="10,0,0,0">
@@ -136,18 +136,5 @@
                 
             </ui:SimpleStackPanel>
         </Grid>
-        <DockPanel Grid.Row="4" Grid.ColumnSpan="3" Margin="0,0,0,0">
-            <ListBox x:Name="lb" ItemContainerStyle="{StaticResource ListBoxItemCommandStyle}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Border Height="30" TextElement.FontSize="14" CornerRadius="2">
-                            <Grid>
-                                <TextBlock Grid.Column="1" Text="{Binding}" HorizontalAlignment="Left" VerticalAlignment="Center" FontFamily="Verdana"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </DockPanel>
     </Grid>
 </ui:Page>

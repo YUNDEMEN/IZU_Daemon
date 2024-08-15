@@ -10,7 +10,7 @@
         xmlns:controlpages="clr-namespace:OHTC.Tools.ControlPages"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="IZU Tools  [ v1.1 ]" 
+        Title="IZU Tools  [ v1.2 ]" 
         Height="800" 
         Width="1200">
     <Window.Resources>
@@ -20,8 +20,12 @@
         </DataTemplate>
     </Window.Resources>
     <Grid Margin="0">
-        <Grid
-            x:Name="AppTitleBar"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto" MinHeight="38" MaxHeight="300"/>
+        </Grid.RowDefinitions>
+        <Grid x:Name="AppTitleBar"
             VerticalAlignment="Top"
             Height="{Binding ElementName=NavView, Path=CompactPaneLength}"
             Canvas.ZIndex="1"
@@ -30,21 +34,22 @@
                 <ColumnDefinition />
                 <ColumnDefinition Width="Auto" MinWidth="{Binding ElementName=Window, Path=(ui:TitleBar.SystemOverlayRightInset)}" />
             </Grid.ColumnDefinitions>
-            <TextBlock
+            <Grid>
+                <TextBlock
                 x:Name="AppTitle"
                 Text="{Binding ElementName=Window, Path=Title}"
                 VerticalAlignment="Center"
-                Style="{DynamicResource CaptionTextBlockStyle}" />
+                Style="{DynamicResource CaptionTextBlockStyle}" Background="Transparent" HorizontalAlignment="Left"/>
+            </Grid>
         </Grid>
+        <!--AlwaysShowHeader="True" Header="{Binding SelectedItem.Content, RelativeSource={RelativeSource Self}, FallbackValue=' '}"-->
         <ui:NavigationView
-            x:Name="NavView"
-            AlwaysShowHeader="True"
-            Header="{Binding SelectedItem.Content, RelativeSource={RelativeSource Self}, FallbackValue=' '}"
+            x:Name="NavView"            
             HeaderTemplate="{StaticResource NavigationViewHeaderTemplate}"
             IsBackButtonVisible="Visible"
             IsTitleBarAutoPaddingEnabled="False"
             IsPaneOpen="True"
-            OpenPaneLength="240"
+            OpenPaneLength="240" IsSettingsVisible="False"
             IsBackEnabled="{Binding ElementName=ContentFrame, Path=CanGoBack}"
             BackRequested="NavView_BackRequested"
             ItemInvoked="NavView_ItemInvoked"
@@ -56,20 +61,39 @@
             </ui:NavigationView.AutoSuggestBox>
 
             <ui:NavigationView.MenuItems>
-                <ui:NavigationViewItem Content="OverView" Tag="{x:Type controlpages:IZUOverView}">
-                    <ui:NavigationViewItem.Icon>
-                        <ui:FontIcon Glyph="&#xE191;" />
-                    </ui:NavigationViewItem.Icon>
-                </ui:NavigationViewItem>
+                <DockPanel Margin="-16,0,0,0">
+                    <ui:NavigationViewItemHeader Content="OverView" x:Name="menuOverView"/>
+                    <ui:FontIcon Glyph="&#xE109;" HorizontalAlignment="Right" Width="40" MouseLeftButtonDown="FontIcon_MouseLeftButtonDown"/>
+                </DockPanel>
                 <ui:NavigationViewItemHeader Content="Tools" />
                 <ui:NavigationViewItem Content="Auto Door" Tag="{x:Type controlpages:GetDoorInfoView}">
                     <ui:NavigationViewItem.Icon>
-                        <ui:FontIcon Glyph="&#xE127;" />
+                        <ui:FontIcon Glyph="&#xE19C;"/>
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem Content="Settings" Tag="{x:Type local:SettingsPage}">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:FontIcon Glyph="&#xE115;" />
                     </ui:NavigationViewItem.Icon>
                 </ui:NavigationViewItem>
             </ui:NavigationView.MenuItems>
 
             <ui:Frame x:Name="ContentFrame" Navigated="ContentFrame_Navigated" />
         </ui:NavigationView>
+
+        <GridSplitter Height="2" Margin="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+        <Grid Grid.Row="2">
+            <ListBox x:Name="lb" ItemContainerStyle="{StaticResource ListBoxItemCommandStyle}" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Height="30" TextElement.FontSize="14" CornerRadius="2">
+                            <Grid>
+                                <TextBlock Text="{Binding}" HorizontalAlignment="Left" VerticalAlignment="Center" FontFamily="Verdana"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
     </Grid>
 </Window>

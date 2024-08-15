@@ -10,111 +10,52 @@ using System.Windows;
 
 namespace OHTC.Tools
 {
-    class DataServer : TcpServer
-    {
-        public static DataServer Instance { get; set; }
-        public event EventHandler<DataSession> OnSessionCreated = delegate { };
-        public DataServer(IPAddress address, int port) : base(address, port)
-        {
-        }
-
-        public static DataServer Create(IPAddress address, int port, bool forceCreate = false)
-        {
-            if (forceCreate || Instance == null)
-            {
-                Instance = new DataServer(address, port);
-                string error = string.Empty;
-                Instance.Start(ref error);
-            }
-            return Instance;
-        }
-
-        IAutoDoorOption option;
-        public void SetOptions(IAutoDoorOption option)
-        {
-            this.option = option;
-        }
-
-        protected override TcpSession CreateSession()
-        {
-            DataSession session = new(this);
-            session.SetOption(option);
-            OnSessionCreated(this, session);
-            return session;
-        }
-
-        protected override void OnError(SocketError error)
-        {
-            Console.WriteLine($"data server caught an error with code {error}");
-        }
-
-        public List<TcpSession> GetSessions()
-        {
-            return Sessions.Values.ToList();
-        }
-    }
-
-    class DataSession : TcpSession
+    internal class DataClient : OHTC.Tools.TcpClient
     {
         private readonly System.Text.Encoding GB2312 = System.Text.Encoding.GetEncoding("GB2312");
-        private IAutoDoorOption doorOption;
-        public DataSession(TcpServer server) : base(server)
+        internal DataClient(string address, int port) :
+            base(address, port)
         {
         }
 
-        public void SetOption(IAutoDoorOption doorOption)
+        public void DisconnectAndStop()
         {
-            this.doorOption = doorOption;
+            _stop = true;
+            DisconnectAsync();
+            while (IsConnected)
+                Thread.Yield();
         }
 
         protected override void OnConnected()
         {
-            Console.WriteLine($"data session with Id {Id} connected!");
-
-            // Send invite message
-            string message = $"Greetings from server, id={Id}";
-            SendAsync(message);
+            Console.WriteLine($"data client connected a new session with Id {Id} {Address}");            
         }
 
         protected override void OnDisconnected()
         {
-            Console.WriteLine($"data session with Id {Id} disconnected!");
+            //Console.WriteLine($"data client disconnected a session with Id {Id}");
+
+            _ = Task.Factory.StartNew(async () =>
+            {
+                await Task.Delay(1000);
+                if (!_stop)
+                    ConnectAsync();
+            });
+
         }
 
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
+            Console.WriteLine(Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
+
             DispatcherHelper.RunOnUIThread(Application.Current, () =>
             {
                 try
                 {
                     string data = GB2312.GetString(buffer, (int)offset, (int)size);
                     JObject json = JObject.Parse(data);
-                    DevicePool.Instance.Update(json);
-
-                    if (doorOption == null)
-                        return;
-                    if (string.IsNullOrWhiteSpace(doorOption.SelectedDoorName))
-                        return;
-
-                    JArray autodoors = (JArray)json["autodoor"]!;
-                    {
-                        foreach (JObject node in autodoors)
-                        {
-                            string doorName = $"{node["name"]}";
-                            if (doorName != doorOption.SelectedDoorName)
-                                continue;
-                            float.TryParse($"{node["r15"]}", out float pos);
-                            doorOption.PositionCurrent = pos;
-                            short.TryParse($"{node["rw02"]}", out short speedJog);
-                            doorOption.SpeedJog = speedJog;
-                            short.TryParse($"{node["rw03"]}", out short speedAuto);
-                            doorOption.SpeedAuto = speedAuto;
-                            short.TryParse($"{node["rw04"]}", out short posOpen);
-                            doorOption.PositionOpened = posOpen;
-                            short.TryParse($"{node["rw05"]}", out short posClose);
-                            doorOption.PositionClosed = posClose;
-                        }
-                    }
+                    DevicePool pool = DevicePool.Connect(Address);
+                    pool.Update(json);
                 }
                 catch (Exception ex)
                 {
@@ -123,52 +64,50 @@ namespace OHTC.Tools
             });
         }
 
-
         protected override void OnError(SocketError error)
         {
-            Console.WriteLine($"data session caught an error with code {error}");
+            Console.WriteLine($"data client caught an error with code {error}");
         }
+
+        private bool _stop;
     }
 
 
-
-
-
     /// <summary>
-    /// TCP server is used to connect, disconnect and manage TCP sessions
+    /// TCP client is used to read/write data from/into the connected TCP server
     /// </summary>
     /// <remarks>Thread-safe</remarks>
-    public class TcpServer : IDisposable
+    public class TcpClient : IDisposable
     {
         /// <summary>
-        /// Initialize TCP server with a given IP address and port number
+        /// Initialize TCP client with a given server IP address and port number
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpServer(IPAddress address, int port) : this(new IPEndPoint(address, port)) { }
+        public TcpClient(IPAddress address, int port) : this(new IPEndPoint(address, port)) { }
         /// <summary>
-        /// Initialize TCP server with a given IP address and port number
+        /// Initialize TCP client with a given server IP address and port number
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpServer(string address, int port) : this(new IPEndPoint(IPAddress.Parse(address), port)) { }
+        public TcpClient(string address, int port) : this(new IPEndPoint(IPAddress.Parse(address), port)) { }
         /// <summary>
-        /// Initialize TCP server with a given DNS endpoint
+        /// Initialize TCP client with a given DNS endpoint
         /// </summary>
         /// <param name="endpoint">DNS endpoint</param>
-        public TcpServer(DnsEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Host, endpoint.Port) { }
+        public TcpClient(DnsEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Host, endpoint.Port) { }
         /// <summary>
-        /// Initialize TCP server with a given IP endpoint
+        /// Initialize TCP client with a given IP endpoint
         /// </summary>
         /// <param name="endpoint">IP endpoint</param>
-        public TcpServer(IPEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port) { }
+        public TcpClient(IPEndPoint endpoint) : this(endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port) { }
         /// <summary>
-        /// Initialize TCP server with a given endpoint, address and port
+        /// Initialize TCP client with a given endpoint, address and port
         /// </summary>
         /// <param name="endpoint">Endpoint</param>
         /// <param name="address">Server address</param>
         /// <param name="port">Server port</param>
-        private TcpServer(EndPoint endpoint, string address, int port)
+        private TcpClient(EndPoint endpoint, string address, int port)
         {
             Id = Guid.NewGuid();
             Address = address;
@@ -177,7 +116,7 @@ namespace OHTC.Tools
         }
 
         /// <summary>
-        /// Server Id
+        /// Client Id
         /// </summary>
         public Guid Id { get; }
 
@@ -193,31 +132,28 @@ namespace OHTC.Tools
         /// Endpoint
         /// </summary>
         public EndPoint Endpoint { get; private set; }
+        /// <summary>
+        /// Socket
+        /// </summary>
+        public Socket Socket { get; private set; }
 
         /// <summary>
-        /// Number of sessions connected to the server
+        /// Number of bytes pending sent by the client
         /// </summary>
-        public long ConnectedSessions { get { return Sessions.Count; } }
+        public long BytesPending { get; private set; }
         /// <summary>
-        /// Number of bytes pending sent by the server
+        /// Number of bytes sending by the client
         /// </summary>
-        public long BytesPending { get { return _bytesPending; } }
+        public long BytesSending { get; private set; }
         /// <summary>
-        /// Number of bytes sent by the server
+        /// Number of bytes sent by the client
         /// </summary>
-        public long BytesSent { get { return _bytesSent; } }
+        public long BytesSent { get; private set; }
         /// <summary>
-        /// Number of bytes received by the server
+        /// Number of bytes received by the client
         /// </summary>
-        public long BytesReceived { get { return _bytesReceived; } }
+        public long BytesReceived { get; private set; }
 
-        /// <summary>
-        /// Option: acceptor backlog size
-        /// </summary>
-        /// <remarks>
-        /// This option will set the listening socket's backlog size
-        /// </remarks>
-        public int OptionAcceptorBacklog { get; set; } = 1024;
         /// <summary>
         /// Option: dual mode socket
         /// </summary>
@@ -262,541 +198,6 @@ namespace OHTC.Tools
         /// </remarks>
         public bool OptionNoDelay { get; set; }
         /// <summary>
-        /// Option: reuse address
-        /// </summary>
-        /// <remarks>
-        /// This option will enable/disable SO_REUSEADDR if the OS support this feature
-        /// </remarks>
-        public bool OptionReuseAddress { get; set; }
-        /// <summary>
-        /// Option: enables a socket to be bound for exclusive access
-        /// </summary>
-        /// <remarks>
-        /// This option will enable/disable SO_EXCLUSIVEADDRUSE if the OS support this feature
-        /// </remarks>
-        public bool OptionExclusiveAddressUse { get; set; }
-        /// <summary>
-        /// Option: receive buffer size
-        /// </summary>
-        public int OptionReceiveBufferSize { get; set; } = 8192;
-        /// <summary>
-        /// Option: send buffer size
-        /// </summary>
-        public int OptionSendBufferSize { get; set; } = 8192;
-
-        #region Start/Stop server
-
-        // Server acceptor
-        private Socket _acceptorSocket;
-        private SocketAsyncEventArgs _acceptorEventArg;
-
-        // Server statistic
-        internal long _bytesPending;
-        internal long _bytesSent;
-        internal long _bytesReceived;
-
-        /// <summary>
-        /// Is the server started?
-        /// </summary>
-        public bool IsStarted { get; private set; }
-        /// <summary>
-        /// Is the server accepting new clients?
-        /// </summary>
-        public bool IsAccepting { get; private set; }
-
-        /// <summary>
-        /// Create a new socket object
-        /// </summary>
-        /// <remarks>
-        /// Method may be override if you need to prepare some specific socket object in your implementation.
-        /// </remarks>
-        /// <returns>Socket object</returns>
-        protected virtual Socket CreateSocket()
-        {
-            return new Socket(Endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-        }
-
-        /// <summary>
-        /// Start the server
-        /// </summary>
-        /// <returns>'true' if the server was successfully started, 'false' if the server failed to start</returns>
-        public virtual bool Start(ref string error)
-        {
-            try
-            {
-                Debug.Assert(!IsStarted, "TCP server is already started!");
-                if (IsStarted)
-                    return false;
-
-                // Setup acceptor event arg
-                _acceptorEventArg = new SocketAsyncEventArgs();
-                _acceptorEventArg.Completed += OnAsyncCompleted;
-
-                // Create a new acceptor socket
-                _acceptorSocket = CreateSocket();
-
-                // Update the acceptor socket disposed flag
-                IsSocketDisposed = false;
-
-                // Apply the option: reuse address
-                _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, OptionReuseAddress);
-                // Apply the option: exclusive address use
-                _acceptorSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, OptionExclusiveAddressUse);
-                // Apply the option: dual mode (this option must be applied before listening)
-                if (_acceptorSocket.AddressFamily == AddressFamily.InterNetworkV6)
-                    _acceptorSocket.DualMode = OptionDualMode;
-
-                // Bind the acceptor socket to the endpoint
-                _acceptorSocket.Bind(Endpoint);
-                // Refresh the endpoint property based on the actual endpoint created
-                Endpoint = _acceptorSocket.LocalEndPoint;
-
-                // Call the server starting handler
-                OnStarting();
-
-                // Start listen to the acceptor socket with the given accepting backlog size
-                _acceptorSocket.Listen(OptionAcceptorBacklog);
-
-                // Reset statistic
-                _bytesPending = 0;
-                _bytesSent = 0;
-                _bytesReceived = 0;
-
-                // Update the started flag
-                IsStarted = true;
-
-                // Call the server started handler
-                OnStarted();
-
-                // Perform the first server accept
-                IsAccepting = true;
-                StartAccept(_acceptorEventArg);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Stop the server
-        /// </summary>
-        /// <returns>'true' if the server was successfully stopped, 'false' if the server is already stopped</returns>
-        public virtual bool Stop()
-        {
-            Debug.Assert(IsStarted, "TCP server is not started!");
-            if (!IsStarted)
-                return false;
-
-            // Stop accepting new clients
-            IsAccepting = false;
-
-            // Reset acceptor event arg
-            _acceptorEventArg.Completed -= OnAsyncCompleted;
-
-            // Call the server stopping handler
-            OnStopping();
-
-            try
-            {
-                // Close the acceptor socket
-                _acceptorSocket.Close();
-
-                // Dispose the acceptor socket
-                _acceptorSocket.Dispose();
-
-                // Dispose event arguments
-                _acceptorEventArg.Dispose();
-
-                // Update the acceptor socket disposed flag
-                IsSocketDisposed = true;
-            }
-            catch (ObjectDisposedException) { }
-
-            // Disconnect all sessions
-            DisconnectAll();
-
-            // Update the started flag
-            IsStarted = false;
-
-            // Call the server stopped handler
-            OnStopped();
-
-            return true;
-        }
-
-        /// <summary>
-        /// Restart the server
-        /// </summary>
-        /// <returns>'true' if the server was successfully restarted, 'false' if the server failed to restart</returns>
-        public virtual bool Restart()
-        {
-            if (!Stop())
-                return false;
-
-            while (IsStarted)
-                Thread.Yield();
-            string error = string.Empty;
-            return Start(ref error);
-        }
-
-        #endregion
-
-        #region Accepting clients
-
-        /// <summary>
-        /// Start accept a new client connection
-        /// </summary>
-        private void StartAccept(SocketAsyncEventArgs e)
-        {
-            // Socket must be cleared since the context object is being reused
-            e.AcceptSocket = null;
-
-            // Async accept a new client connection
-            if (!_acceptorSocket.AcceptAsync(e))
-                ProcessAccept(e);
-        }
-
-        /// <summary>
-        /// Process accepted client connection
-        /// </summary>
-        private void ProcessAccept(SocketAsyncEventArgs e)
-        {
-            if (e.SocketError == SocketError.Success)
-            {
-                // Create a new session to register
-                var session = CreateSession();
-
-                // Register the session
-                RegisterSession(session);
-
-                // Connect new session
-                session.Connect(e.AcceptSocket);
-            }
-            else
-                SendError(e.SocketError);
-
-            // Accept the next client connection
-            if (IsAccepting)
-                StartAccept(e);
-        }
-
-        /// <summary>
-        /// This method is the callback method associated with Socket.AcceptAsync()
-        /// operations and is invoked when an accept operation is complete
-        /// </summary>
-        private void OnAsyncCompleted(object sender, SocketAsyncEventArgs e)
-        {
-            if (IsSocketDisposed)
-                return;
-
-            ProcessAccept(e);
-        }
-
-        #endregion
-
-        #region Session factory
-
-        /// <summary>
-        /// Create TCP session factory method
-        /// </summary>
-        /// <returns>TCP session</returns>
-        protected virtual TcpSession CreateSession() { return new TcpSession(this); }
-
-        #endregion
-
-        #region Session management
-
-        /// <summary>
-        /// Server sessions
-        /// </summary>
-        protected readonly ConcurrentDictionary<Guid, TcpSession> Sessions = new ConcurrentDictionary<Guid, TcpSession>();
-
-        /// <summary>
-        /// Disconnect all connected sessions
-        /// </summary>
-        /// <returns>'true' if all sessions were successfully disconnected, 'false' if the server is not started</returns>
-        public virtual bool DisconnectAll()
-        {
-            if (!IsStarted)
-                return false;
-
-            // Disconnect all sessions
-            foreach (var session in Sessions.Values)
-                session.Disconnect();
-
-            return true;
-        }
-
-        /// <summary>
-        /// Find a session with a given Id
-        /// </summary>
-        /// <param name="id">Session Id</param>
-        /// <returns>Session with a given Id or null if the session it not connected</returns>
-        public TcpSession FindSession(Guid id)
-        {
-            // Try to find the required session
-            return Sessions.TryGetValue(id, out TcpSession result) ? result : null;
-        }
-
-        /// <summary>
-        /// Register a new session
-        /// </summary>
-        /// <param name="session">Session to register</param>
-        internal void RegisterSession(TcpSession session)
-        {
-            // Register a new session
-            Sessions.TryAdd(session.Id, session);
-        }
-
-        /// <summary>
-        /// Unregister session by Id
-        /// </summary>
-        /// <param name="id">Session Id</param>
-        internal void UnregisterSession(Guid id)
-        {
-            // Unregister session by Id
-            Sessions.TryRemove(id, out TcpSession _);
-        }
-
-        #endregion
-
-        #region Multicasting
-
-        /// <summary>
-        /// Multicast data to all connected sessions
-        /// </summary>
-        /// <param name="buffer">Buffer to multicast</param>
-        /// <returns>'true' if the data was successfully multicasted, 'false' if the data was not multicasted</returns>
-        public virtual bool Multicast(byte[] buffer) => Multicast(buffer.AsSpan());
-
-        /// <summary>
-        /// Multicast data to all connected clients
-        /// </summary>
-        /// <param name="buffer">Buffer to multicast</param>
-        /// <param name="offset">Buffer offset</param>
-        /// <param name="size">Buffer size</param>
-        /// <returns>'true' if the data was successfully multicasted, 'false' if the data was not multicasted</returns>
-        public virtual bool Multicast(byte[] buffer, long offset, long size) => Multicast(buffer.AsSpan((int)offset, (int)size));
-
-        /// <summary>
-        /// Multicast data to all connected clients
-        /// </summary>
-        /// <param name="buffer">Buffer to send as a span of bytes</param>
-        /// <returns>'true' if the data was successfully multicasted, 'false' if the data was not multicasted</returns>
-        public virtual bool Multicast(ReadOnlySpan<byte> buffer)
-        {
-            if (!IsStarted)
-                return false;
-
-            if (buffer.IsEmpty)
-                return true;
-
-            // Multicast data to all sessions
-            foreach (var session in Sessions.Values)
-                session.SendAsync(buffer);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Multicast text to all connected clients
-        /// </summary>
-        /// <param name="text">Text string to multicast</param>
-        /// <returns>'true' if the text was successfully multicasted, 'false' if the text was not multicasted</returns>
-        public virtual bool Multicast(string text) => Multicast(Encoding.UTF8.GetBytes(text));
-
-        /// <summary>
-        /// Multicast text to all connected clients
-        /// </summary>
-        /// <param name="text">Text to multicast as a span of characters</param>
-        /// <returns>'true' if the text was successfully multicasted, 'false' if the text was not multicasted</returns>
-        public virtual bool Multicast(ReadOnlySpan<char> text) => Multicast(Encoding.UTF8.GetBytes(text.ToArray()));
-
-        #endregion
-
-        #region Server handlers
-
-        /// <summary>
-        /// Handle server starting notification
-        /// </summary>
-        protected virtual void OnStarting() { }
-        /// <summary>
-        /// Handle server started notification
-        /// </summary>
-        protected virtual void OnStarted() { }
-        /// <summary>
-        /// Handle server stopping notification
-        /// </summary>
-        protected virtual void OnStopping() { }
-        /// <summary>
-        /// Handle server stopped notification
-        /// </summary>
-        protected virtual void OnStopped() { }
-
-        /// <summary>
-        /// Handle session connecting notification
-        /// </summary>
-        /// <param name="session">Connecting session</param>
-        protected virtual void OnConnecting(TcpSession session) { }
-        /// <summary>
-        /// Handle session connected notification
-        /// </summary>
-        /// <param name="session">Connected session</param>
-        protected virtual void OnConnected(TcpSession session) { }
-        /// <summary>
-        /// Handle session disconnecting notification
-        /// </summary>
-        /// <param name="session">Disconnecting session</param>
-        protected virtual void OnDisconnecting(TcpSession session) { }
-        /// <summary>
-        /// Handle session disconnected notification
-        /// </summary>
-        /// <param name="session">Disconnected session</param>
-        protected virtual void OnDisconnected(TcpSession session) { }
-
-        /// <summary>
-        /// Handle error notification
-        /// </summary>
-        /// <param name="error">Socket error code</param>
-        protected virtual void OnError(SocketError error) { }
-
-        internal void OnConnectingInternal(TcpSession session) { OnConnecting(session); }
-        internal void OnConnectedInternal(TcpSession session) { OnConnected(session); }
-        internal void OnDisconnectingInternal(TcpSession session) { OnDisconnecting(session); }
-        internal void OnDisconnectedInternal(TcpSession session) { OnDisconnected(session); }
-
-        #endregion
-
-        #region Error handling
-
-        /// <summary>
-        /// Send error notification
-        /// </summary>
-        /// <param name="error">Socket error code</param>
-        private void SendError(SocketError error)
-        {
-            // Skip disconnect errors
-            if ((error == SocketError.ConnectionAborted) ||
-                (error == SocketError.ConnectionRefused) ||
-                (error == SocketError.ConnectionReset) ||
-                (error == SocketError.OperationAborted) ||
-                (error == SocketError.Shutdown))
-                return;
-
-            OnError(error);
-        }
-
-        #endregion
-
-        #region IDisposable implementation
-
-        /// <summary>
-        /// Disposed flag
-        /// </summary>
-        public bool IsDisposed { get; private set; }
-
-        /// <summary>
-        /// Acceptor socket disposed flag
-        /// </summary>
-        public bool IsSocketDisposed { get; private set; } = true;
-
-        // Implement IDisposable.
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposingManagedResources)
-        {
-            // The idea here is that Dispose(Boolean) knows whether it is
-            // being called to do explicit cleanup (the Boolean is true)
-            // versus being called due to a garbage collection (the Boolean
-            // is false). This distinction is useful because, when being
-            // disposed explicitly, the Dispose(Boolean) method can safely
-            // execute code using reference type fields that refer to other
-            // objects knowing for sure that these other objects have not been
-            // finalized or disposed of yet. When the Boolean is false,
-            // the Dispose(Boolean) method should not execute code that
-            // refer to reference type fields because those objects may
-            // have already been finalized."
-
-            if (!IsDisposed)
-            {
-                if (disposingManagedResources)
-                {
-                    // Dispose managed resources here...
-                    Stop();
-                }
-
-                // Dispose unmanaged resources here...
-
-                // Set large fields to null here...
-
-                // Mark as disposed.
-                IsDisposed = true;
-            }
-        }
-
-        #endregion
-    }
-
-
-
-    /// <summary>
-    /// TCP session is used to read and write data from the connected TCP client
-    /// </summary>
-    /// <remarks>Thread-safe</remarks>
-    public class TcpSession : IDisposable
-    {
-        /// <summary>
-        /// Initialize the session with a given server
-        /// </summary>
-        /// <param name="server">TCP server</param>
-        public TcpSession(TcpServer server)
-        {
-            Id = Guid.NewGuid();
-            Server = server;
-            OptionReceiveBufferSize = server.OptionReceiveBufferSize;
-            OptionSendBufferSize = server.OptionSendBufferSize;
-        }
-
-        /// <summary>
-        /// Session Id
-        /// </summary>
-        public Guid Id { get; }
-
-        /// <summary>
-        /// Server
-        /// </summary>
-        public TcpServer Server { get; }
-        /// <summary>
-        /// Socket
-        /// </summary>
-        public Socket Socket { get; private set; }
-
-        /// <summary>
-        /// Number of bytes pending sent by the session
-        /// </summary>
-        public long BytesPending { get; private set; }
-        /// <summary>
-        /// Number of bytes sending by the session
-        /// </summary>
-        public long BytesSending { get; private set; }
-        /// <summary>
-        /// Number of bytes sent by the session
-        /// </summary>
-        public long BytesSent { get; private set; }
-        /// <summary>
-        /// Number of bytes received by the session
-        /// </summary>
-        public long BytesReceived { get; private set; }
-
-        /// <summary>
         /// Option: receive buffer limit
         /// </summary>
         public int OptionReceiveBufferLimit { get; set; } = 0;
@@ -813,23 +214,43 @@ namespace OHTC.Tools
         /// </summary>
         public int OptionSendBufferSize { get; set; } = 8192;
 
-        #region Connect/Disconnect session
+        #region Connect/Disconnect client
+
+        private SocketAsyncEventArgs _connectEventArg;
 
         /// <summary>
-        /// Is the session connected?
+        /// Is the client connecting?
+        /// </summary>
+        public bool IsConnecting { get; private set; }
+        /// <summary>
+        /// Is the client connected?
         /// </summary>
         public bool IsConnected { get; private set; }
 
         /// <summary>
-        /// Connect the session
+        /// Create a new socket object
         /// </summary>
-        /// <param name="socket">Session socket</param>
-        internal void Connect(Socket socket)
+        /// <remarks>
+        /// Method may be override if you need to prepare some specific socket object in your implementation.
+        /// </remarks>
+        /// <returns>Socket object</returns>
+        protected virtual Socket CreateSocket()
         {
-            Socket = socket;
+            return new Socket(Endpoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        }
 
-            // Update the session socket disposed flag
-            IsSocketDisposed = false;
+        /// <summary>
+        /// Connect the client (synchronous)
+        /// </summary>
+        /// <remarks>
+        /// Please note that synchronous connect will not receive data automatically!
+        /// You should use Receive() or ReceiveAsync() method manually after successful connection.
+        /// </remarks>
+        /// <returns>'true' if the client was successfully connected, 'false' if the client failed to connect</returns>
+        public virtual bool Connect()
+        {
+            if (IsConnected || IsConnecting)
+                return false;
 
             // Setup buffers
             _receiveBuffer = new Buffer();
@@ -837,22 +258,73 @@ namespace OHTC.Tools
             _sendBufferFlush = new Buffer();
 
             // Setup event args
+            _connectEventArg = new SocketAsyncEventArgs();
+            _connectEventArg.RemoteEndPoint = Endpoint;
+            _connectEventArg.Completed += OnAsyncCompleted;
             _receiveEventArg = new SocketAsyncEventArgs();
             _receiveEventArg.Completed += OnAsyncCompleted;
             _sendEventArg = new SocketAsyncEventArgs();
             _sendEventArg.Completed += OnAsyncCompleted;
 
+            // Create a new client socket
+            Socket = CreateSocket();
+
+            // Update the client socket disposed flag
+            IsSocketDisposed = false;
+
+            // Apply the option: dual mode (this option must be applied before connecting)
+            if (Socket.AddressFamily == AddressFamily.InterNetworkV6)
+                Socket.DualMode = OptionDualMode;
+
+            // Call the client connecting handler
+            OnConnecting();
+
+            try
+            {
+                // Connect to the server
+                Socket.Connect(Endpoint);
+            }
+            catch (SocketException ex)
+            {
+                // Call the client error handler
+                SendError(ex.SocketErrorCode);
+
+                // Reset event args
+                _connectEventArg.Completed -= OnAsyncCompleted;
+                _receiveEventArg.Completed -= OnAsyncCompleted;
+                _sendEventArg.Completed -= OnAsyncCompleted;
+
+                // Call the client disconnecting handler
+                OnDisconnecting();
+
+                // Close the client socket
+                Socket.Close();
+
+                // Dispose the client socket
+                Socket.Dispose();
+
+                // Dispose event arguments
+                _connectEventArg.Dispose();
+                _receiveEventArg.Dispose();
+                _sendEventArg.Dispose();
+
+                // Call the client disconnected handler
+                OnDisconnected();
+
+                return false;
+            }
+
             // Apply the option: keep alive
-            if (Server.OptionKeepAlive)
+            if (OptionKeepAlive)
                 Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            if (Server.OptionTcpKeepAliveTime >= 0)
-                Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, Server.OptionTcpKeepAliveTime);
-            if (Server.OptionTcpKeepAliveInterval >= 0)
-                Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, Server.OptionTcpKeepAliveInterval);
-            if (Server.OptionTcpKeepAliveRetryCount >= 0)
-                Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, Server.OptionTcpKeepAliveRetryCount);
+            if (OptionTcpKeepAliveTime >= 0)
+                Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, OptionTcpKeepAliveTime);
+            if (OptionTcpKeepAliveInterval >= 0)
+                Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, OptionTcpKeepAliveInterval);
+            if (OptionTcpKeepAliveRetryCount >= 0)
+                Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, OptionTcpKeepAliveRetryCount);
             // Apply the option: no delay
-            if (Server.OptionNoDelay)
+            if (OptionNoDelay)
                 Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
 
             // Prepare receive & send buffers
@@ -866,51 +338,39 @@ namespace OHTC.Tools
             BytesSent = 0;
             BytesReceived = 0;
 
-            // Call the session connecting handler
-            OnConnecting();
-
-            // Call the session connecting handler in the server
-            Server.OnConnectingInternal(this);
-
             // Update the connected flag
             IsConnected = true;
 
-            // Try to receive something from the client
-            TryReceive();
-
-            // Check the socket disposed state: in some rare cases it might be disconnected while receiving!
-            if (IsSocketDisposed)
-                return;
-
-            // Call the session connected handler
+            // Call the client connected handler
             OnConnected();
-
-            // Call the session connected handler in the server
-            Server.OnConnectedInternal(this);
 
             // Call the empty send buffer handler
             if (_sendBufferMain.IsEmpty)
                 OnEmpty();
+
+            return true;
         }
 
         /// <summary>
-        /// Disconnect the session
+        /// Disconnect the client (synchronous)
         /// </summary>
-        /// <returns>'true' if the section was successfully disconnected, 'false' if the section is already disconnected</returns>
+        /// <returns>'true' if the client was successfully disconnected, 'false' if the client is already disconnected</returns>
         public virtual bool Disconnect()
         {
-            if (!IsConnected)
+            if (!IsConnected && !IsConnecting)
                 return false;
 
+            // Cancel connecting operation
+            if (IsConnecting)
+                Socket.CancelConnectAsync(_connectEventArg);
+
             // Reset event args
+            _connectEventArg.Completed -= OnAsyncCompleted;
             _receiveEventArg.Completed -= OnAsyncCompleted;
             _sendEventArg.Completed -= OnAsyncCompleted;
 
-            // Call the session disconnecting handler
+            // Call the client disconnecting handler
             OnDisconnecting();
-
-            // Call the session disconnecting handler in the server
-            Server.OnDisconnectingInternal(this);
 
             try
             {
@@ -921,17 +381,18 @@ namespace OHTC.Tools
                 }
                 catch (SocketException) { }
 
-                // Close the session socket
+                // Close the client socket
                 Socket.Close();
 
-                // Dispose the session socket
+                // Dispose the client socket
                 Socket.Dispose();
 
                 // Dispose event arguments
+                _connectEventArg.Dispose();
                 _receiveEventArg.Dispose();
                 _sendEventArg.Dispose();
 
-                // Update the session socket disposed flag
+                // Update the client socket disposed flag
                 IsSocketDisposed = true;
             }
             catch (ObjectDisposedException) { }
@@ -946,16 +407,89 @@ namespace OHTC.Tools
             // Clear send/receive buffers
             ClearBuffers();
 
-            // Call the session disconnected handler
+            // Call the client disconnected handler
             OnDisconnected();
 
-            // Call the session disconnected handler in the server
-            Server.OnDisconnectedInternal(this);
+            return true;
+        }
 
-            // Unregister session
-            Server.UnregisterSession(Id);
+        /// <summary>
+        /// Reconnect the client (synchronous)
+        /// </summary>
+        /// <returns>'true' if the client was successfully reconnected, 'false' if the client is already reconnected</returns>
+        public virtual bool Reconnect()
+        {
+            if (!Disconnect())
+                return false;
+
+            return Connect();
+        }
+
+        /// <summary>
+        /// Connect the client (asynchronous)
+        /// </summary>
+        /// <returns>'true' if the client was successfully connected, 'false' if the client failed to connect</returns>
+        public virtual bool ConnectAsync()
+        {
+            if (IsConnected || IsConnecting)
+                return false;
+
+            // Setup buffers
+            _receiveBuffer = new Buffer();
+            _sendBufferMain = new Buffer();
+            _sendBufferFlush = new Buffer();
+
+            // Setup event args
+            _connectEventArg = new SocketAsyncEventArgs();
+            _connectEventArg.RemoteEndPoint = Endpoint;
+            _connectEventArg.Completed += OnAsyncCompleted;
+            _receiveEventArg = new SocketAsyncEventArgs();
+            _receiveEventArg.Completed += OnAsyncCompleted;
+            _sendEventArg = new SocketAsyncEventArgs();
+            _sendEventArg.Completed += OnAsyncCompleted;
+
+            // Create a new client socket
+            Socket = CreateSocket();
+
+            // Update the client socket disposed flag
+            IsSocketDisposed = false;
+
+            // Apply the option: dual mode (this option must be applied before connecting)
+            if (Socket.AddressFamily == AddressFamily.InterNetworkV6)
+                Socket.DualMode = OptionDualMode;
+
+            // Update the connecting flag
+            IsConnecting = true;
+
+            // Call the client connecting handler
+            OnConnecting();
+
+            // Async connect to the server
+            if (!Socket.ConnectAsync(_connectEventArg))
+                ProcessConnect(_connectEventArg);
 
             return true;
+        }
+
+        /// <summary>
+        /// Disconnect the client (asynchronous)
+        /// </summary>
+        /// <returns>'true' if the client was successfully disconnected, 'false' if the client is already disconnected</returns>
+        public virtual bool DisconnectAsync() => Disconnect();
+
+        /// <summary>
+        /// Reconnect the client (asynchronous)
+        /// </summary>
+        /// <returns>'true' if the client was successfully reconnected, 'false' if the client is already reconnected</returns>
+        public virtual bool ReconnectAsync()
+        {
+            if (!DisconnectAsync())
+                return false;
+
+            while (IsConnected)
+                Thread.Yield();
+
+            return ConnectAsync();
         }
 
         #endregion
@@ -975,14 +509,14 @@ namespace OHTC.Tools
         private long _sendBufferFlushOffset;
 
         /// <summary>
-        /// Send data to the client (synchronous)
+        /// Send data to the server (synchronous)
         /// </summary>
         /// <param name="buffer">Buffer to send</param>
         /// <returns>Size of sent data</returns>
         public virtual long Send(byte[] buffer) => Send(buffer.AsSpan());
 
         /// <summary>
-        /// Send data to the client (synchronous)
+        /// Send data to the server (synchronous)
         /// </summary>
         /// <param name="buffer">Buffer to send</param>
         /// <param name="offset">Buffer offset</param>
@@ -991,7 +525,7 @@ namespace OHTC.Tools
         public virtual long Send(byte[] buffer, long offset, long size) => Send(buffer.AsSpan((int)offset, (int)size));
 
         /// <summary>
-        /// Send data to the client (synchronous)
+        /// Send data to the server (synchronous)
         /// </summary>
         /// <param name="buffer">Buffer to send as a span of bytes</param>
         /// <returns>Size of sent data</returns>
@@ -1003,13 +537,12 @@ namespace OHTC.Tools
             if (buffer.IsEmpty)
                 return 0;
 
-            // Sent data to the client
+            // Sent data to the server
             long sent = Socket.Send(buffer, SocketFlags.None, out SocketError ec);
             if (sent > 0)
             {
                 // Update statistic
                 BytesSent += sent;
-                Interlocked.Add(ref Server._bytesSent, sent);
 
                 // Call the buffer sent handler
                 OnSent(sent, BytesPending + BytesSending);
@@ -1026,40 +559,40 @@ namespace OHTC.Tools
         }
 
         /// <summary>
-        /// Send text to the client (synchronous)
+        /// Send text to the server (synchronous)
         /// </summary>
         /// <param name="text">Text string to send</param>
-        /// <returns>Size of sent data</returns>
+        /// <returns>Size of sent text</returns>
         public virtual long Send(string text) => Send(Encoding.UTF8.GetBytes(text));
 
         /// <summary>
-        /// Send text to the client (synchronous)
+        /// Send text to the server (synchronous)
         /// </summary>
         /// <param name="text">Text to send as a span of characters</param>
-        /// <returns>Size of sent data</returns>
+        /// <returns>Size of sent text</returns>
         public virtual long Send(ReadOnlySpan<char> text) => Send(Encoding.UTF8.GetBytes(text.ToArray()));
 
         /// <summary>
-        /// Send data to the client (asynchronous)
+        /// Send data to the server (asynchronous)
         /// </summary>
         /// <param name="buffer">Buffer to send</param>
-        /// <returns>'true' if the data was successfully sent, 'false' if the session is not connected</returns>
+        /// <returns>'true' if the data was successfully sent, 'false' if the client is not connected</returns>
         public virtual bool SendAsync(byte[] buffer) => SendAsync(buffer.AsSpan());
 
         /// <summary>
-        /// Send data to the client (asynchronous)
+        /// Send data to the server (asynchronous)
         /// </summary>
         /// <param name="buffer">Buffer to send</param>
         /// <param name="offset">Buffer offset</param>
         /// <param name="size">Buffer size</param>
-        /// <returns>'true' if the data was successfully sent, 'false' if the session is not connected</returns>
+        /// <returns>'true' if the data was successfully sent, 'false' if the client is not connected</returns>
         public virtual bool SendAsync(byte[] buffer, long offset, long size) => SendAsync(buffer.AsSpan((int)offset, (int)size));
 
         /// <summary>
-        /// Send data to the client (asynchronous)
+        /// Send data to the server (asynchronous)
         /// </summary>
         /// <param name="buffer">Buffer to send as a span of bytes</param>
-        /// <returns>'true' if the data was successfully sent, 'false' if the session is not connected</returns>
+        /// <returns>'true' if the data was successfully sent, 'false' if the client is not connected</returns>
         public virtual bool SendAsync(ReadOnlySpan<byte> buffer)
         {
             if (!IsConnected)
@@ -1097,28 +630,28 @@ namespace OHTC.Tools
         }
 
         /// <summary>
-        /// Send text to the client (asynchronous)
+        /// Send text to the server (asynchronous)
         /// </summary>
         /// <param name="text">Text string to send</param>
-        /// <returns>'true' if the text was successfully sent, 'false' if the session is not connected</returns>
+        /// <returns>'true' if the text was successfully sent, 'false' if the client is not connected</returns>
         public virtual bool SendAsync(string text) => SendAsync(Encoding.UTF8.GetBytes(text));
 
         /// <summary>
-        /// Send text to the client (asynchronous)
+        /// Send text to the server (asynchronous)
         /// </summary>
         /// <param name="text">Text to send as a span of characters</param>
-        /// <returns>'true' if the text was successfully sent, 'false' if the session is not connected</returns>
+        /// <returns>'true' if the text was successfully sent, 'false' if the client is not connected</returns>
         public virtual bool SendAsync(ReadOnlySpan<char> text) => SendAsync(Encoding.UTF8.GetBytes(text.ToArray()));
 
         /// <summary>
-        /// Receive data from the client (synchronous)
+        /// Receive data from the server (synchronous)
         /// </summary>
         /// <param name="buffer">Buffer to receive</param>
         /// <returns>Size of received data</returns>
         public virtual long Receive(byte[] buffer) { return Receive(buffer, 0, buffer.Length); }
 
         /// <summary>
-        /// Receive data from the client (synchronous)
+        /// Receive data from the server (synchronous)
         /// </summary>
         /// <param name="buffer">Buffer to receive</param>
         /// <param name="offset">Buffer offset</param>
@@ -1132,13 +665,12 @@ namespace OHTC.Tools
             if (size == 0)
                 return 0;
 
-            // Receive data from the client
+            // Receive data from the server
             long received = Socket.Receive(buffer, (int)offset, (int)size, SocketFlags.None, out SocketError ec);
             if (received > 0)
             {
                 // Update statistic
                 BytesReceived += received;
-                Interlocked.Add(ref Server._bytesReceived, received);
 
                 // Call the buffer received handler
                 OnReceived(buffer, 0, received);
@@ -1155,7 +687,7 @@ namespace OHTC.Tools
         }
 
         /// <summary>
-        /// Receive text from the client (synchronous)
+        /// Receive text from the server (synchronous)
         /// </summary>
         /// <param name="size">Text size to receive</param>
         /// <returns>Received text</returns>
@@ -1167,11 +699,11 @@ namespace OHTC.Tools
         }
 
         /// <summary>
-        /// Receive data from the client (asynchronous)
+        /// Receive data from the server (asynchronous)
         /// </summary>
         public virtual void ReceiveAsync()
         {
-            // Try to receive data from the client
+            // Try to receive data from the server
             TryReceive();
         }
 
@@ -1297,6 +829,9 @@ namespace OHTC.Tools
             // Determine which type of operation just completed and call the associated handler
             switch (e.LastOperation)
             {
+                case SocketAsyncOperation.Connect:
+                    ProcessConnect(e);
+                    break;
                 case SocketAsyncOperation.Receive:
                     if (ProcessReceive(e))
                         TryReceive();
@@ -1312,6 +847,64 @@ namespace OHTC.Tools
         }
 
         /// <summary>
+        /// This method is invoked when an asynchronous connect operation completes
+        /// </summary>
+        private void ProcessConnect(SocketAsyncEventArgs e)
+        {
+            IsConnecting = false;
+
+            if (e.SocketError == SocketError.Success)
+            {
+                // Apply the option: keep alive
+                if (OptionKeepAlive)
+                    Socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                if (OptionTcpKeepAliveTime >= 0)
+                    Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, OptionTcpKeepAliveTime);
+                if (OptionTcpKeepAliveInterval >= 0)
+                    Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, OptionTcpKeepAliveInterval);
+                if (OptionTcpKeepAliveRetryCount >= 0)
+                    Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, OptionTcpKeepAliveRetryCount);
+                // Apply the option: no delay
+                if (OptionNoDelay)
+                    Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
+
+                // Prepare receive & send buffers
+                _receiveBuffer.Reserve(OptionReceiveBufferSize);
+                _sendBufferMain.Reserve(OptionSendBufferSize);
+                _sendBufferFlush.Reserve(OptionSendBufferSize);
+
+                // Reset statistic
+                BytesPending = 0;
+                BytesSending = 0;
+                BytesSent = 0;
+                BytesReceived = 0;
+
+                // Update the connected flag
+                IsConnected = true;
+
+                // Try to receive something from the server
+                TryReceive();
+
+                // Check the socket disposed state: in some rare cases it might be disconnected while receiving!
+                if (IsSocketDisposed)
+                    return;
+
+                // Call the client connected handler
+                OnConnected();
+
+                // Call the empty send buffer handler
+                if (_sendBufferMain.IsEmpty)
+                    OnEmpty();
+            }
+            else
+            {
+                // Call the client disconnected handler
+                SendError(e.SocketError);
+                OnDisconnected();
+            }
+        }
+
+        /// <summary>
         /// This method is invoked when an asynchronous receive operation completes
         /// </summary>
         private bool ProcessReceive(SocketAsyncEventArgs e)
@@ -1321,12 +914,11 @@ namespace OHTC.Tools
 
             long size = e.BytesTransferred;
 
-            // Received some data from the client
+            // Received some data from the server
             if (size > 0)
             {
                 // Update statistic
                 BytesReceived += size;
-                Interlocked.Add(ref Server._bytesReceived, size);
 
                 // Call the buffer received handler
                 OnReceived(_receiveBuffer.Data, 0, size);
@@ -1338,7 +930,7 @@ namespace OHTC.Tools
                     if (((2 * size) > OptionReceiveBufferLimit) && (OptionReceiveBufferLimit > 0))
                     {
                         SendError(SocketError.NoBufferSpaceAvailable);
-                        Disconnect();
+                        DisconnectAsync();
                         return false;
                     }
 
@@ -1348,19 +940,19 @@ namespace OHTC.Tools
 
             _receiving = false;
 
-            // Try to receive again if the session is valid
+            // Try to receive again if the client is valid
             if (e.SocketError == SocketError.Success)
             {
                 // If zero is returned from a read operation, the remote end has closed the connection
                 if (size > 0)
                     return true;
                 else
-                    Disconnect();
+                    DisconnectAsync();
             }
             else
             {
                 SendError(e.SocketError);
-                Disconnect();
+                DisconnectAsync();
             }
 
             return false;
@@ -1376,13 +968,12 @@ namespace OHTC.Tools
 
             long size = e.BytesTransferred;
 
-            // Send some data to the client
+            // Send some data to the server
             if (size > 0)
             {
                 // Update statistic
                 BytesSending -= size;
                 BytesSent += size;
-                Interlocked.Add(ref Server._bytesSent, size);
 
                 // Increase the flush buffer offset
                 _sendBufferFlushOffset += size;
@@ -1399,13 +990,13 @@ namespace OHTC.Tools
                 OnSent(size, BytesPending + BytesSending);
             }
 
-            // Try to send again if the session is valid
+            // Try to send again if the client is valid
             if (e.SocketError == SocketError.Success)
                 return true;
             else
             {
                 SendError(e.SocketError);
-                Disconnect();
+                DisconnectAsync();
                 return false;
             }
         }
@@ -1438,7 +1029,7 @@ namespace OHTC.Tools
         /// <param name="offset">Received buffer offset</param>
         /// <param name="size">Received buffer size</param>
         /// <remarks>
-        /// Notification is called when another part of buffer was received from the client
+        /// Notification is called when another part of buffer was received from the server
         /// </remarks>
         protected virtual void OnReceived(byte[] buffer, long offset, long size) { }
         /// <summary>
@@ -1447,8 +1038,8 @@ namespace OHTC.Tools
         /// <param name="sent">Size of sent buffer</param>
         /// <param name="pending">Size of pending buffer</param>
         /// <remarks>
-        /// Notification is called when another part of buffer was sent to the client.
-        /// This handler could be used to send another buffer to the client for instance when the pending size is zero.
+        /// Notification is called when another part of buffer was sent to the server.
+        /// This handler could be used to send another buffer to the server for instance when the pending size is zero.
         /// </remarks>
         protected virtual void OnSent(long sent, long pending) { }
 
@@ -1457,7 +1048,7 @@ namespace OHTC.Tools
         /// </summary>
         /// <remarks>
         /// Notification is called when the send buffer is empty and ready for a new data to send.
-        /// This handler could be used to send another buffer to the client.
+        /// This handler could be used to send another buffer to the server.
         /// </remarks>
         protected virtual void OnEmpty() { }
 
@@ -1498,7 +1089,7 @@ namespace OHTC.Tools
         public bool IsDisposed { get; private set; }
 
         /// <summary>
-        /// Session socket disposed flag
+        /// Client socket disposed flag
         /// </summary>
         public bool IsSocketDisposed { get; private set; } = true;
 
@@ -1528,7 +1119,7 @@ namespace OHTC.Tools
                 if (disposingManagedResources)
                 {
                     // Dispose managed resources here...
-                    Disconnect();
+                    DisconnectAsync();
                 }
 
                 // Dispose unmanaged resources here...
@@ -1542,6 +1133,8 @@ namespace OHTC.Tools
 
         #endregion
     }
+
+
 
 
     /// <summary>

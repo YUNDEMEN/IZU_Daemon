@@ -17,7 +17,6 @@ namespace OHTC.Tools
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             ConfigSetting.Load();           
-            DataServer.Create(IPAddress.Parse(ConfigSetting.data_server_address), ControlPages.ConfigSetting.data_server_port, true);
         }
     }
 

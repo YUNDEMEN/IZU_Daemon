@@ -86,6 +86,14 @@ namespace Wonder.Service.Framework
                 IsStarted = false;
                 IsFaulted = true;
                 _logger.LogError($"Long Running Task Failed: {this.GetType().Name} ({theTask.Status}). {GetRealExceptions(x.Exception)}");
+
+                Task.Factory.StartNew(async () =>
+                {
+                    _logger.LogError($"Long Running Task {this.GetType().Name} will restart in 3 seconds");
+                    await Task.Delay(3000);
+                    _logger.LogError($"Long Running Task {this.GetType().Name} restarting");
+                    Start();
+                });
             },
             TaskContinuationOptions.NotOnCanceled
             );

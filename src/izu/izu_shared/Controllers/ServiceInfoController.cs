@@ -1,6 +1,7 @@
 using IZU.Base;
 using IZU.DeviceFactories;
 using IZU.Interfaces;
+using IZU.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Wonder.Infrastructure;
 
@@ -159,7 +160,6 @@ namespace IZU.Controllers
         #endregion
 
         #region auto door Control
-
 #if ENABLE_AUTH
 		[Authorize]
 #endif

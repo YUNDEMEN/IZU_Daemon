@@ -30,7 +30,7 @@
                         <DockPanel Margin="0,10,0,0">
                             <TextBlock Text="Local IP" TextAlignment="Right" VerticalAlignment="Center" Width="100"/>
                             <TextBox x:Name="tb_local_port" Width="100" HorizontalAlignment="Right" ui:ControlHelper.PlaceholderText="8132" DockPanel.Dock="Right" Margin="10,0,0,0"/>
-                            <TextBox x:Name="tb_local_addr" Margin="10,0,0,0" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
+                            <TextBox x:Name="tb_local_addr" IsReadOnly="True" Margin="10,0,0,0" ui:ControlHelper.PlaceholderText="127.0.0.1"/>
                         </DockPanel>
                     </StackPanel>
                     <Button Content=" Apply " VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="Apply_Clicked"/>

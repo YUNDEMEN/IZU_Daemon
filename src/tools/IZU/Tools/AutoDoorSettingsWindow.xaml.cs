@@ -9,9 +9,9 @@ namespace OHTC.Tools
         {
             InitializeComponent();
         }
-        public void SetOption(OHTC.Tools.ControlPages.IAutoDoorOption doorOption)
+        public void SetOption(OHTC.Tools.ControlPages.IAutoDoorOption doorOption,string address)
         {
-            DataContext = doorOption;
+            DataContext = DevicePool.Connect(address).GetAutoDoor(doorOption.SelectedDoorName);
             this.doorOption = doorOption;
         }
 
@@ -26,6 +26,7 @@ namespace OHTC.Tools
         {
             if (short.TryParse(tb_speed_auto.Text, out var speed))
             {
+                if (speed > 450) speed = 450;
                 doorOption.SetAutoSpeed(speed);
             }
         }
@@ -34,6 +35,7 @@ namespace OHTC.Tools
         {
             if (short.TryParse(tb_speed_jog.Text, out var speed))
             {
+                if (speed > 50) speed = 50;
                 doorOption.SetJogSpeed(speed);
             }
         }

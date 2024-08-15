@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sc="clr-namespace:SamplesCommon"
     xmlns:ui="http://schemas.modernwpf.com/2019"
+    Margin="10,36,10,10"
     d:DesignHeight="600"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -15,11 +16,14 @@
         <sc:ListBoxTemplateSelector x:Key="ListBoxTemplateSelector"/>
         <app:BooleanReverseConverter x:Key="BooleanReverseConverter" />
         <app:TrueColorConverter x:Key="TrueColorConverter"/>
+        <app:TranslateDoorStatusConverter x:Key="TranslateDoorStatusConverter"/>
+        <app:TranslateDoorErrorConverter x:Key="TranslateDoorErrorConverter"/>
+        <app:TranslateBinaryDoorErrorConverter x:Key="TranslateBinaryDoorErrorConverter"/>
         <Style TargetType="ui:SimpleStackPanel">
             <Setter Property="Spacing" Value="12" />
         </Style>
     </Page.Resources>
-    <Grid Margin="10">
+    <Grid x:Name="layOutRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="5"/>
@@ -29,107 +33,113 @@
         </Grid.RowDefinitions>
         <DockPanel DataContext="{Binding IZU}">
             <TextBlock Grid.Row="0" Text="{Binding Name}" Margin="0,0,0,0" FontSize="26" FontWeight="Bold" VerticalAlignment="Center"/>
-            <Ellipse Height="16" Width="16" Fill="{Binding IsHeartBeat,Converter={StaticResource TrueColorConverter},ConverterParameter=flash}"
-                     Stroke="#99424242" StrokeThickness="1" Margin="10,0,0,0" ToolTip="Connection" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" TextElement.FontSize="16" 
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" TextElement.FontSize="14" 
                         ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
                 <Grid Margin="5" Background="Transparent" ToolTip="Power" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
                     <Border Background="{Binding IsPowerSupply,Converter={StaticResource TrueColorConverter}}"
-                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="1"/>
                     <TextBlock Text="Power" Margin="10,5"/>
                 </Grid>
-                <Grid Margin="5" Background="Transparent" ToolTip="硬件通讯端口状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                <Grid Margin="5" Background="Transparent" ToolTip="Comm Port status" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
                     <Border Background="{Binding IsHardwareInterfaceNormal,Converter={StaticResource TrueColorConverter}}"
-                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
-                    <TextBlock Text="硬件通讯" Margin="10,5"/>
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="1"/>
+                    <TextBlock Text="Comm Port" Margin="10,5"/>
                 </Grid>
-                <Grid Margin="5" Background="Transparent" ToolTip="待机状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                <Grid Margin="5" Background="Transparent" ToolTip="System standby" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
                     <Border Background="{Binding IsStandby,Converter={StaticResource TrueColorConverter}}"
-                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
-                    <TextBlock Text="待机状态" Margin="10,5"/>
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="1"/>
+                    <TextBlock Text="System standby" Margin="10,5"/>
                 </Grid>
-                <Grid Margin="5" Background="Transparent" ToolTip="运行状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                <Grid Margin="5" Background="Transparent" ToolTip="Running state" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
                     <Border Background="{Binding IsAutoRunMode,Converter={StaticResource TrueColorConverter}}"
-                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
-                    <TextBlock Text="运行状态" Margin="10,5"/>
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="1"/>
+                    <TextBlock Text="Running state" Margin="10,5"/>
                 </Grid>
-                <Grid Margin="5" Background="Transparent" ToolTip="异常状态" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
+                <Grid Margin="5" Background="Transparent" ToolTip="Error State" ToolTipService.BetweenShowDelay="100" ToolTipService.InitialShowDelay="10">
                     <Border Background="{Binding IsError,Converter={StaticResource TrueColorConverter},ConverterParameter=warn}"
-                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="2"/>
-                    <TextBlock Text="异常状态" Margin="10,5"/>
+                            BorderBrush="#99424242" BorderThickness="1" CornerRadius="1"/>
+                    <TextBlock Text="Error State" Margin="10,5"/>
                 </Grid>
             </StackPanel>
         </DockPanel>
         <DockPanel Grid.Row="2">
             <TextBlock Grid.Row="0" Text="AUTO DOOR" Margin="0,0,0,0" FontSize="16" Opacity="0.6" FontWeight="Bold" DockPanel.Dock="Top"/>
-            <ListBox Height="auto" 
+            <ListBox Background="Transparent"
                 ItemContainerStyle="{StaticResource ListBoxItemCommandStyle}" ItemsSource="{Binding AutoDoorCollection}" ItemTemplateSelector="{StaticResource ListBoxTemplateSelector}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid Width="400">
-                            <StackPanel>
-                                <DockPanel>
-                                    <TextBlock Text="Name"/>
-                                    <TextBlock Text="{Binding Name}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsPowerSupply"/>
-                                    <TextBlock Text="{Binding IsPowerSupply}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsStandby"/>
-                                    <TextBlock Text="{Binding IsStandby}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsAutoRunMode"/>
-                                    <TextBlock Text="{Binding IsAutoRunMode}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsPowerSupply"/>
-                                    <TextBlock Text="{Binding IsPowerSupply}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsInit"/>
-                                    <TextBlock Text="{Binding IsInit}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsInitFinished"/>
-                                    <TextBlock Text="{Binding IsInitFinished}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="ErrorCode"/>
-                                    <TextBlock Text="{Binding ErrorCode}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsReset"/>
-                                    <TextBlock Text="{Binding IsReset}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="IsEMO"/>
-                                    <TextBlock Text="{Binding IsEMO}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="Status"/>
-                                    <TextBlock Text="{Binding Status}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                                <DockPanel>
-                                    <TextBlock Text="CurrentPosition"/>
-                                    <TextBlock Text="{Binding CurrentPosition}" Foreground="DarkBlue"/>
-                                </DockPanel>
-                            </StackPanel>
-                        </Grid>
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="1">
+                            <Grid Width="280" Margin="8">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource SystemControlHighlightAccentBrush}" Width="130" FontSize="20" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding Timestamp}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" HorizontalAlignment="Right"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="Action" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding Status,Converter={StaticResource TranslateDoorStatusConverter}}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" Margin="15,0,0,0"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="OHT" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding Oht}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" Margin="15,0,0,0"/>
+                                        <Button Content="Release" Padding="0" VerticalAlignment="Center" HorizontalAlignment="Right" Click="Button_Click" Tag="{Binding Name}"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="CurrentPosition" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding CurrentPosition}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" Margin="15,0,0,0"/>
+                                        <TextBlock Text=" (mm)" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="State" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding ErrorCode,Converter={StaticResource TranslateDoorErrorConverter}}" 
+                                                   ToolTip="{Binding ErrorCode,Converter={StaticResource TranslateBinaryDoorErrorConverter}}"
+                                                   Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" Margin="15,0,0,0"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="PowerSupply" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding IsPowerSupply}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" 
+                                                   Background="{Binding IsPowerSupply,Converter={StaticResource TrueColorConverter},ConverterParameter=switch}"
+                                                   Margin="15,0,0,0" Padding="10,0" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="Init" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding IsInit}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" 
+                                                   Background="{Binding IsInit,Converter={StaticResource TrueColorConverter},ConverterParameter=switch}"
+                                                   Margin="15,0,0,0" Padding="10,0" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="Init Finished" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding IsInitFinished}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}"
+                                                   Background="{Binding IsInitFinished,Converter={StaticResource TrueColorConverter},ConverterParameter=switch}"
+                                                   Margin="15,0,0,0" Padding="10,0" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="IsReset" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding IsReset}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}" 
+                                                   Background="{Binding IsReset,Converter={StaticResource TrueColorConverter},ConverterParameter=switch}"
+                                                   Margin="15,0,0,0" Padding="10,0" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,5,0,0">
+                                        <TextBlock Text="IsEMO" Width="130" TextAlignment="Right"/>
+                                        <TextBlock Text="{Binding IsEMO}" Foreground="{DynamicResource SystemControlHighlightBaseHighBrush}"
+                                                   Background="{Binding IsEMO,Converter={StaticResource TrueColorConverter},ConverterParameter=switch}"
+                                                   Margin="15,0,0,0" Padding="10,0" HorizontalAlignment="Left"/>
+                                    </DockPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel Margin="0,0,60,0"/>
+                        <WrapPanel Margin="0,0,0,0"/>
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
             </ListBox>
         </DockPanel>
         <DockPanel Grid.Row="4">
             <TextBlock Grid.Row="0" Text="HID" Margin="0,0,0,0" FontSize="16" Opacity="0.6" FontWeight="Bold" DockPanel.Dock="Top"/>
-            <ListBox 
+            <ListBox Background="Transparent"
                 ItemContainerStyle="{StaticResource ListBoxItemCommandStyle}" ItemsSource="{Binding HIDCollection}" ItemTemplateSelector="{StaticResource ListBoxTemplateSelector}">
                 <ListBox.Resources>
                     <DataTemplate x:Key="move">

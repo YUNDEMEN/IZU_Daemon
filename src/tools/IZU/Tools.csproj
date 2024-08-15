@@ -52,9 +52,6 @@
     <None Update="ip.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="oht_task.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="x64\libnanomsg.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

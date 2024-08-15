@@ -9,7 +9,7 @@
     <Import_RootNamespace>IZU</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Base\DataClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Base\DataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\HeartsBeating.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\SafeNanoReplyServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\CsvVariableMapping.cs" />

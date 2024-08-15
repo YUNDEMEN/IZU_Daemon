@@ -1,9 +1,7 @@
 ﻿using IZU.Interfaces;
-using Microsoft.AspNetCore.Hosting.Server;
 using S7.Net;
 using S7.Net.Types;
 using System.Net;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace IZU.Base
 {

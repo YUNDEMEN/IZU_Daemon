@@ -15,7 +15,7 @@ namespace IZU.Base
 			}
 		}
 		readonly ConcurrentQueue<string> queue;
-		const string header = "设备名称,设备类型,地址,旧值,新值,变量类型,描述,记录时间";
+		const string header = "设备名称,设备类型,RW,地址,旧值,新值,变量类型,描述,记录时间";
 		Task _queueTask;
 		readonly string recordFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "records");
 		public TextRecorder()
