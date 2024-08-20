@@ -1,7 +1,22 @@
-﻿namespace IZU.Base
+﻿using Newtonsoft.Json.Linq;
+
+namespace IZU.Base
 {
+    public class ValueChangedEventArgs : EventArgs
+    {
+        public string Key { get; }
+        public object? OldValue { get; }
+        public object? NewValue { get; }
+        public ValueChangedEventArgs(string key, object? newValue, object? oldValue)
+        {
+            Key = key;
+            NewValue = newValue;
+            OldValue = oldValue;
+        }
+    }
     public class KeyValueObject
     {
+        public event EventHandler<ValueChangedEventArgs> ValueChanged;
         /// <summary>
         /// 数据地址映射为上位机变量
         /// </summary>
@@ -14,14 +29,14 @@
             {
                 if (_value?.ToString() != value?.ToString())
                 {
-                    OnValueChanged(value, _value);
+                    OnValueChanged(ActionType,value, _value);
                     _value = value;
                 }
             }
         }
-        protected virtual void OnValueChanged(object? newValue,object? oldValue)
+        protected virtual void OnValueChanged(string key, object? newValue, object? oldValue)
         {
-
+            ValueChanged(this, new ValueChangedEventArgs(key, newValue, oldValue));
         }
     }
     public class VariableEntity : KeyValueObject
@@ -53,7 +68,7 @@
         /// </summary>
         public VariableTypes VariableType { get; set; }
 
-        protected override void OnValueChanged(object? newValue, object? oldValue)
+        protected override void OnValueChanged(string key, object? newValue, object? oldValue)
         {
             /*
              通过将object值转化为string对比其是否变更
@@ -63,9 +78,10 @@
             if (ActionType != "R01" || ActionType != "R15")
             {
                 //string header =                    "设备名称,       设备类型,    地址,         RW,       旧值,       新值,       变量类型,      描述,            记录时间";
-                TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{FunctionType},{oldValue},{newValue},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss:fff}");
+                //TextRecorder.Instance.EnqueueAsync($"{DeviceName},{DeviceType},{Address},{FunctionType},{oldValue},{newValue},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss:fff}");
             }
             LastRefreshTime = DateTime.Now;
+            base.OnValueChanged(Address, newValue, oldValue);
         }
         /// <summary>
         /// 变量描述
@@ -81,6 +97,11 @@
         /// </summary>
         public bool Disabled { get; set; } = false;
         public VariableEntity() { }
+
+        public override string ToString()
+        {
+            return $"{DeviceName},{DeviceType},{Address},{ActionType},{FunctionType},{{0}},{{1}},{VariableType},{Description},{DateTime.Now:yyyy-MM-dd HH:mm:ss:fff}";
+        }
     }
 
 

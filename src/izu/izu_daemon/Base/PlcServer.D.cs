@@ -23,6 +23,7 @@ namespace IZU.Base
         private Task _serverHeartbeatTask;
         private readonly string _deviceName;
         private List<DataItem> _dataItems;
+        private List<IGrouping<int, DataItem>> _groupedDataItems;
         private IDictionary<int, VariableEntity> _hashes = new Dictionary<int, VariableEntity>();
 
         private bool _stopServer;
@@ -317,8 +318,7 @@ namespace IZU.Base
                     {
                         try
                         {
-                            var grouped = _dataItems.GroupBy(t => t.DB);
-                            foreach (var item in grouped)
+                            foreach (var item in _groupedDataItems)
                             {
                                 _ = await _server.ReadMultipleVarsAsync(item.ToList());
                                 _dataItems.ForEach(t => _hashes[t.GetHashCode()].Value = t.Value);
@@ -371,7 +371,6 @@ namespace IZU.Base
         public void Config(List<VariableEntity> variableEntities)
         {
             if (variableEntities.Count == 0) return;
-
             _dataItems.Clear();
             foreach (var variable in variableEntities)
             {
@@ -397,6 +396,7 @@ namespace IZU.Base
                     _logger.LogWarning("get address  {0}  {1}  error: {2}", _deviceName, variable.Address, ex.Message);
                 }
             }
+            _groupedDataItems = _dataItems.GroupBy(t => t.DB).ToList();
             if (_heart_beat_interval_millionsec > 20)
             {
                 StopServer = false;

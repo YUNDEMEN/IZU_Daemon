@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Text;
 using Wonder.Service.Framework;
-using Wonder.Service.Tcp;
 
 namespace IZU.Tasks
 {
