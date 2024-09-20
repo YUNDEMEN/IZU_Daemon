@@ -1,5 +1,6 @@
 using IZU.Base;
 using IZU.Interfaces;
+using IZU.Tasks;
 using NLog.Extensions.Logging;
 using System.CommandLine;
 using System.Runtime.InteropServices;
@@ -161,6 +162,7 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddTelnetService();
 builder.Services.RegistServices(builder.Configuration);
+builder.Services.AddSingleton<CommandServer>();
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()
 //.OnChange((profile,t) =>
