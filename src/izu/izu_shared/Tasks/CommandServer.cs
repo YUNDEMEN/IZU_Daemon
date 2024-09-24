@@ -638,6 +638,32 @@ namespace IZU.Tasks
             return autoDoor;
         }
 
+         public async Task<string> ReleaseAutoDoor(string doorName)
+        {
+            if (string.IsNullOrEmpty(doorName))
+            {
+                return $"device {doorName} is missing";
+            }
+            IAutoDoor? door = FindAutoDoor(doorName);
+            if (door == null)
+                return $"Auto door is not existed";
+            if (string.IsNullOrEmpty(DoorMan.GetLock(doorName))) 
+                return $"Auto door is not locked";
+
+            int status = door.GetStatus(_logger) ?? -1;
+            if ( status == 0)
+            {
+                //门关到位则进行释放
+                DoorMan.Release(doorName);
+                _logger.LogInformation($"{doorName}released (status={status})");
+            }
+            else
+            {
+                return($"{doorName}failed to release (status={status})");
+            }
+            return string.Empty;
+        }
+
         void HeartbeatingAction()
         {
             if (IsFaulted)

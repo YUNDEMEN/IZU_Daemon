@@ -3,6 +3,7 @@ using IZU.DeviceFactories;
 using IZU.Interfaces;
 using IZU.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using System.Xml.Linq;
 using Wonder.Infrastructure;
 
 namespace IZU.Controllers
@@ -12,10 +13,12 @@ namespace IZU.Controllers
     public class ServiceInfoController : IZUControllerBase
     {
         private readonly ILogger<ServiceInfoController> _logger;
-        public ServiceInfoController(ILogger<ServiceInfoController> logger, IIZUService service, IS7NetService s7netService)
+        private readonly CommandServer _commandServer;
+        public ServiceInfoController(ILogger<ServiceInfoController> logger, IIZUService service, IS7NetService s7netService, CommandServer commandServer)
             : base(service, s7netService)
         {
             _logger = logger;
+            _commandServer = commandServer;
         }
 
         //[Authorize]
@@ -243,6 +246,18 @@ namespace IZU.Controllers
 #if ENABLE_AUTH
 		[Authorize]
 #endif
+        [HttpPost("device/autodoor/release")]
+        public async Task<WonderResponse> DeviceAutoDoorRelease([FromQuery] string name)
+        {
+            string result = await _commandServer.ReleaseAutoDoor(name);
+            if (string.IsNullOrEmpty(result))
+                return WonderResponse.Create("ok");
+            else
+                return WonderResponse.Error(result);
+        }
+#if ENABLE_AUTH
+		[Authorize]
+#endif
         [HttpPost("device/autodoor/stop")]
         public async Task<WonderResponse> DeviceAutoDoorStop([FromQuery] string name)
         {
@@ -343,7 +358,7 @@ namespace IZU.Controllers
                 return WonderResponse.Error(result);
         }
 
-        #endregion
+#endregion
 
         #region fire door Control
 
