@@ -14,13 +14,15 @@ namespace IZU.Service
     {
         private const int BufferSize = 4096;
         private IS7NetService _s7NetService { get; }
+        private IAnotherDataServer _AnotherDataServer {get;}
         public readonly ConcurrentDictionary<Guid, WebsocketServerClient> Clients;
-        public WebSocketService(ILogger<WebSocketService> logger, IS7NetService s7netService)
+        public WebSocketService(ILogger<WebSocketService> logger, IS7NetService s7netService, IAnotherDataServer anotherDataServer)
             : base(logger)
         {
             _logger = logger;
             _s7NetService = s7netService;
             Clients = new();
+            _AnotherDataServer = anotherDataServer;
         }
         public override void Start()
         {
@@ -136,7 +138,11 @@ namespace IZU.Service
                     }
                     currentObject = new() { ["name"] = it.Name };
                     if (it.DeviceType == DeviceTypes.AUTODOOR)
+                    {
+                        string? oht = _AnotherDataServer.GetDoorLock(it.Name);
+                        currentObject["oht"] = oht;
                         currentObject["doorState"] = DeviceFactory.CheckAuodoorStatus(it) == null ? null : DeviceFactory.CheckAuodoorStatus(it)!.ToString();
+                    }
                     var list = from x in it.Variables where x.ActionType.StartsWith('R') select new { k = x.ActionType.ToLower(), v = x.Value };
                     foreach (var item in list)
                     {
