@@ -655,6 +655,7 @@ namespace IZU.Tasks
             {
                 //门关到位则进行释放
                 DoorMan.Release(doorName);
+                _anotherDataServer.UpdateDoorLock(doorName, DoorMan.GetLock(doorName));
                 _logger.LogInformation($"{doorName}released (status={status})");
             }
             else

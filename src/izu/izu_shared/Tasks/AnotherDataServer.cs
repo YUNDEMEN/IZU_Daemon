@@ -120,6 +120,11 @@ namespace IZU.Tasks
             return root;
         }
 
+        public string? GetDoorLock(string name)
+        {
+            doorLocks.TryGetValue(name, out string? oht);
+            return oht;
+        }
     }
 
 }
