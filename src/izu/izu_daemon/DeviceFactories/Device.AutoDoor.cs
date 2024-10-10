@@ -6,7 +6,7 @@ namespace IZU.DeviceFactories
 {
     public class AutoDoor : Device, IAutoDoor
     {
-        public readonly (string RW01, string RW02, string RW03, string RW04, string RW05, string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14,string R15, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
+        public readonly (string RW01, string RW02, string RW03, string RW04, string RW05, string R00, string R01, string R02, string R03, string R04, string R05, string R06, string R07, string R08, string R09, string R10, string R11, string R12, string R13, string R14,string R15, string R16, string W01, string W02, string W03, string W04, string W05, string W06, string W07, string W08, string W09, string W10) address_tup = new();
 
         public AutoDoor() { }
         public AutoDoor(DeviceBase deviceEntity) : base(deviceEntity)
@@ -31,6 +31,7 @@ namespace IZU.DeviceFactories
             address_tup.R11 = GetActionType("R11");  //        初始化回原点完成
             address_tup.R12 = GetActionType("R12");  //        故障复位返回信号
             address_tup.R13 = GetActionType("R13");  //        紧急停止返回信号
+            address_tup.R16 = GetActionType("R16");  //        检测到天车
             address_tup.R14 = GetActionType("R14");  //        自动/手动模式返回信号
             address_tup.R15 = GetActionType("R15");  //        当前位置
             address_tup.W01 = GetActionType("W01");  //        启动运行
@@ -169,6 +170,16 @@ namespace IZU.DeviceFactories
             if (!string.IsNullOrEmpty(state)) return state;
             if (@r08.Value)
                 return "door is closed!";
+
+            //检测到天车
+            if(address_tup.R16 != string.Empty)
+            {
+                Ref<bool> @r16 = new();
+                string OHTDetection = await GetBool(address_tup.R16, @r16);
+                if (!string.IsNullOrEmpty(OHTDetection)) return OHTDetection;
+                if (@r16.Value)
+                    return "There is an Oht in Autodoor!";
+            }
 
             // 将开门写false，双重保险
             //await WriteBool(address_tup.W07, false);
