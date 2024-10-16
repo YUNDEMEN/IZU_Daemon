@@ -19,7 +19,12 @@ namespace IZU.Base
             _logger = LogManager.Factory.CreateLogger<Device>();
             var v = _deviceEntity.Variables.FirstOrDefault(t => t.ActionType == actionType);
             if (v == null || string.IsNullOrEmpty(v.Address))
-                throw new Exception($"{actionType} action is not marked in {_deviceEntity.Name}");
+            {
+                if (actionType == "R16")
+                    return string.Empty;
+                else
+                    throw new Exception($"{actionType} action is not marked in {_deviceEntity.Name}");
+            }
             return v.Address;
         }
 
