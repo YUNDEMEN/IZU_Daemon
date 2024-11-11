@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Base\EntityVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Base\IZUConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extension\CustomerLogWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAnotherDataServer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAutoDoor.cs" />

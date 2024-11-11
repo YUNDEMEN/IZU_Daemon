@@ -3,8 +3,10 @@ using IZU.Interfaces;
 using IZU.Tasks;
 using NLog.Extensions.Logging;
 using System.CommandLine;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
+using WD.NLog.Extensions.Logging;
 using Wonder.Infrastructure;
 using Wonder.Service;
 using Wonder.Service.Framework;
@@ -178,6 +180,11 @@ var app = builder.Build();
 //    IZUConfig.ServerIP = serverUrl.Host;
 //    IZUConfig.ServerPort = serverUrl.Port;
 //});
+string? logUrl = builder.Configuration["ELK_log"];
+if (logUrl != null)
+{
+    CustomerLogWriter.StartSendLog(logUrl);
+}
 app.UseTelnet();
 app.UseCors("AllowAnyOrigin");
 app.UseWebSockets();
