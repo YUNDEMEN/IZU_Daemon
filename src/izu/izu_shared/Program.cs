@@ -10,6 +10,8 @@ using WD.NLog.Extensions.Logging;
 using Wonder.Infrastructure;
 using Wonder.Service;
 using Wonder.Service.Framework;
+using Quartz.AspNetCore;
+using izu.moxa;
 
 #region 检查程序配置是否存在
 DirectoryInfo dir = new(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startEx"));
@@ -165,6 +167,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddTelnetService();
 builder.Services.RegistServices(builder.Configuration);
 builder.Services.AddSingleton<CommandServer>();
+bool moxaEnable = builder.Configuration.GetValue<bool>("MXJobEnable");
+if (moxaEnable)
+{
+    builder.Services.AddQuartz(builder.Configuration);
+}
 //builder.Services.BuildServiceProvider()
 //.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<IZUConfig>>()
 //.OnChange((profile,t) =>
@@ -180,8 +187,8 @@ var app = builder.Build();
 //    IZUConfig.ServerIP = serverUrl.Host;
 //    IZUConfig.ServerPort = serverUrl.Port;
 //});
-string? logUrl = builder.Configuration["ELK_log"];
-if (logUrl != null)
+string? logUrl = builder.Configuration.GetValue<string>("ELK_log");
+if (!string.IsNullOrEmpty(logUrl))
 {
     CustomerLogWriter.StartSendLog(logUrl);
 }

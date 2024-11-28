@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Wonder.Infrastructure;
 
 
@@ -60,6 +61,26 @@ namespace IZU.Base
         /// </summary>
         public static int izuId;
 
+        /// <summary>
+        /// MXview one host
+        /// </summary>
+        public static string MXviewHost;
+
+        /// <summary>
+        /// MXview one token
+        /// </summary>
+        public static string MXviewToken;
+
+        /// <summary>
+        /// MXJob是否启用
+        /// </summary>
+        public static string MXJobEnable;
+
+        /// <summary>
+        /// MX监控设备列表
+        /// </summary>
+        public static List<MXDev> MXDevList;
+
         public static string Read()
         {
             string appsettingsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
@@ -98,6 +119,18 @@ namespace IZU.Base
                 if (configJson["IntervalDataSend"] == null)
                     return "IntervalDataSend node not found!";
 
+                if (configJson["MXviewHost"] == null)
+                    return "MXviewHost node not found!";
+
+                if (configJson["MXviewToken"] == null)
+                    return "MXviewToken node not found!";
+
+                if (configJson["MXJobEnable"] == null)
+                    return "MXJobEnable node not found!";
+
+                if (configJson["MXDevList"] == null)
+                    return "MXDevList node not found!";
+
                 MulticastIP = configJson["multicast_ip"]!.ToString();
                 BackendIZUBaseUrl = configJson!["izu_backend"]!.ToString();
                 DeviceTableFrom = configJson["usecsv"] != null ? "localcsv" : "db";
@@ -108,7 +141,10 @@ namespace IZU.Base
                 PortDataSend = Int32.Parse(configJson!["PortDataSend"]!.ToString());
                 IntervalDataSend = Int32.Parse(configJson!["IntervalDataSend"]!.ToString());
                 izuId = Int32.Parse(configJson!["izuId"]!.ToString());
-                OSOChannel= configJson!["oso_cmd"]!.ToString();
+                MXviewHost = configJson!["MXviewHost"]!.ToString();
+                MXviewToken = configJson!["MXviewToken"]!.ToString();
+                MXJobEnable = configJson!["MXJobEnable"]!.ToString();
+                MXDevList = JsonConvert.DeserializeObject<List<MXDev>>(configJson!["MXDevList"]!.ToString());
             }
             catch (Exception ex)
             {
@@ -172,5 +208,14 @@ namespace IZU.Base
             printer.AppendLine($"variables:{IZUConfig.DeviceTableFrom}");
             return printer.ToString();
         }
+    }
+
+    public class MXDev
+    {
+        public string Name { get; set; }
+
+        public string MXDevIP { get; set; }
+
+        public string IsOHT { get; set; }
     }
 }
