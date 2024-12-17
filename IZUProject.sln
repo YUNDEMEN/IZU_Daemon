@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		build.izu.d.bat = build.izu.d.bat
 		build.izu.e-s.bat = build.izu.e-s.bat
 		build.izu.e.bat = build.izu.e.bat
+		build.ps1 = build.ps1
 		changelog.txt = changelog.txt
 		Dockerfile = Dockerfile
 		service-install-u.bat = service-install-u.bat
