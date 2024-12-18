@@ -1,9 +1,12 @@
 ﻿using IZU.Base;
 using IZU.DeviceFactories;
 using IZU.Interfaces;
+using NNanomsg;
 using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Security.Policy;
+using System.Text;
 using Wonder.Service.Framework;
 
 namespace IZU.Tasks
@@ -13,7 +16,9 @@ namespace IZU.Tasks
     {
         private readonly IAnotherDataServer _anotherDataServer;
         private readonly IS7NetService _s7NetService;
-        private ReplySocket? replySocket;
+        //private ReplySocket? replySocket;
+        private int serverSocket;
+        private BlockingCollection<QueuedMsg> requestQueue;
         public CommandServer(ILogger<CommandServer> logger, IS7NetService s7NetService, IAnotherDataServer anotherDataServer)
             : base(logger)
         {
@@ -25,30 +30,91 @@ namespace IZU.Tasks
         {
             var ds = _s7NetService.GetAllDeviceNames();
             DoorMan.Init(ds);
-
-            replySocket = new ReplySocket();
-            replySocket.Options.SendTimeout = TimeSpan.FromSeconds(2);
-            replySocket.Bind($"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
+            var serverSocket = NN.Socket(Domain.SP_RAW, Protocol.REP);
+            NN.Bind(serverSocket, $"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
+            _logger.LogInformation("CommandServer start ... ");
+            //NN.SetSockOpt(serverSocket, SocketOption.SNDBUF, 1024 * 1024);  // 设置发送缓冲区为1MB
+            requestQueue = new BlockingCollection<QueuedMsg>();
             base.Start();
         }
         protected override bool NoDelay => true;
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             lastExecuteTime = DateTime.Now.ToString();
-            byte[] buffer = replySocket.Receive();
-            if (buffer != null)
+            _ = Task.Run(async () =>
             {
-                string operation_feedback = System.Text.Encoding.UTF8.GetString(buffer);
-                operation_feedback = await CommandHandler(operation_feedback);
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    try
+                    {
+                        var receive = requestQueue.Take();
+                        if (receive != null && receive.Bytes.Count() > 0)
+                        {
+                            string operation_feedback = System.Text.Encoding.UTF8.GetString(receive.Bytes);
+                            _logger.LogInformation($"OSO Receive: {operation_feedback}");
+                            operation_feedback = await CommandHandler(operation_feedback);
+                            _logger.LogInformation($"command executed :{operation_feedback}");
+                            unsafe
+                            {
+                                NNPollSend(serverSocket, operation_feedback, receive.ControlPointer);
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"CommandServer Received null message");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError("CommandServer handle message with exception {0}", ex.ToString());
+                    }
+                }
+            }, cancellationToken);
 
-                _logger.LogInformation($"sendback :{operation_feedback}");
-                replySocket.Send(System.Text.Encoding.UTF8.GetBytes(operation_feedback));
-            }
-            else
+            while (!cancellationToken.IsCancellationRequested)
             {
-                _logger.LogWarning($"CommandServer Received null message");
-                replySocket.Send(System.Text.Encoding.UTF8.GetBytes("NULL"));
+                try
+                {
+                    var sockets = new[] { serverSocket };
+                    var pollResults = NN.Poll(sockets, TimeSpan.FromSeconds(-1));
+                    if (pollResults[0] == 1)
+                    {
+                        byte[] receive = new byte[1024];
+                        unsafe
+                        {
+                            void* control = null;
+                            var result = NN.Recv_W(serverSocket, out receive, &control, SendRecvFlags.NONE);
+                            if (result > 0)
+                            {
+                                requestQueue.Add(new QueuedMsg
+                                {
+                                    Bytes = receive.ToArray(),
+                                    ControlPointer = control
+                                });
+                            }
+                        }
+
+                    }
+                    else
+                        Thread.Sleep(1);
+
+                }
+                catch (Exception ae)
+                {
+                    _logger.LogError("CommandServer receive message with exception {0}", ae.ToString());
+                }
             }
+        }
+        private unsafe void NNPollSend(int serverSocket, string msg, void* control)
+        {
+            var ack = NN.Send_W(serverSocket, Encoding.UTF8.GetBytes(msg), &control, SendRecvFlags.DONTWAIT);
+            if (ack < 0)
+            {
+                int errorCode = NN.Errno();
+                string errorMsg = NN.StrError(errorCode);
+                _logger.LogDebug($"Reply OHT failed, error code: {errorCode}, error message: {errorMsg}");
+            }
+            _logger.LogDebug($"Already reply OHT: {msg} for message: {msg}, ack: {ack}");
         }
         IDictionary<string, string> ToKeyed(string argstr)
         {
@@ -812,5 +878,12 @@ namespace IZU.Tasks
 
             return string.Join(", ", openedoors[name]);
         }
+    }
+
+    public unsafe class QueuedMsg
+    {
+        public byte[] Bytes { get; set; }
+
+        public void* ControlPointer { get; set; }
     }
 }
