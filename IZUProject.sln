@@ -6,6 +6,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{81C39C57-6B85-4FD9-B335-17755456CB18}"
 	ProjectSection(SolutionItems) = preProject
 		src\framework\build.frw.bat = src\framework\build.frw.bat
+		build.bat = build.bat
 		build.izu.d-s.bat = build.izu.d-s.bat
 		build.izu.d.bat = build.izu.d.bat
 		build.izu.e-s.bat = build.izu.e-s.bat
