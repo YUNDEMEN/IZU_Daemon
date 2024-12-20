@@ -30,7 +30,7 @@ namespace IZU.Tasks
         {
             var ds = _s7NetService.GetAllDeviceNames();
             DoorMan.Init(ds);
-            var serverSocket = NN.Socket(Domain.SP_RAW, Protocol.REP);
+            serverSocket = NN.Socket(Domain.SP_RAW, Protocol.REP);
             NN.Bind(serverSocket, $"tcp://{IZUConfig.ServerIP}:{IZUConfig.PortNanoCommandServer}");
             _logger.LogInformation("CommandServer start ... ");
             //NN.SetSockOpt(serverSocket, SocketOption.SNDBUF, 1024 * 1024);  // 设置发送缓冲区为1MB
