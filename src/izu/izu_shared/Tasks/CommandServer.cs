@@ -4,6 +4,7 @@ using IZU.Interfaces;
 using NNanomsg.Protocols;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Xml.Linq;
 using Wonder.Service.Framework;
 
 namespace IZU.Tasks
@@ -206,35 +207,54 @@ namespace IZU.Tasks
             }
 
             int status = -1;
-            string result = await door.OpenAsync();
-            if (!string.IsNullOrEmpty(result))
-            {
-                _logger.LogWarning($"[{oht}][OPENDOOR] " + result);
-            }
-
-            //尝试将当前天车与门锁定
-            //一旦锁定, 在门关闭前无法再次锁定
-            //只有门关闭后, 才释放
-            bool locked = DoorMan.TryLock(name, oht);
-            if (locked)
-            {//锁定后, 下次不能锁定
-                _logger.LogInformation($"[{oht}][OPENDOOR] {name} lock [{DoorMan.GetLock(name)}]");
-            }
 
             //检查门是否被当前天车占用
             if (DoorMan.CheckLock(name, oht))
-            {//如果是, 则返回门状态
+            {
+                //当前车占据门尝试开门
+                string result = await door.OpenAsync();
+                if (!string.IsNullOrEmpty(result))
+                {
+                    _logger.LogWarning($"[{oht}][OPENDOOR] " + result);
+                }
+                //返回门状态
                 status = door.GetStatus() ?? -1;
             }
-            else//如果否, 则返回关闭状态
-                status = 0;
-            _anotherDataServer.UpdateDoorLock(name, DoorMan.GetLock(name));
+            else
+            {
+                //尝试将当前天车与门锁定
+                //一旦锁定, 在门关闭前无法再次锁定
+                //只有门关闭后, 才释放
+                bool locked = DoorMan.TryLock(name, oht);
+                if (locked)
+                {
+                    //锁定后, 下次不能锁定
+                    _logger.LogInformation($"[{oht}][OPENDOOR] {name} lock [{DoorMan.GetLock(name)}]");
+                    _anotherDataServer.UpdateDoorLock(name, DoorMan.GetLock(name));
+                    //锁定后尝试开门
+                    string result = await door.OpenAsync();
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        _logger.LogWarning($"[{oht}][OPENDOOR] " + result);
+                    }
+                    //如果是, 则返回门状态
+                    status = door.GetStatus() ?? -1;
+                }
+                else
+                {
+                    //如果否, 则返回关闭状态
+                    status = 0;
+                }
+            }
+
             await Task.Delay(50);
             return $"{ToName(status)}";
         }
         async Task<string> CloseAsync(IDictionary<string, string> args)
         {
             args.TryGetValue("oht", out string? oht);
+            if (string.IsNullOrEmpty(oht))
+                oht = string.Empty;
             args.TryGetValue("door", out string? name);
 
             if (string.IsNullOrEmpty(name))
@@ -250,13 +270,15 @@ namespace IZU.Tasks
                 return "NULL";
             }
             string result = string.Empty;
-            result = await door.CloseAsync();
-            if (!string.IsNullOrEmpty(result))
+            //检查门是否被当前天车占用
+            if (DoorMan.CheckLock(name, oht))
             {
-                _logger.LogWarning($"[{oht}][CLOSEDOOR] " + result);
-            }
-            else
-            {
+                result = await door.CloseAsync();
+                if (!string.IsNullOrEmpty(result))
+                {
+                    _logger.LogWarning($"[{oht}][CLOSEDOOR] First close" + result);
+                }
+                // 检查门状态，符合条件则释放门，否则重复尝试关门
                 ReleaseDoor(name, oht);
             }
             int status = door.GetStatus() ?? -1;
@@ -269,6 +291,7 @@ namespace IZU.Tasks
             {
                 if (string.IsNullOrEmpty(DoorMan.GetLock(doorName))) return;
                 IAutoDoor? door = FindAutoDoor(doorName);
+                int x = 1;
                 if (door == null) return;
                 while (true)
                 {
@@ -277,12 +300,20 @@ namespace IZU.Tasks
                     {
                         //门正在关或者关到位后, 自动解锁
                         DoorMan.Release(doorName);
-                        _logger.LogInformation($"[{oht}]:released {doorName} (status={status})");
+                        _logger.LogInformation($"[{oht}]:released {doorName} success (status={status})");
                         break;
                     }
                     else
                     {
-                        _logger.LogInformation($"[{oht}]:failed to release {doorName} (status={status})");
+                        //_logger.LogInformation($"[{oht}]:failed to release {doorName} (status={status})");
+                        //尝试再次关门
+                        _logger.LogInformation($"[{oht}]:close {doorName} again");
+                        x++;
+                        var result = await door.CloseAsync();
+                        if (!string.IsNullOrEmpty(result))
+                        {
+                            _logger.LogWarning($"[{oht}][CLOSEDOOR] close {x}th," + result);
+                        }
                     }
                     await Task.Delay(200);
                 }

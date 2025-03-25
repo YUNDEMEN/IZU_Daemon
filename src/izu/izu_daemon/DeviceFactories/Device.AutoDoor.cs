@@ -171,14 +171,14 @@ namespace IZU.DeviceFactories
             if (@r08.Value)
                 return "door is closed!";
 
-            //检测到天车
+            //检测到天车            
             if(address_tup.R16 != string.Empty)
             {
                 Ref<bool> @r16 = new();
                 string OHTDetection = await GetBool(address_tup.R16, @r16);
                 if (!string.IsNullOrEmpty(OHTDetection)) return OHTDetection;
                 if (@r16.Value)
-                    return "There is an Oht in Autodoor!";
+                    return $"There is an Oht in Autodoor! R16:{@r16.Value}.";
             }
 
             // 将开门写false，双重保险

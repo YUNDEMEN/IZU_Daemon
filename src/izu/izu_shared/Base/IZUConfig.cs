@@ -141,6 +141,7 @@ namespace IZU.Base
                 PortDataSend = Int32.Parse(configJson!["PortDataSend"]!.ToString());
                 IntervalDataSend = Int32.Parse(configJson!["IntervalDataSend"]!.ToString());
                 izuId = Int32.Parse(configJson!["izuId"]!.ToString());
+                OSOChannel = configJson!["oso_cmd"]!.ToString();
                 MXviewHost = configJson!["MXviewHost"]!.ToString();
                 MXviewToken = configJson!["MXviewToken"]!.ToString();
                 MXJobEnable = configJson!["MXJobEnable"]!.ToString();
